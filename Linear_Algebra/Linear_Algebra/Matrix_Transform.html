@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Matrix Transform — Expression Mode</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:       #ffffff;
+  --bg2:      #f5f4f0;
+  --bg3:      #eceae3;
+  --border:   rgba(0,0,0,0.09);
+  --border2:  rgba(0,0,0,0.18);
+  --text:     #1a1a18;
+  --text2:    #6b6a65;
+  --text3:    #9c9a92;
+  --blue:     #378ADD;
+  --red:      #D85A30;
+  --green:    #1D9E75;
+  --amber:    #BA7517;
+  --purple:   #7F77DD;
+  --info-bg:  #e6f1fb;
+  --info-fg:  #185FA5;
+  --ok-bg:    #eaf3de;
+  --ok-fg:    #3B6D11;
+  --err-bg:   #fcebeb;
+  --err-fg:   #a32d2d;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --font: 'Segoe UI', system-ui, sans-serif;
+  --mono: 'Courier New', monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg:      #1a1a18;
+    --bg2:     #232320;
+    --bg3:     #2c2c28;
+    --border:  rgba(255,255,255,0.08);
+    --border2: rgba(255,255,255,0.16);
+    --text:    #e8e6de;
+    --text2:   #9c9a92;
+    --text3:   #6b6a65;
+    --info-bg: #0c2d4a;
+    --info-fg: #85b7eb;
+    --ok-bg:   #173404;
+    --ok-fg:   #97c459;
+    --err-bg:  #2a0f0f;
+    --err-fg:  #f09595;
+  }
+}
+
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  padding: 1.2rem 1rem 3rem;
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+/* ── Header ── */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.title { font-size: 17px; font-weight: 500; }
+.subtitle { font-size: 12px; color: var(--text2); margin-top: 2px; }
+
+/* ── Dim toggle ── */
+.toggle-wrap {
+  display: flex;
+  background: var(--bg2);
+  border: 0.5px solid var(--border2);
+  border-radius: 30px;
+  padding: 3px;
+  gap: 2px;
+}
+.toggle-btn {
+  padding: 5px 18px;
+  border-radius: 26px;
+  border: none;
+  background: transparent;
+  color: var(--text2);
+  font-size: 13px;
+  font-family: var(--font);
+  cursor: pointer;
+  transition: background .15s, color .15s;
+}
+.toggle-btn.active {
+  background: var(--bg);
+  color: var(--text);
+  font-weight: 500;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.10);
+}
+
+/* ── Panel ── */
+.panel {
+  background: var(--bg2);
+  border-radius: var(--radius-lg);
+  padding: .85rem 1rem;
+  margin-bottom: 10px;
+  border: 0.5px solid var(--border);
+}
+.lbl {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--text2);
+  margin: 0 0 8px;
+  font-weight: 500;
+}
+
+/* ── Theta bar ── */
+.theta-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.theta-val {
+  font-family: var(--mono);
+  font-size: 13px;
+  min-width: 100px;
+  color: var(--purple);
+  font-weight: 500;
+}
+input[type=range] {
+  flex: 1;
+  min-width: 120px;
+  accent-color: var(--purple);
+}
+.presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 8px;
+}
+.preset-btn {
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  border: 0.5px solid var(--border2);
+  background: transparent;
+  color: var(--text2);
+  cursor: pointer;
+  font-family: var(--mono);
+  transition: background .12s, color .12s;
+}
+.preset-btn:hover {
+  background: var(--info-bg);
+  color: var(--info-fg);
+  border-color: transparent;
+}
+
+/* ── Matrix grid ── */
+.matrix-section {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.bracket {
+  font-size: 52px;
+  line-height: 1;
+  color: var(--border2);
+  font-weight: 100;
+  align-self: center;
+}
+.mat-grid {
+  display: grid;
+  gap: 5px;
+}
+.mat-grid.g2 { grid-template-columns: repeat(2, 1fr); }
+.mat-grid.g3 { grid-template-columns: repeat(3, 1fr); }
+
+.cell-wrap { display: flex; flex-direction: column; gap: 2px; }
+
+input.cell {
+  width: 108px;
+  text-align: center;
+  font-size: 13px;
+  font-family: var(--mono);
+  padding: 6px 4px;
+  border-radius: 6px;
+  border: 0.5px solid var(--border2);
+  background: var(--bg);
+  color: var(--text);
+  transition: border-color .15s, box-shadow .15s;
+}
+input.cell:focus { outline: none; border-color: var(--purple); box-shadow: 0 0 0 2px rgba(127,119,221,0.18); }
+input.cell.cb { border-left: 2.5px solid var(--blue); }
+input.cell.cr { border-left: 2.5px solid var(--red); }
+input.cell.cg { border-left: 2.5px solid var(--green); }
+
+.eval-val {
+  font-size: 10px;
+  font-family: var(--mono);
+  text-align: center;
+  padding: 1px 4px;
+  border-radius: 4px;
+  background: var(--ok-bg);
+  color: var(--ok-fg);
+  min-height: 16px;
+}
+.eval-val.err { background: var(--err-bg); color: var(--err-fg); }
+
+.col-info {
+  font-size: 12px;
+  color: var(--text2);
+  line-height: 2;
+  padding-top: 4px;
+}
+.col-info span { font-weight: 500; }
+
+/* ── Quick-insert bar ── */
+.quick-insert {
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
+.qi-label { font-size: 11px; color: var(--text3); margin-right: 2px; }
+.qi-btn {
+  padding: 3px 9px;
+  border-radius: 16px;
+  font-size: 11px;
+  font-family: var(--mono);
+  border: 0.5px solid var(--border2);
+  background: var(--bg3);
+  color: var(--text);
+  cursor: pointer;
+  transition: background .12s;
+}
+.qi-btn:hover { background: var(--info-bg); color: var(--info-fg); border-color: transparent; }
+
+/* ── Tabs ── */
+.tabs { display: flex; gap: 6px; margin-bottom: 10px; }
+.tab {
+  padding: 4px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  cursor: pointer;
+  border: 0.5px solid var(--border2);
+  background: transparent;
+  color: var(--text2);
+  font-family: var(--font);
+  transition: background .12s, color .12s;
+}
+.tab.active { background: var(--info-bg); color: var(--info-fg); border-color: transparent; }
+
+/* ── Canvases ── */
+canvas {
+  display: block;
+  border-radius: var(--radius-md);
+  border: 0.5px solid var(--border);
+  background: var(--bg);
+  width: 100%;
+}
+.canvases-2d { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 6px; }
+@media (max-width: 480px) { .canvases-2d { grid-template-columns: 1fr; } }
+
+.canvas-lbl { font-size: 11px; color: var(--text2); margin-bottom: 5px; font-weight: 500; text-transform: uppercase; letter-spacing: .05em; }
+.hint { text-align: center; font-size: 11px; color: var(--text3); margin: 4px 0 10px; }
+
+/* ── Info grid ── */
+.info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+@media (max-width: 480px) { .info-grid { grid-template-columns: 1fr; } }
+
+.vec-row { display: flex; align-items: center; gap: 8px; margin: 4px 0; font-size: 12px; font-family: var(--mono); }
+.dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+
+/* ── Legend ── */
+.legend { display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px; color: var(--text2); margin: 5px 0 10px; padding: 0 2px; }
+.legend-item { display: flex; align-items: center; gap: 5px; }
+
+/* ── Explainer ── */
+.explainer { font-size: 13px; color: var(--text2); line-height: 1.75; }
+.explainer strong { color: var(--text); font-weight: 500; }
+
+/* ── Section hide/show ── */
+.section { display: none; }
+.section.active { display: block; }
+
+/* ── Det badge ── */
+#det2Label, #det3Label {
+  font-size: 12px;
+  color: var(--text2);
+  margin-top: 4px;
+  font-family: var(--mono);
+}
+</style>
+</head>
+<body>
+
+<!-- ── Header ── -->
+<div class="header">
+  <div>
+    <div class="title">Matrix Basis Transform</div>
+    <div class="subtitle">Supports expressions: cos(t), sin(t), sqrt(t), log(t), t², pi, e …</div>
+  </div>
+  <div class="toggle-wrap">
+    <button class="toggle-btn active" id="btn2d" onclick="switchDim('2d')">2D</button>
+    <button class="toggle-btn"        id="btn3d" onclick="switchDim('3d')">3D</button>
+  </div>
+</div>
+
+<!-- ── Theta control (shared) ── -->
+<div class="panel">
+  <p class="lbl">θ (theta) — use in any cell expression</p>
+  <div class="theta-bar">
+    <span class="theta-val" id="thetaVal">θ = 0°</span>
+    <input type="range" min="0" max="360" value="0" id="thetaSlider" oninput="onTheta()">
+    <span style="font-size:12px;color:var(--text2);" id="thetaRad">0 rad</span>
+  </div>
+  <div class="presets">
+    <span style="font-size:11px;color:var(--text3);margin-right:2px;">Presets →</span>
+    <button class="preset-btn" onclick="setPreset2d('rot')">Rotation 2D</button>
+    <button class="preset-btn" onclick="setPreset2d('scale')">Scale 2D</button>
+    <button class="preset-btn" onclick="setPreset2d('shear')">Shear 2D</button>
+    <button class="preset-btn" onclick="setPreset2d('reflect')">Reflect 2D</button>
+    <button class="preset-btn" onclick="setPreset3d('rotZ')">Rot-Z 3D</button>
+    <button class="preset-btn" onclick="setPreset3d('rotX')">Rot-X 3D</button>
+    <button class="preset-btn" onclick="setPreset3d('scale3')">Scale 3D</button>
+  </div>
+</div>
+
+<!-- ═══ 2D SECTION ═══ -->
+<div class="section active" id="sec2d">
+
+  <div class="panel">
+    <p class="lbl">2 × 2 Matrix M — enter expressions or numbers</p>
+    <div class="matrix-section">
+      <span class="bracket">[</span>
+      <div class="mat-grid g2" id="grid2d">
+        <!-- cells injected by JS -->
+      </div>
+      <span class="bracket">]</span>
+      <div class="col-info">
+        <div><span style="color:var(--blue);">Col 1</span> → where e₁ goes</div>
+        <div><span style="color:var(--red);">Col 2</span> → where e₂ goes</div>
+        <div id="det2Label">det = ?</div>
+      </div>
+    </div>
+    <!-- quick insert -->
+    <div class="quick-insert">
+      <span class="qi-label">Insert →</span>
+      <button class="qi-btn" onclick="insertExpr('cos(t)')">cos(t)</button>
+      <button class="qi-btn" onclick="insertExpr('-sin(t)')">-sin(t)</button>
+      <button class="qi-btn" onclick="insertExpr('sin(t)')">sin(t)</button>
+      <button class="qi-btn" onclick="insertExpr('cos(t)*t')">cos(t)·t</button>
+      <button class="qi-btn" onclick="insertExpr('log(t+1)')">log(t+1)</button>
+      <button class="qi-btn" onclick="insertExpr('sqrt(t)')">√t</button>
+      <button class="qi-btn" onclick="insertExpr('t^2')">t²</button>
+      <button class="qi-btn" onclick="insertExpr('tan(t)')">tan(t)</button>
+      <button class="qi-btn" onclick="insertExpr('pi')">π</button>
+      <button class="qi-btn" onclick="insertExpr('e')">e</button>
+    </div>
+  </div>
+
+  <!-- canvases -->
+  <div class="canvases-2d">
+    <div><p class="canvas-lbl">Before — standard basis</p><canvas id="c2dB" width="340" height="300"></canvas></div>
+    <div><p class="canvas-lbl">After — M applied</p>      <canvas id="c2dA" width="340" height="300"></canvas></div>
+  </div>
+
+  <div class="legend">
+    <span class="legend-item"><span class="dot" style="background:var(--blue);"></span>e₁ / Col 1</span>
+    <span class="legend-item"><span class="dot" style="background:var(--red);"></span>e₂ / Col 2</span>
+    <span class="legend-item"><span class="dot" style="background:var(--green);opacity:.7;"></span>Unit square</span>
+    <span class="legend-item"><span style="width:16px;height:2px;background:var(--amber);display:inline-block;border-radius:1px;"></span>Sample v=(0.6,0.8)</span>
+  </div>
+
+  <div class="info-grid">
+    <div class="panel">
+      <p class="lbl">Before</p>
+      <div class="vec-row"><span class="dot" style="background:var(--blue);"></span>e₁ = (1, 0)</div>
+      <div class="vec-row"><span class="dot" style="background:var(--red);"></span>e₂ = (0, 1)</div>
+      <div class="vec-row"><span class="dot" style="background:var(--amber);"></span>v  = (0.6, 0.8)</div>
+    </div>
+    <div class="panel">
+      <p class="lbl">After</p>
+      <div class="vec-row"><span class="dot" style="background:var(--blue);"></span><span id="ae1" style="color:var(--blue);">M·e₁ = …</span></div>
+      <div class="vec-row"><span class="dot" style="background:var(--red);"></span><span id="ae2" style="color:var(--red);">M·e₂ = …</span></div>
+      <div class="vec-row"><span class="dot" style="background:var(--amber);"></span><span id="av"  style="color:var(--amber);">M·v  = …</span></div>
+    </div>
+  </div>
+
+  <div class="panel explainer">
+    Drag the θ slider to animate. The unit square becomes a <strong>parallelogram</strong> — its area = |det(M)|.
+    Try <strong>cos(t) / -sin(t) / sin(t) / cos(t)</strong> for a pure rotation that preserves shape.
+  </div>
+</div>
+
+<!-- ═══ 3D SECTION ═══ -->
+<div class="section" id="sec3d">
+
+  <div class="panel">
+    <p class="lbl">3 × 3 Matrix M — enter expressions or numbers</p>
+    <div class="matrix-section">
+      <span class="bracket">[</span>
+      <div class="mat-grid g3" id="grid3d">
+        <!-- cells injected by JS -->
+      </div>
+      <span class="bracket">]</span>
+      <div class="col-info">
+        <div><span style="color:var(--blue);">Col 1</span> → e₁ (x-axis)</div>
+        <div><span style="color:var(--red);">Col 2</span> → e₂ (y-axis)</div>
+        <div><span style="color:var(--green);">Col 3</span> → e₃ (z-axis)</div>
+        <div id="det3Label">det = ?</div>
+      </div>
+    </div>
+    <div class="quick-insert">
+      <span class="qi-label">Insert →</span>
+      <button class="qi-btn" onclick="insertExpr('cos(t)')">cos(t)</button>
+      <button class="qi-btn" onclick="insertExpr('-sin(t)')">-sin(t)</button>
+      <button class="qi-btn" onclick="insertExpr('sin(t)')">sin(t)</button>
+      <button class="qi-btn" onclick="insertExpr('log(t+1)')">log(t+1)</button>
+      <button class="qi-btn" onclick="insertExpr('sqrt(t)')">√t</button>
+      <button class="qi-btn" onclick="insertExpr('t^2')">t²</button>
+      <button class="qi-btn" onclick="insertExpr('tan(t)')">tan(t)</button>
+      <button class="qi-btn" onclick="insertExpr('pi')">π</button>
+      <button class="qi-btn" onclick="insertExpr('0')">0</button>
+      <button class="qi-btn" onclick="insertExpr('1')">1</button>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="setView('before')">Before</button>
+    <button class="tab"        onclick="setView('after')">After</button>
+    <button class="tab"        onclick="setView('both')">Both</button>
+  </div>
+
+  <canvas id="c3d" width="680" height="400"></canvas>
+  <p class="hint">drag to rotate · scroll to zoom</p>
+
+  <div class="info-grid">
+    <div class="panel">
+      <p class="lbl">Standard basis (before)</p>
+      <div class="vec-row"><span class="dot" style="background:var(--blue);"></span>e₁ = (1, 0, 0)</div>
+      <div class="vec-row"><span class="dot" style="background:var(--red);"></span>e₂ = (0, 1, 0)</div>
+      <div class="vec-row"><span class="dot" style="background:var(--green);"></span>e₃ = (0, 0, 1)</div>
+    </div>
+    <div class="panel">
+      <p class="lbl">Transformed (after)</p>
+      <div class="vec-row"><span class="dot" style="background:var(--blue);"></span><span id="c1lbl" style="color:var(--blue);">M·e₁ = ?</span></div>
+      <div class="vec-row"><span class="dot" style="background:var(--red);"></span><span id="c2lbl" style="color:var(--red);">M·e₂ = ?</span></div>
+      <div class="vec-row"><span class="dot" style="background:var(--green);"></span><span id="c3lbl" style="color:var(--green);">M·e₃ = ?</span></div>
+    </div>
+  </div>
+
+  <div class="panel explainer">
+    The unit cube becomes a <strong>parallelepiped</strong> — volume = |det(M)|.
+    Try <strong>Rot-Z</strong> preset to see orthogonal rotation in 3D, or mix expressions like <strong>cos(t)·t</strong> for spiral transforms.
+  </div>
+</div>
+
+
+<script>
+/* ══════════════════════════════════════════════
+   EXPRESSION EVALUATOR
+══════════════════════════════════════════════ */
+function evalExpr(expr, t) {
+  if (expr === undefined || expr === '') return NaN;
+  let s = expr.trim()
+    .replace(/\^/g, '**')
+    .replace(/\bpi\b/gi, '(Math.PI)')
+    .replace(/\be\b/g, '(Math.E)')
+    .replace(/\bsin\b/g,  'Math.sin')
+    .replace(/\bcos\b/g,  'Math.cos')
+    .replace(/\btan\b/g,  'Math.tan')
+    .replace(/\basin\b/g, 'Math.asin')
+    .replace(/\bacos\b/g, 'Math.acos')
+    .replace(/\batan\b/g, 'Math.atan')
+    .replace(/\bsqrt\b/g, 'Math.sqrt')
+    .replace(/\babs\b/g,  'Math.abs')
+    .replace(/\blog\b/g,  'Math.log')
+    .replace(/\blog2\b/g, 'Math.log2')
+    .replace(/\blog10\b/g,'Math.log10')
+    .replace(/\bexp\b/g,  'Math.exp')
+    .replace(/\bfloor\b/g,'Math.floor')
+    .replace(/\bceil\b/g, 'Math.ceil')
+    .replace(/\bround\b/g,'Math.round')
+    .replace(/\bt\b/g, '(' + t + ')');
+  try {
+    const v = Function('"use strict"; return (' + s + ')')();
+    return isFinite(v) ? v : NaN;
+  } catch { return NaN; }
+}
+
+function r2(n) { return isNaN(n) ? '?' : Math.round(n * 100) / 100; }
+
+/* ══════════════════════════════════════════════
+   THETA
+══════════════════════════════════════════════ */
+let thetaDeg = 0;
+
+function onTheta() {
+  thetaDeg = +document.getElementById('thetaSlider').value;
+  const rad = thetaDeg * Math.PI / 180;
+  document.getElementById('thetaVal').textContent = `θ = ${thetaDeg}°`;
+  document.getElementById('thetaRad').textContent = r2(rad) + ' rad';
+  updateEvalLabels();
+  redrawAll();
+}
+
+function getThetaRad() { return thetaDeg * Math.PI / 180; }
+
+/* ══════════════════════════════════════════════
+   CELL BUILDING
+══════════════════════════════════════════════ */
+const defaults2d = [
+  ['1','0'],
+  ['0','1']
+];
+const defaults3d = [
+  ['1','0','0'],
+  ['0','1','0'],
+  ['0','0','1']
+];
+const colClass = ['cb','cr','cg'];
+
+let lastFocusedCell = null;
+
+function buildGrid(containerId, rows, cols, defaults) {
+  const grid = document.getElementById(containerId);
+  grid.innerHTML = '';
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const wrap = document.createElement('div');
+      wrap.className = 'cell-wrap';
+      const inp = document.createElement('input');
+      inp.className = `cell ${colClass[c]}`;
+      inp.type = 'text';
+      inp.value = defaults[r][c];
+      inp.id = `${containerId}_${r}_${c}`;
+      inp.setAttribute('autocomplete','off');
+      inp.addEventListener('input', () => { updateEvalLabels(); redrawAll(); });
+      inp.addEventListener('focus', () => { lastFocusedCell = inp; });
+      const ev = document.createElement('div');
+      ev.className = 'eval-val';
+      ev.id = `ev_${containerId}_${r}_${c}`;
+      wrap.appendChild(inp);
+      wrap.appendChild(ev);
+      grid.appendChild(wrap);
+    }
+  }
+}
+
+function getMatVal(prefix, rows, cols) {
+  const t = getThetaRad();
+  const M = [];
+  for (let r = 0; r < rows; r++) {
+    M.push([]);
+    for (let c = 0; c < cols; c++) {
+      const inp = document.getElementById(`${prefix}_${r}_${c}`);
+      M[r].push(evalExpr(inp ? inp.value : '0', t));
+    }
+  }
+  return M;
+}
+
+function updateEvalLabels() {
+  const t = getThetaRad();
+  ['grid2d','grid3d'].forEach(prefix => {
+    const rows = prefix === 'grid2d' ? 2 : 3;
+    const cols = prefix === 'grid2d' ? 2 : 3;
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const inp = document.getElementById(`${prefix}_${r}_${c}`);
+        const ev  = document.getElementById(`ev_${prefix}_${r}_${c}`);
+        if (!inp || !ev) continue;
+        const val = evalExpr(inp.value, t);
+        const isErr = isNaN(val);
+        ev.textContent = isErr ? 'error' : '= ' + r2(val);
+        ev.className = 'eval-val' + (isErr ? ' err' : '');
+      }
+    }
+  });
+}
+
+/* ══════════════════════════════════════════════
+   QUICK INSERT
+══════════════════════════════════════════════ */
+function insertExpr(expr) {
+  if (lastFocusedCell) {
+    lastFocusedCell.value = expr;
+    lastFocusedCell.dispatchEvent(new Event('input'));
+    lastFocusedCell.focus();
+  }
+}
+
+/* ══════════════════════════════════════════════
+   PRESETS
+══════════════════════════════════════════════ */
+function setPreset2d(name) {
+  const vals = {
+    rot:     [['cos(t)','-sin(t)'],['sin(t)','cos(t)']],
+    scale:   [['cos(t)','0'],     ['0','sin(t)']],
+    shear:   [['1','t'],          ['0','1']],
+    reflect: [['cos(t)','sin(t)'],['sin(t)','-cos(t)']],
+  };
+  if (!vals[name]) return;
+  switchDim('2d');
+  vals[name].forEach((row, r) =>
+    row.forEach((v, c) => {
+      const inp = document.getElementById(`grid2d_${r}_${c}`);
+      if (inp) inp.value = v;
+    })
+  );
+  updateEvalLabels(); redrawAll();
+}
+
+function setPreset3d(name) {
+  const vals = {
+    rotZ: [['cos(t)','-sin(t)','0'],['sin(t)','cos(t)','0'],['0','0','1']],
+    rotX: [['1','0','0'],['0','cos(t)','-sin(t)'],['0','sin(t)','cos(t)']],
+    scale3:[['cos(t)','0','0'],['0','sin(t)+1','0'],['0','0','cos(t)']],
+  };
+  if (!vals[name]) return;
+  switchDim('3d');
+  vals[name].forEach((row, r) =>
+    row.forEach((v, c) => {
+      const inp = document.getElementById(`grid3d_${r}_${c}`);
+      if (inp) inp.value = v;
+    })
+  );
+  updateEvalLabels(); redrawAll();
+}
+
+/* ══════════════════════════════════════════════
+   2D DRAWING
+══════════════════════════════════════════════ */
+function draw2dCanvas(cvs, M) {
+  const W = cvs.width, H = cvs.height;
+  const isDark = window.matchMedia('(prefers-color-scheme:dark)').matches;
+  const ctx = cvs.getContext('2d');
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle = isDark ? '#1a1a18' : '#ffffff';
+  ctx.fillRect(0,0,W,H);
+
+  const transform = !!M;
+  let scale, ox, oy;
+  if (!transform) {
+    scale = 78; ox = W/2; oy = H/2;
+  } else {
+    const corners = [[1,0],[0,1],[1,1],[-1,0],[0,-1],[-1,-1],[1,-1],[-1,1],[0.6,0.8]];
+    let maxE = 1.2;
+    corners.forEach(([x,y]) => {
+      const nx = M[0][0]*x+M[0][1]*y, ny = M[1][0]*x+M[1][1]*y;
+      if (!isNaN(nx)) maxE = Math.max(maxE, Math.abs(nx)+0.3);
+      if (!isNaN(ny)) maxE = Math.max(maxE, Math.abs(ny)+0.3);
+    });
+    maxE = Math.min(maxE, 12);
+    scale = Math.min(W,H) / (maxE * 2.4);
+    ox = W * 0.38; oy = H * 0.58;
+  }
+
+  const toS = (x,y) => [ox + x*scale, oy - y*scale];
+  const ap  = (x,y) => M ? [M[0][0]*x+M[0][1]*y, M[1][0]*x+M[1][1]*y] : [x,y];
+
+  const axCol   = isDark ? 'rgba(200,200,200,0.18)' : 'rgba(0,0,0,0.13)';
+  const gridCol = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
+  const txtCol  = isDark ? 'rgba(180,180,180,0.5)' : 'rgba(80,80,80,0.5)';
+  const gr = transform ? 6 : 2;
+
+  // grid
+  ctx.strokeStyle = gridCol; ctx.lineWidth = 0.5;
+  for (let i=-gr;i<=gr;i++) {
+    if (i===0) continue;
+    const[a,b]=toS(i,-gr),[c,d]=toS(i,gr);
+    ctx.beginPath();ctx.moveTo(a,b);ctx.lineTo(c,d);ctx.stroke();
+    const[e,f]=toS(-gr,i),[g,h]=toS(gr,i);
+    ctx.beginPath();ctx.moveTo(e,f);ctx.lineTo(g,h);ctx.stroke();
+  }
+  // axes
+  ctx.strokeStyle=axCol; ctx.lineWidth=0.8;
+  const[ax0,ay0]=toS(-gr,0),[ax1,ay1]=toS(gr,0);
+  ctx.beginPath();ctx.moveTo(ax0,ay0);ctx.lineTo(ax1,ay1);ctx.stroke();
+  const[bx0,by0]=toS(0,-gr),[bx1,by1]=toS(0,gr);
+  ctx.beginPath();ctx.moveTo(bx0,by0);ctx.lineTo(bx1,by1);ctx.stroke();
+
+  // tick labels
+  ctx.fillStyle=txtCol; ctx.font='10px sans-serif'; ctx.textAlign='center';
+  const ticks = transform ? [2,4] : [1];
+  ticks.forEach(i=>{
+    const[sx,sy]=toS(i,0);  ctx.fillText(i,sx,sy+13);
+    const[sx2,sy2]=toS(-i,0); ctx.fillText(-i,sx2,sy2+13);
+    const[sx3,sy3]=toS(0,i); ctx.fillText(i,sx3-12,sy3+3);
+    const[sx4,sy4]=toS(0,-i); ctx.fillText(-i,sx4-12,sy4+3);
+  });
+
+  function arrow(x0,y0,x1,y1,col,lw=2.2){
+    if ([x0,y0,x1,y1].some(isNaN)) return;
+    const[sx0,sy0]=toS(x0,y0),[sx1,sy1]=toS(x1,y1);
+    ctx.strokeStyle=col; ctx.fillStyle=col; ctx.lineWidth=lw; ctx.setLineDash([]);
+    ctx.beginPath(); ctx.moveTo(sx0,sy0); ctx.lineTo(sx1,sy1); ctx.stroke();
+    const ang=Math.atan2(sy1-sy0,sx1-sx0);
+    ctx.beginPath();
+    ctx.moveTo(sx1,sy1);
+    ctx.lineTo(sx1-9*Math.cos(ang-.4),sy1-9*Math.sin(ang-.4));
+    ctx.lineTo(sx1-9*Math.cos(ang+.4),sy1-9*Math.sin(ang+.4));
+    ctx.closePath(); ctx.fill();
+  }
+
+  function lbl(x,y,txt,col,dx=7,dy=-6){
+    if (isNaN(x)||isNaN(y)) return;
+    const[sx,sy]=toS(x,y);
+    ctx.fillStyle=col; ctx.font='bold 11px sans-serif'; ctx.textAlign='left';
+    ctx.fillText(txt,sx+dx,sy+dy);
+  }
+
+  // unit square / parallelogram
+  const sqPts=[[0,0],[1,0],[1,1],[0,1]].map(([x,y])=>ap(x,y));
+  if (sqPts.every(([x,y])=>!isNaN(x)&&!isNaN(y))) {
+    const sc2=sqPts.map(([x,y])=>toS(x,y));
+    ctx.beginPath(); ctx.moveTo(sc2[0][0],sc2[0][1]);
+    sc2.slice(1).forEach(p=>ctx.lineTo(p[0],p[1]));
+    ctx.closePath();
+    ctx.fillStyle   = transform?'rgba(186,117,23,0.10)':'rgba(29,158,117,0.10)';
+    ctx.strokeStyle = transform?'rgba(186,117,23,0.5)':'rgba(29,158,117,0.45)';
+    ctx.lineWidth=1; ctx.setLineDash([4,3]); ctx.fill(); ctx.stroke(); ctx.setLineDash([]);
+  }
+
+  // e1, e2
+  const[e1x,e1y]=ap(1,0), [e2x,e2y]=ap(0,1);
+  arrow(0,0,e1x,e1y,'#378ADD');
+  lbl(e1x,e1y,transform?`(${r2(e1x)},${r2(e1y)})`:'e₁','#378ADD');
+  arrow(0,0,e2x,e2y,'#D85A30');
+  lbl(e2x,e2y,transform?`(${r2(e2x)},${r2(e2y)})`:'e₂','#D85A30',7,14);
+
+  // right-angle mark (before)
+  if (!transform) {
+    const[ox2,oy2]=toS(0,0);
+    const ra=13;
+    ctx.strokeStyle=isDark?'rgba(255,255,255,0.2)':'rgba(0,0,0,0.18)';
+    ctx.lineWidth=0.7; ctx.setLineDash([]);
+    ctx.beginPath();
+    ctx.moveTo(ox2+ra,oy2); ctx.lineTo(ox2+ra,oy2-ra); ctx.lineTo(ox2,oy2-ra);
+    ctx.stroke();
+  }
+
+  // sample vector
+  const[vx,vy]=ap(0.6,0.8);
+  arrow(0,0,vx,vy,'#BA7517',1.8);
+  lbl(vx,vy,transform?"v'":"v",'#BA7517');
+
+  // origin
+  const[ox3,oy3]=toS(0,0);
+  ctx.fillStyle=isDark?'rgba(255,255,255,0.4)':'rgba(0,0,0,0.35)';
+  ctx.beginPath(); ctx.arc(ox3,oy3,3,0,2*Math.PI); ctx.fill();
+}
+
+function draw2d() {
+  const M = getMatVal('grid2d',2,2);
+  const d = M[0][0]*M[1][1] - M[0][1]*M[1][0];
+  document.getElementById('det2Label').textContent = isNaN(d) ? 'det = ?' : `det = ${r2(d)}`;
+
+  const[e1x,e1y]=[M[0][0],M[1][0]];
+  const[e2x,e2y]=[M[0][1],M[1][1]];
+  const vx=M[0][0]*0.6+M[0][1]*0.8, vy=M[1][0]*0.6+M[1][1]*0.8;
+  document.getElementById('ae1').textContent=`M·e₁ = (${r2(e1x)}, ${r2(e1y)})`;
+  document.getElementById('ae2').textContent=`M·e₂ = (${r2(e2x)}, ${r2(e2y)})`;
+  document.getElementById('av').textContent =`M·v  = (${r2(vx)}, ${r2(vy)})`;
+
+  draw2dCanvas(document.getElementById('c2dB'), null);
+  draw2dCanvas(document.getElementById('c2dA'), M);
+}
+
+/* ══════════════════════════════════════════════
+   3D DRAWING
+══════════════════════════════════════════════ */
+const c3d = document.getElementById('c3d');
+const ctx3 = c3d.getContext('2d');
+let viewMode='before', rotX=0.42, rotY=0.62, zoom3=1;
+let drag=false, lastX=0, lastY=0;
+
+c3d.addEventListener('mousedown',e=>{drag=true;lastX=e.offsetX;lastY=e.offsetY;});
+c3d.addEventListener('mousemove',e=>{if(!drag)return;rotY+=(e.offsetX-lastX)*.012;rotX+=(e.offsetY-lastY)*.012;lastX=e.offsetX;lastY=e.offsetY;draw3d();});
+c3d.addEventListener('mouseup',()=>drag=false);
+c3d.addEventListener('mouseleave',()=>drag=false);
+c3d.addEventListener('wheel',e=>{zoom3=Math.max(.4,Math.min(2.5,zoom3-e.deltaY*.001));draw3d();e.preventDefault();},{passive:false});
+c3d.addEventListener('touchstart',e=>{drag=true;lastX=e.touches[0].clientX;lastY=e.touches[0].clientY;e.preventDefault();},{passive:false});
+c3d.addEventListener('touchmove',e=>{if(!drag)return;rotY+=(e.touches[0].clientX-lastX)*.012;rotX+=(e.touches[0].clientY-lastY)*.012;lastX=e.touches[0].clientX;lastY=e.touches[0].clientY;draw3d();e.preventDefault();},{passive:false});
+c3d.addEventListener('touchend',()=>drag=false);
+
+function rotVec(v,rx,ry){
+  let[x,y,z]=v;
+  let x2=x*Math.cos(ry)+z*Math.sin(ry), z2=-x*Math.sin(ry)+z*Math.cos(ry);
+  let y2=y*Math.cos(rx)-z2*Math.sin(rx), z3=y*Math.sin(rx)+z2*Math.cos(rx);
+  return[x2,y2,z3];
+}
+function proj(v,W,H,sc){const fov=5,[x,y,z]=v,s=sc*fov/(fov+z);return[W/2+x*s,H/2-y*s];}
+
+function det3(m){
+  return m[0][0]*(m[1][1]*m[2][2]-m[1][2]*m[2][1])
+        -m[0][1]*(m[1][0]*m[2][2]-m[1][2]*m[2][0])
+        +m[0][2]*(m[1][0]*m[2][1]-m[1][1]*m[2][0]);
+}
+
+function draw3d(){
+  const W=680,H=400;
+  const isDark=window.matchMedia('(prefers-color-scheme:dark)').matches;
+  ctx3.clearRect(0,0,W,H);
+  ctx3.fillStyle=isDark?'#1a1a18':'#ffffff';
+  ctx3.fillRect(0,0,W,H);
+
+  const sc=90*zoom3, M=getMatVal('grid3d',3,3);
+  const d=det3(M);
+  document.getElementById('det3Label').textContent=isNaN(d)?'det = ?':'det = '+r2(d)+(Math.abs(Math.abs(d)-1)<.01?' ✓':'');
+  document.getElementById('c1lbl').textContent=`M·e₁ = (${r2(M[0][0])},${r2(M[1][0])},${r2(M[2][0])})`;
+  document.getElementById('c2lbl').textContent=`M·e₂ = (${r2(M[0][1])},${r2(M[1][1])},${r2(M[2][1])})`;
+  document.getElementById('c3lbl').textContent=`M·e₃ = (${r2(M[0][2])},${r2(M[1][2])},${r2(M[2][2])})`;
+
+  const r=v=>rotVec(v,rotX,rotY), p=v=>proj(r(v),W,H,sc);
+  const gridCol=isDark?'rgba(255,255,255,0.06)':'rgba(0,0,0,0.06)';
+  ctx3.lineWidth=0.5; ctx3.strokeStyle=gridCol;
+  for(let i=-3;i<=3;i++){
+    const a=p([i,-.01,-3]),b=p([i,-.01,3]),c=p([-3,-.01,i]),d2=p([3,-.01,i]);
+    ctx3.beginPath();ctx3.moveTo(a[0],a[1]);ctx3.lineTo(b[0],b[1]);ctx3.stroke();
+    ctx3.beginPath();ctx3.moveTo(c[0],c[1]);ctx3.lineTo(d2[0],d2[1]);ctx3.stroke();
+  }
+  const axCol=isDark?'rgba(200,200,200,0.2)':'rgba(0,0,0,0.15)';
+  [[3,0,0],[0,3,0],[0,0,3]].forEach(ep=>{
+    const s=p([0,0,0]),e=p(ep);
+    ctx3.strokeStyle=axCol;ctx3.lineWidth=0.7;
+    ctx3.beginPath();ctx3.moveTo(s[0],s[1]);ctx3.lineTo(e[0],e[1]);ctx3.stroke();
+  });
+  ctx3.font='11px sans-serif';
+  [['X',[3.2,0,0]],['Y',[0,3.2,0]],['Z',[0,0,3.2]]].forEach(([t,v])=>{
+    const[px,py]=p(v);
+    ctx3.fillStyle=isDark?'rgba(180,180,180,0.4)':'rgba(80,80,80,0.4)';
+    ctx3.fillText(t,px+3,py);
+  });
+
+  function arr3(from,to,col,lw=2.5){
+    if([...from,...to].some(isNaN))return;
+    const[sx,sy]=p(from),[ex,ey]=p(to);
+    ctx3.strokeStyle=col;ctx3.fillStyle=col;ctx3.lineWidth=lw;ctx3.setLineDash([]);
+    ctx3.beginPath();ctx3.moveTo(sx,sy);ctx3.lineTo(ex,ey);ctx3.stroke();
+    const ang=Math.atan2(ey-sy,ex-sx);
+    ctx3.beginPath();ctx3.moveTo(ex,ey);
+    ctx3.lineTo(ex-10*Math.cos(ang-.4),ey-10*Math.sin(ang-.4));
+    ctx3.lineTo(ex-10*Math.cos(ang+.4),ey-10*Math.sin(ang+.4));
+    ctx3.closePath();ctx3.fill();
+  }
+  function lbl3(pos,txt,col){
+    if(pos.some(isNaN))return;
+    const[px,py]=p(pos);
+    ctx3.fillStyle=col;ctx3.font='bold 12px sans-serif';
+    ctx3.fillText(txt,px+6,py-4);
+  }
+  function ppd(v1,v2,v3,alpha){
+    const O=[0,0,0],add=(a,b)=>[a[0]+b[0],a[1]+b[1],a[2]+b[2]];
+    if([...v1,...v2,...v3].some(isNaN))return;
+    const faces=[
+      [O,v1,add(v1,v2),v2],[O,v2,add(v2,v3),v3],[O,v1,add(v1,v3),v3],
+      [v1,add(v1,v2),add(add(v1,v2),v3),add(v1,v3)],
+      [v2,add(v1,v2),add(add(v1,v2),v3),add(v2,v3)],
+      [v3,add(v2,v3),add(add(v1,v2),v3),add(v1,v3)],
+    ];
+    ctx3.fillStyle=`rgba(186,117,23,${alpha})`;
+    faces.forEach(face=>{
+      const pts=face.map(v=>p(v));
+      ctx3.beginPath();ctx3.moveTo(pts[0][0],pts[0][1]);
+      pts.slice(1).forEach(pt=>ctx3.lineTo(pt[0],pt[1]));
+      ctx3.closePath();ctx3.fill();
+    });
+  }
+
+  if(viewMode==='before'||viewMode==='both'){
+    ppd([1,0,0],[0,1,0],[0,0,1],.08);
+    arr3([0,0,0],[1,0,0],'#378ADD');
+    arr3([0,0,0],[0,1,0],'#D85A30');
+    arr3([0,0,0],[0,0,1],'#1D9E75');
+    if(viewMode==='before'){
+      lbl3([1.1,0,0],'e₁','#378ADD');
+      lbl3([0,1.1,0],'e₂','#D85A30');
+      lbl3([0,0,1.1],'e₃','#1D9E75');
+    }
+  }
+  if(viewMode==='after'||viewMode==='both'){
+    const c1=[M[0][0],M[1][0],M[2][0]];
+    const c2=[M[0][1],M[1][1],M[2][1]];
+    const c3m=[M[0][2],M[1][2],M[2][2]];
+    ppd(c1,c2,c3m,.1);
+    arr3([0,0,0],c1,'#3299EE');
+    arr3([0,0,0],c2,'#E06030');
+    arr3([0,0,0],c3m,'#18B882');
+    lbl3([c1[0]+.15,c1[1]+.15,c1[2]],'M·e₁','#3299EE');
+    lbl3([c2[0]+.15,c2[1]+.15,c2[2]],'M·e₂','#E06030');
+    lbl3([c3m[0]+.15,c3m[1]+.15,c3m[2]],'M·e₃','#18B882');
+  }
+  const[ox,oy]=p([0,0,0]);
+  ctx3.fillStyle=isDark?'rgba(255,255,255,0.5)':'rgba(0,0,0,0.4)';
+  ctx3.beginPath();ctx3.arc(ox,oy,3,0,2*Math.PI);ctx3.fill();
+}
+
+function setView(v){
+  viewMode=v;
+  document.querySelectorAll('.tab').forEach((t,i)=>{
+    t.classList.toggle('active',['before','after','both'][i]===v);
+  });
+  draw3d();
+}
+
+/* ══════════════════════════════════════════════
+   DIM SWITCH
+══════════════════════════════════════════════ */
+let currentDim='2d';
+function switchDim(dim){
+  currentDim=dim;
+  document.getElementById('sec2d').classList.toggle('active',dim==='2d');
+  document.getElementById('sec3d').classList.toggle('active',dim==='3d');
+  document.getElementById('btn2d').classList.toggle('active',dim==='2d');
+  document.getElementById('btn3d').classList.toggle('active',dim==='3d');
+  redrawAll();
+}
+
+function redrawAll(){
+  if(currentDim==='2d') draw2d(); else draw3d();
+}
+
+/* ══════════════════════════════════════════════
+   INIT
+══════════════════════════════════════════════ */
+buildGrid('grid2d', 2, 2, defaults2d);
+buildGrid('grid3d', 3, 3, defaults3d);
+updateEvalLabels();
+draw2d();
+draw3d();
+</script>
+</body>
+</html>
