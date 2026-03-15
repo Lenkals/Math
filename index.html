@@ -1,1 +1,1740 @@
-Test
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KutleEd — Learn, Explore, Grow</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Caveat:wght@500;700&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ==============================================
+       BLACKBOARD DESIGN TOKENS
+       ============================================== */
+    :root {
+      /* Board surfaces */
+      --board-deep:    #1B2E1E;
+      --board-main:    #213326;
+      --board-mid:     #28402D;
+      --board-lift:    #2E4A33;
+      --board-light:   #35573B;
+      --board-edge:    #3E6445;
+
+      /* Chalk colours */
+      --chalk-white:   #F0EDD8;
+      --chalk-cream:   #E8E4CC;
+      --chalk-dim:     #9BAF9E;
+      --chalk-yellow:  #FFEC80;
+      --chalk-green:   #7EE8A2;
+      --chalk-blue:    #80CEFF;
+      --chalk-pink:    #FFB3C6;
+      --chalk-orange:  #FFB380;
+      --chalk-purple:  #C9AAFF;
+
+      --font-head:  'Nunito', sans-serif;
+      --font-chalk: 'Caveat', cursive;
+      --font-body:  'Plus Jakarta Sans', sans-serif;
+
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 22px;
+      --radius-xl: 32px;
+
+      --shadow-chalk: 0 4px 24px rgba(0,0,0,0.35);
+      --transition:   0.28s cubic-bezier(0.34,1.56,0.64,1);
+      --transition-s: 0.26s ease;
+    }
+
+    /* ==============================================
+       RESET & BASE
+       ============================================== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; font-size: 16px; }
+    body {
+      font-family: var(--font-body);
+      background: var(--board-deep);
+      color: var(--chalk-white);
+      line-height: 1.65;
+      overflow-x: hidden;
+    }
+    a  { text-decoration: none; color: inherit; }
+    ul { list-style: none; }
+    button { cursor: pointer; border: none; font-family: inherit; }
+    h1,h2,h3,h4 { font-family: var(--font-head); line-height: 1.2; }
+
+    /* ==============================================
+       UTILITY
+       ============================================== */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    .section-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      font-family: var(--font-chalk);
+      font-weight: 700;
+      font-size: 1.05rem;
+      color: var(--chalk-yellow);
+      background: rgba(255,236,128,0.1);
+      border: 1px solid rgba(255,236,128,0.22);
+      padding: 5px 16px;
+      border-radius: 50px;
+      margin-bottom: 14px;
+    }
+
+    .section-title {
+      font-size: clamp(1.75rem, 3.5vw, 2.6rem);
+      font-weight: 900;
+      color: var(--chalk-white);
+      margin-bottom: 14px;
+    }
+    .hl-y  { color: var(--chalk-yellow); }
+    .hl-g  { color: var(--chalk-green); }
+    .hl-b  { color: var(--chalk-blue); }
+    .hl-pk { color: var(--chalk-pink); }
+
+    .section-sub {
+      font-size: 1rem;
+      color: var(--chalk-dim);
+      max-width: 560px;
+      line-height: 1.75;
+    }
+
+    .section-head { margin-bottom: 52px; }
+    .section-head.center { text-align: center; }
+    .section-head.center .section-sub { margin: 0 auto; }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--font-head);
+      font-weight: 800;
+      font-size: 0.92rem;
+      padding: 13px 26px;
+      border-radius: 50px;
+      transition: var(--transition);
+      white-space: nowrap;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    .btn-chalk {
+      background: var(--chalk-yellow);
+      color: var(--board-deep);
+      box-shadow: 0 4px 18px rgba(255,236,128,0.3);
+      border: 2px solid transparent;
+    }
+    .btn-chalk:hover {
+      background: #fff5b0;
+      transform: translateY(-3px);
+      box-shadow: 0 10px 28px rgba(255,236,128,0.45);
+    }
+
+    .btn-ghost-chalk {
+      background: transparent;
+      color: var(--chalk-white);
+      border: 2px solid rgba(240,237,216,0.3);
+    }
+    .btn-ghost-chalk:hover {
+      border-color: var(--chalk-white);
+      background: rgba(240,237,216,0.08);
+      transform: translateY(-3px);
+    }
+
+    .btn-sm { padding: 9px 20px; font-size: 0.83rem; }
+
+    /* ==============================================
+       WIP OVERLAY MODAL
+       ============================================== */
+    #wip-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(10,20,12,0.85);
+      z-index: 9000;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(6px);
+    }
+    #wip-overlay.show { display: flex; }
+
+    .wip-box {
+      background: var(--board-mid);
+      border: 2px solid var(--board-edge);
+      border-radius: var(--radius-xl);
+      padding: 52px 44px;
+      max-width: 460px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 32px 80px rgba(0,0,0,0.6);
+      animation: popIn 0.4s cubic-bezier(0.34,1.56,0.64,1) both;
+    }
+
+    @keyframes popIn {
+      from { opacity:0; transform:scale(0.8) translateY(30px); }
+      to   { opacity:1; transform:scale(1)   translateY(0); }
+    }
+
+    .wip-icon {
+      font-size: 3.8rem;
+      margin-bottom: 18px;
+      display: block;
+      animation: wobble 2.5s ease-in-out infinite;
+    }
+    @keyframes wobble {
+      0%,100%{ transform:rotate(-5deg); }
+      50%    { transform:rotate(5deg); }
+    }
+
+    .wip-title {
+      font-family: var(--font-chalk);
+      font-size: 2.2rem;
+      font-weight: 700;
+      color: var(--chalk-yellow);
+      margin-bottom: 10px;
+    }
+
+    .wip-sub {
+      color: var(--chalk-dim);
+      font-size: 0.92rem;
+      line-height: 1.7;
+      margin-bottom: 26px;
+    }
+
+    .wip-bar {
+      background: var(--board-light);
+      border-radius: 50px;
+      height: 6px;
+      overflow: hidden;
+      margin-bottom: 24px;
+    }
+    .wip-fill {
+      height: 100%;
+      border-radius: 50px;
+      background: linear-gradient(90deg, var(--chalk-green), var(--chalk-yellow));
+      animation: barPulse 2s ease-in-out infinite alternate;
+    }
+    @keyframes barPulse {
+      from { width:30%; } to { width:70%; }
+    }
+
+    .wip-close {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--board-light);
+      border: 1.5px solid var(--board-edge);
+      color: var(--chalk-white);
+      font-family: var(--font-head);
+      font-weight: 700;
+      font-size: 0.9rem;
+      padding: 11px 24px;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: var(--transition-s);
+    }
+    .wip-close:hover {
+      background: var(--chalk-yellow);
+      color: var(--board-deep);
+      border-color: var(--chalk-yellow);
+    }
+
+    /* ==============================================
+       NAVIGATION
+       ============================================== */
+    #navbar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 1000;
+      padding: 18px 0;
+      transition: background 0.3s, box-shadow 0.3s, padding 0.3s;
+    }
+    #navbar.scrolled {
+      background: rgba(27,46,30,0.97);
+      box-shadow: 0 2px 24px rgba(0,0,0,0.45);
+      backdrop-filter: blur(14px);
+      padding: 11px 0;
+    }
+
+    .nav-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-icon {
+      width: 40px; height: 40px;
+      background: linear-gradient(135deg, var(--chalk-green), var(--chalk-blue));
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.3rem;
+      flex-shrink: 0;
+    }
+
+    .logo-text {
+      font-family: var(--font-head);
+      font-weight: 900;
+      font-size: 1.35rem;
+      color: var(--chalk-white);
+    }
+    .logo-text .acc { color: var(--chalk-yellow); }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 30px;
+    }
+    .nav-links a {
+      font-family: var(--font-head);
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: var(--chalk-cream);
+      opacity: 0.8;
+      transition: opacity 0.2s, color 0.2s;
+      position: relative;
+    }
+    .nav-links a::after {
+      content: '';
+      position: absolute;
+      bottom: -4px; left: 0;
+      width: 0; height: 2px;
+      background: var(--chalk-yellow);
+      border-radius: 2px;
+      transition: width 0.28s;
+    }
+    .nav-links a:hover { opacity:1; color:var(--chalk-white); }
+    .nav-links a:hover::after { width:100%; }
+
+    .nav-hamburger {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      cursor: pointer;
+      padding: 4px;
+      background: none;
+    }
+    .nav-hamburger span {
+      display: block; width:24px; height:2.5px;
+      background: var(--chalk-cream);
+      border-radius: 2px;
+      transition: 0.3s;
+    }
+
+    .mobile-menu {
+      display: none;
+      position: absolute;
+      top: 100%; left: 0; right: 0;
+      background: var(--board-mid);
+      border-top: 1px solid var(--board-edge);
+      box-shadow: 0 16px 40px rgba(0,0,0,0.4);
+      padding: 16px 24px 24px;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .mobile-menu.open { display: flex; }
+    .mobile-menu a {
+      font-family: var(--font-head);
+      font-weight: 700;
+      color: var(--chalk-cream);
+      font-size: 0.96rem;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(240,237,216,0.07);
+    }
+    .mobile-menu a:last-child { border-bottom: none; }
+
+    /* ==============================================
+       HERO
+       ============================================== */
+    #hero {
+      min-height: 100vh;
+      background: var(--board-main);
+      position: relative;
+      display: flex;
+      align-items: center;
+      overflow: hidden;
+      padding: 110px 0 80px;
+    }
+
+    /* Grid lines */
+    #hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(240,237,216,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(240,237,216,0.03) 1px, transparent 1px);
+      background-size: 48px 48px;
+      pointer-events: none;
+    }
+
+    .hero-blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      pointer-events: none;
+    }
+    .hb1 { width:500px;height:500px;background:rgba(126,232,162,0.06);top:-150px;right:-100px; }
+    .hb2 { width:350px;height:350px;background:rgba(255,236,128,0.05);bottom:-80px;left:-60px; }
+    .hb3 { width:250px;height:250px;background:rgba(128,206,255,0.05);top:40%;left:35%; }
+
+    .hero-inner {
+      position: relative;
+      z-index: 2;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 64px;
+      align-items: center;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(126,232,162,0.12);
+      border: 1px solid rgba(126,232,162,0.25);
+      color: var(--chalk-green);
+      font-family: var(--font-chalk);
+      font-weight: 700;
+      font-size: 1.05rem;
+      padding: 6px 16px;
+      border-radius: 50px;
+      margin-bottom: 22px;
+      animation: fadeUp 0.7s ease both;
+    }
+    .badge-dot {
+      width: 8px; height: 8px;
+      background: var(--chalk-green);
+      border-radius: 50%;
+      animation: blink 2s infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
+
+    .hero-title {
+      font-size: clamp(2.4rem, 5.5vw, 4rem);
+      font-weight: 900;
+      color: var(--chalk-white);
+      line-height: 1.1;
+      margin-bottom: 20px;
+      animation: fadeUp 0.7s 0.1s ease both;
+    }
+
+    .chalk-ul { position:relative; display:inline-block; }
+    .chalk-ul::after {
+      content: '';
+      position: absolute;
+      left:0; bottom:-4px;
+      width:100%; height:3px;
+      background: var(--chalk-yellow);
+      border-radius: 2px;
+      opacity: 0.7;
+    }
+
+    .hero-tagline {
+      font-size: 1.08rem;
+      color: var(--chalk-dim);
+      margin-bottom: 36px;
+      line-height: 1.75;
+      animation: fadeUp 0.7s 0.2s ease both;
+    }
+
+    .hero-btns {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      animation: fadeUp 0.7s 0.3s ease both;
+    }
+
+    .hero-stats {
+      display: flex;
+      gap: 36px;
+      margin-top: 48px;
+      animation: fadeUp 0.7s 0.4s ease both;
+    }
+    .stat-num {
+      font-family: var(--font-head);
+      font-weight: 900;
+      font-size: 1.9rem;
+      color: var(--chalk-white);
+      line-height: 1;
+    }
+    .stat-lbl {
+      font-size: 0.8rem;
+      color: var(--chalk-dim);
+      margin-top: 3px;
+    }
+
+    /* Hero visual */
+    .hero-visual {
+      position: relative;
+      height: 480px;
+      animation: fadeUp 0.7s 0.2s ease both;
+    }
+
+    .board-frame {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 260px; height: 200px;
+      background: var(--board-light);
+      border-radius: var(--radius-md);
+      border: 3px solid var(--board-edge);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 10px;
+      box-shadow: var(--shadow-chalk);
+      z-index: 2;
+    }
+
+    .board-brand {
+      font-family: var(--font-chalk);
+      font-size: 2.1rem;
+      font-weight: 700;
+      color: var(--chalk-white);
+    }
+    .board-brand .acc { color: var(--chalk-yellow); }
+
+    .board-lines {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      width: 80%;
+    }
+    .b-line {
+      height: 2px;
+      border-radius: 2px;
+      opacity: 0.4;
+    }
+
+    .float-chip {
+      position: absolute;
+      background: var(--board-mid);
+      border: 1.5px solid var(--board-edge);
+      border-radius: 50px;
+      padding: 10px 18px;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      font-family: var(--font-head);
+      font-weight: 700;
+      font-size: 0.87rem;
+      color: var(--chalk-cream);
+      box-shadow: var(--shadow-chalk);
+      white-space: nowrap;
+    }
+    .chip-ico {
+      width: 30px; height: 30px;
+      border-radius: 7px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1rem;
+    }
+
+    .float-chip:nth-child(2){ top:30px;  left:0;    animation:floatA 6s ease-in-out infinite; }
+    .float-chip:nth-child(3){ top:80px;  right:10px;animation:floatB 7.5s ease-in-out infinite; }
+    .float-chip:nth-child(4){ top:220px; left:-20px;animation:floatA 8s 0.8s ease-in-out infinite; }
+    .float-chip:nth-child(5){ top:260px; right:0;   animation:floatB 6.5s 0.4s ease-in-out infinite; }
+    .float-chip:nth-child(6){ bottom:80px;left:30px;animation:floatA 7s 1.2s ease-in-out infinite; }
+    .float-chip:nth-child(7){ bottom:40px;right:20px;animation:floatB 9s ease-in-out infinite; }
+
+    /* ==============================================
+       SUBJECTS
+       ============================================== */
+    #subjects {
+      padding: 100px 0;
+      background: var(--board-deep);
+      position: relative;
+    }
+    #subjects::before {
+      content:'';
+      position:absolute;
+      top:0;left:0;right:0;height:4px;
+      background:linear-gradient(90deg,var(--chalk-green),var(--chalk-yellow),var(--chalk-blue),var(--chalk-pink),var(--chalk-orange));
+      opacity:0.45;
+    }
+
+    .subjects-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 20px;
+    }
+
+    .subject-card {
+      background: var(--board-mid);
+      border: 1.5px solid var(--board-edge);
+      border-radius: var(--radius-lg);
+      padding: 30px 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      cursor: pointer;
+      transition: var(--transition-s);
+      overflow: hidden;
+    }
+    .subject-card:hover {
+      background: var(--board-lift);
+      transform: translateY(-6px);
+      box-shadow: 0 20px 50px rgba(0,0,0,0.35);
+    }
+
+    .subj-ico {
+      width: 58px; height: 58px;
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.75rem;
+      transition: transform 0.3s;
+    }
+    .subject-card:hover .subj-ico { transform: scale(1.1) rotate(-5deg); }
+
+    .subj-grade { font-size:0.72rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; }
+    .subj-name  { font-weight:900; font-size:1.15rem; color:var(--chalk-white); }
+    .subj-desc  { font-size:0.86rem; color:var(--chalk-dim); line-height:1.6; flex:1; }
+
+    .subj-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--font-head);
+      font-weight: 700;
+      font-size: 0.82rem;
+      padding: 8px 16px;
+      border-radius: 50px;
+      border: none;
+      cursor: pointer;
+      transition: var(--transition);
+      width: fit-content;
+    }
+    .subj-btn:hover { transform: translateX(4px); }
+
+    /* ==============================================
+       INTERACTIVE LEARNING
+       ============================================== */
+    #interactive {
+      padding: 100px 0;
+      background: var(--board-main);
+    }
+
+    .interact-grid {
+      display: grid;
+      grid-template-columns: repeat(2,1fr);
+      gap: 22px;
+    }
+
+    .interact-card {
+      background: var(--board-mid);
+      border: 1.5px solid var(--board-edge);
+      border-radius: var(--radius-lg);
+      padding: 34px 30px;
+      display: flex;
+      gap: 22px;
+      align-items: flex-start;
+      cursor: pointer;
+      transition: var(--transition-s);
+      position: relative;
+      overflow: hidden;
+    }
+    .interact-card:hover {
+      background: var(--board-lift);
+      transform: translateY(-5px);
+      box-shadow: 0 16px 48px rgba(0,0,0,0.3);
+    }
+
+    .ic-icon {
+      width: 62px; height: 62px;
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.9rem;
+      flex-shrink: 0;
+      transition: transform 0.3s;
+    }
+    .interact-card:hover .ic-icon { transform: scale(1.08) rotate(-4deg); }
+
+    .ic-tag   { font-size:0.71rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; margin-bottom:5px; }
+    .ic-title { font-family:var(--font-head); font-weight:800; font-size:1.1rem; color:var(--chalk-white); margin-bottom:7px; }
+    .ic-desc  { font-size:0.86rem; color:var(--chalk-dim); line-height:1.6; margin-bottom:13px; }
+    .ic-link  { font-family:var(--font-head); font-weight:700; font-size:0.83rem; display:inline-flex; align-items:center; gap:5px; transition:gap 0.2s; }
+    .interact-card:hover .ic-link { gap:9px; }
+
+    .soon-badge {
+      position: absolute;
+      top:14px; right:14px;
+      background: var(--chalk-yellow);
+      color: var(--board-deep);
+      font-family: var(--font-head);
+      font-weight: 800;
+      font-size: 0.68rem;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      padding: 3px 9px;
+      border-radius: 50px;
+    }
+
+    /* ==============================================
+       FEATURED TOPICS
+       ============================================== */
+    #topics {
+      padding: 100px 0;
+      background: var(--board-deep);
+      position: relative;
+      overflow: hidden;
+    }
+    #topics::before {
+      content:'';
+      position:absolute; inset:0;
+      background-image:
+        linear-gradient(rgba(240,237,216,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(240,237,216,0.025) 1px, transparent 1px);
+      background-size:36px 36px;
+      pointer-events:none;
+    }
+
+    .topics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 18px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .topic-card {
+      background: var(--board-mid);
+      border: 1.5px solid var(--board-edge);
+      border-radius: var(--radius-md);
+      padding: 26px 22px;
+      cursor: pointer;
+      transition: var(--transition-s);
+    }
+    .topic-card:hover {
+      background: var(--board-lift);
+      transform: translateY(-5px);
+      box-shadow: 0 14px 40px rgba(0,0,0,0.3);
+    }
+
+    .topic-badge {
+      display: inline-block;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      padding: 3px 10px;
+      border-radius: 50px;
+      margin-bottom: 12px;
+    }
+
+    .topic-title { font-family:var(--font-head); font-weight:800; font-size:1.07rem; color:var(--chalk-white); margin-bottom:7px; }
+    .topic-desc  { font-size:0.83rem; color:var(--chalk-dim); line-height:1.6; margin-bottom:16px; }
+
+    .topic-foot {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .topic-grade { font-size:0.75rem; color:var(--chalk-dim); font-weight:600; }
+    .topic-arrow {
+      width:30px; height:30px;
+      border-radius:50%;
+      background:var(--board-light);
+      display:flex; align-items:center; justify-content:center;
+      font-size:0.88rem;
+      color:var(--chalk-dim);
+      transition:background 0.25s, color 0.25s, transform 0.25s;
+    }
+    .topic-card:hover .topic-arrow {
+      background:var(--chalk-yellow);
+      color:var(--board-deep);
+      transform:translateX(3px);
+    }
+
+    /* ==============================================
+       PLATFORM EXTENSION
+       ============================================== */
+    #platform {
+      padding: 100px 0;
+      background: var(--board-main);
+    }
+
+    .platform-top {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 72px;
+      align-items: center;
+      margin-bottom: 60px;
+    }
+
+    /* Orbit diagram */
+    .platform-diagram {
+      position: relative;
+      width: 100%;
+      max-width: 360px;
+      aspect-ratio: 1;
+      margin: 0 auto;
+    }
+    .pd-ring {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%,-50%);
+      border: 2px dashed rgba(240,237,216,0.1);
+      border-radius: 50%;
+    }
+    .pd-ring-1 { width:300px;height:300px;animation:rotateSlow 22s linear infinite; }
+    .pd-ring-2 { width:170px;height:170px;animation:rotateSlow 14s linear infinite reverse; }
+    .pd-center {
+      position:absolute;
+      top:50%;left:50%;
+      transform:translate(-50%,-50%);
+      width:90px;height:90px;
+      background:var(--board-light);
+      border:2px solid var(--board-edge);
+      border-radius:50%;
+      display:flex;align-items:center;justify-content:center;
+      font-size:2.2rem;
+      box-shadow:0 0 40px rgba(126,232,162,0.12);
+      z-index:2;
+    }
+    .pd-dot {
+      position:absolute;
+      top:50%;left:50%;
+      width:42px;height:42px;
+      border-radius:50%;
+      background:var(--board-mid);
+      border:1.5px solid var(--board-edge);
+      display:flex;align-items:center;justify-content:center;
+      font-size:1.15rem;
+      box-shadow:var(--shadow-chalk);
+    }
+    .pd-dot:nth-child(2){ transform:translate(-50%,-50%) rotate(0deg)   translateX(150px) rotate(0deg); }
+    .pd-dot:nth-child(3){ transform:translate(-50%,-50%) rotate(90deg)  translateX(150px) rotate(-90deg); }
+    .pd-dot:nth-child(4){ transform:translate(-50%,-50%) rotate(180deg) translateX(150px) rotate(-180deg); }
+    .pd-dot:nth-child(5){ transform:translate(-50%,-50%) rotate(270deg) translateX(150px) rotate(-270deg); }
+
+    .module-grid {
+      display: grid;
+      grid-template-columns: repeat(2,1fr);
+      gap: 16px;
+    }
+
+    .mod-card {
+      background: var(--board-mid);
+      border: 1.5px solid var(--board-edge);
+      border-radius: var(--radius-md);
+      padding: 22px 18px;
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      cursor: pointer;
+      transition: var(--transition-s);
+    }
+    .mod-card:hover {
+      background: var(--board-lift);
+      transform: translateY(-3px);
+      box-shadow: 0 10px 32px rgba(0,0,0,0.28);
+    }
+
+    .mod-icon {
+      width:46px;height:46px;
+      border-radius:10px;
+      display:flex;align-items:center;justify-content:center;
+      font-size:1.4rem;
+      flex-shrink:0;
+    }
+    .mod-name   { font-family:var(--font-head); font-weight:800; font-size:0.9rem; color:var(--chalk-white); margin-bottom:3px; }
+    .mod-desc   { font-size:0.8rem; color:var(--chalk-dim); line-height:1.5; margin-bottom:6px; }
+    .mod-status { font-size:0.68rem; font-weight:700; letter-spacing:0.07em; text-transform:uppercase; padding:2px 8px; border-radius:50px; display:inline-block; }
+
+    /* ==============================================
+       ABOUT
+       ============================================== */
+    #about {
+      padding: 100px 0;
+      background: var(--board-deep);
+    }
+
+    .about-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 72px;
+      align-items: center;
+    }
+
+    .about-feats { display:flex; flex-direction:column; gap:18px; margin-top:28px; }
+    .about-feat  { display:flex; gap:14px; align-items:flex-start; }
+
+    .feat-icon  { width:42px;height:42px; border-radius:10px; display:flex;align-items:center;justify-content:center; font-size:1.15rem; flex-shrink:0; }
+    .feat-title { font-family:var(--font-head); font-weight:800; font-size:0.96rem; color:var(--chalk-white); margin-bottom:3px; }
+    .feat-desc  { font-size:0.84rem; color:var(--chalk-dim); line-height:1.6; }
+
+    .mission-board {
+      background: var(--board-mid);
+      border: 2px solid var(--board-edge);
+      border-radius: var(--radius-xl);
+      padding: 44px 38px;
+      position: relative;
+      overflow: hidden;
+    }
+    .mission-board::before {
+      content:''; position:absolute; top:-80px;right:-80px;
+      width:200px;height:200px;
+      background:rgba(126,232,162,0.06);
+      border-radius:50%; filter:blur(40px);
+    }
+
+    .mission-qmark {
+      font-family: var(--font-chalk);
+      font-size: 5.5rem;
+      font-weight: 700;
+      color: rgba(255,236,128,0.15);
+      line-height: 0.7;
+      margin-bottom: 10px;
+      display: block;
+    }
+
+    .mission-quote {
+      font-family: var(--font-chalk);
+      font-size: 1.55rem;
+      font-weight: 700;
+      color: var(--chalk-white);
+      line-height: 1.45;
+      margin-bottom: 16px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .mission-sub  { font-size:0.88rem; color:var(--chalk-dim); line-height:1.7; margin-bottom:22px; }
+    .mission-chips { display:flex; flex-wrap:wrap; gap:8px; }
+    .m-chip {
+      background: var(--board-light);
+      border: 1px solid var(--board-edge);
+      color: var(--chalk-cream);
+      font-family: var(--font-head);
+      font-weight: 700;
+      font-size: 0.78rem;
+      padding: 6px 14px;
+      border-radius: 50px;
+    }
+
+    .about-float {
+      position: absolute;
+      bottom: -18px; right: 28px;
+      background: var(--chalk-yellow);
+      color: var(--board-deep);
+      font-family: var(--font-head);
+      font-weight: 900;
+      font-size: 0.88rem;
+      padding: 11px 18px;
+      border-radius: var(--radius-sm);
+      box-shadow: 0 8px 24px rgba(255,236,128,0.3);
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    /* ==============================================
+       CTA BAND
+       ============================================== */
+    #cta-band {
+      padding: 76px 0;
+      background: var(--board-light);
+      border-top: 2px solid var(--board-edge);
+      border-bottom: 2px solid var(--board-edge);
+      position: relative;
+      overflow: hidden;
+    }
+    #cta-band::before {
+      content:''; position:absolute; inset:0;
+      background-image:
+        linear-gradient(rgba(240,237,216,0.025) 1px,transparent 1px),
+        linear-gradient(90deg,rgba(240,237,216,0.025) 1px,transparent 1px);
+      background-size:32px 32px;
+    }
+
+    .cta-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 36px;
+      flex-wrap: wrap;
+      position: relative;
+      z-index: 1;
+    }
+    .cta-title { font-family:var(--font-head); font-weight:900; font-size:clamp(1.55rem,3vw,2.1rem); color:var(--chalk-white); margin-bottom:8px; }
+    .cta-sub   { color:var(--chalk-dim); font-size:0.97rem; }
+    .cta-btns  { display:flex; gap:12px; flex-wrap:wrap; }
+
+    /* ==============================================
+       FOOTER
+       ============================================== */
+    #footer {
+      background: #131f14;
+      color: var(--chalk-dim);
+      padding: 68px 0 28px;
+    }
+
+    .footer-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 44px;
+      margin-bottom: 50px;
+    }
+
+    .f-logo { display:flex; align-items:center; gap:10px; margin-bottom:16px; }
+    .f-about { font-size:0.86rem; line-height:1.75; margin-bottom:22px; }
+
+    .social-row { display:flex; gap:9px; }
+    .soc-btn {
+      width:36px;height:36px;
+      border-radius:9px;
+      background:rgba(240,237,216,0.06);
+      border:1px solid rgba(240,237,216,0.09);
+      display:flex;align-items:center;justify-content:center;
+      font-size:0.95rem;
+      color:var(--chalk-dim);
+      transition:background 0.25s,color 0.25s,transform 0.25s;
+      cursor:pointer;
+      text-decoration:none;
+    }
+    .soc-btn:hover { background:var(--chalk-green); color:var(--board-deep); border-color:var(--chalk-green); transform:translateY(-2px); }
+
+    .f-col-title { font-family:var(--font-head); font-weight:800; font-size:0.82rem; color:var(--chalk-cream); letter-spacing:0.07em; text-transform:uppercase; margin-bottom:16px; }
+    .f-links { display:flex; flex-direction:column; gap:9px; }
+    .f-links a { font-size:0.85rem; color:var(--chalk-dim); transition:color 0.2s,padding-left 0.2s; cursor:pointer; }
+    .f-links a:hover { color:var(--chalk-white); padding-left:5px; }
+
+    .footer-bot {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      flex-wrap: wrap;
+      padding-top: 28px;
+      border-top: 1px solid rgba(240,237,216,0.07);
+    }
+    .f-copy { font-size:0.8rem; color:rgba(240,237,216,0.3); }
+    .f-copy span { color:rgba(240,237,216,0.55); }
+    .f-tags { display:flex; gap:7px; flex-wrap:wrap; }
+    .f-tag {
+      background:rgba(240,237,216,0.04);
+      border:1px solid rgba(240,237,216,0.08);
+      border-radius:50px;
+      font-size:0.72rem;
+      color:rgba(240,237,216,0.3);
+      padding:3px 10px;
+    }
+
+    /* ==============================================
+       ANIMATIONS
+       ============================================== */
+    @keyframes fadeUp  { from{opacity:0;transform:translateY(26px);} to{opacity:1;transform:translateY(0);} }
+    @keyframes floatA  { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-12px);} }
+    @keyframes floatB  { 0%,100%{transform:translateY(0);} 50%{transform:translateY(9px);} }
+    @keyframes rotateSlow { from{transform:translate(-50%,-50%) rotate(0deg);} to{transform:translate(-50%,-50%) rotate(360deg);} }
+
+    .reveal { opacity:0; transform:translateY(28px); transition:opacity 0.65s ease,transform 0.65s ease; }
+    .reveal.visible { opacity:1; transform:translateY(0); }
+    .rd1 { transition-delay:0.1s; }
+    .rd2 { transition-delay:0.2s; }
+    .rd3 { transition-delay:0.3s; }
+    .rd4 { transition-delay:0.4s; }
+
+    /* ==============================================
+       RESPONSIVE
+       ============================================== */
+    @media(max-width:1024px){
+      .hero-inner    { grid-template-columns:1fr; gap:48px; }
+      .hero-visual   { height:320px; }
+      .platform-top  { grid-template-columns:1fr; gap:48px; }
+      .about-grid    { grid-template-columns:1fr; gap:48px; }
+      .footer-grid   { grid-template-columns:1fr 1fr; gap:32px; }
+    }
+    @media(max-width:768px){
+      .nav-links     { display:none; }
+      .nav-hamburger { display:flex; }
+      .hero-visual   { display:none; }
+      .interact-grid { grid-template-columns:1fr; }
+      .module-grid   { grid-template-columns:1fr; }
+      .footer-grid   { grid-template-columns:1fr; }
+      .footer-bot    { flex-direction:column; align-items:flex-start; }
+      .cta-inner     { flex-direction:column; text-align:center; }
+      .cta-btns      { justify-content:center; }
+    }
+    @media(max-width:480px){
+      .topics-grid   { grid-template-columns:1fr; }
+      .subjects-grid { grid-template-columns:1fr; }
+      .hero-btns     { flex-direction:column; }
+      .hero-stats    { gap:20px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ==========================================
+     WIP OVERLAY — shown for all placeholder links
+     ========================================== -->
+<div id="wip-overlay" role="dialog" aria-modal="true" aria-labelledby="wip-title">
+  <div class="wip-box">
+    <span class="wip-icon" aria-hidden="true">🚧</span>
+    <h2 class="wip-title" id="wip-title">Working On It!</h2>
+    <p class="wip-sub">
+      This page is currently under construction.<br>
+      Our team is building something great for you.<br>
+      Check back soon — it won't be long!
+    </p>
+    <div class="wip-bar"><div class="wip-fill"></div></div>
+    <button class="wip-close" id="wip-close-btn">← Go Back</button>
+  </div>
+</div>
+
+<!-- ==========================================
+     NAVIGATION
+     ========================================== -->
+<nav id="navbar" role="navigation" aria-label="Main navigation">
+  <div class="container">
+    <div class="nav-inner">
+
+      <a href="#hero" class="nav-logo" aria-label="KutleEd Home">
+        <div class="logo-icon">🎓</div>
+        <span class="logo-text">Kutle<span class="acc">Ed</span></span>
+      </a>
+
+      <ul class="nav-links" role="list">
+        <li><a href="#subjects">Subjects</a></li>
+        <li><a href="#interactive">Learn</a></li>
+        <li><a href="#topics">Topics</a></li>
+        <li><a href="#platform">Platform</a></li>
+        <li><a href="#about">About</a></li>
+      </ul>
+
+      <a href="#subjects" class="btn btn-chalk btn-sm">📚 Start Learning</a>
+
+      <button class="nav-hamburger" id="hamburger" aria-label="Toggle menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+
+    <div class="mobile-menu" id="mobileMenu" role="menu">
+      <a href="#subjects"    role="menuitem">📐 Subjects</a>
+      <a href="#interactive" role="menuitem">🎮 Interactive Learning</a>
+      <a href="#topics"      role="menuitem">💡 Featured Topics</a>
+      <a href="#platform"    role="menuitem">🔧 Platform</a>
+      <a href="#about"       role="menuitem">ℹ️ About</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ==========================================
+     HERO
+     ========================================== -->
+<section id="hero" aria-labelledby="hero-heading">
+
+  <div aria-hidden="true">
+    <div class="hero-blob hb1"></div>
+    <div class="hero-blob hb2"></div>
+    <div class="hero-blob hb3"></div>
+  </div>
+
+  <div class="container">
+    <div class="hero-inner">
+
+      <!-- Copy -->
+      <div>
+        <div class="hero-badge">
+          <span class="badge-dot"></span>
+          Grade 5 – 10 Learning Platform
+        </div>
+
+        <h1 class="hero-title" id="hero-heading">
+          Learn Smarter,<br>
+          <span class="hl-g chalk-ul">Explore</span>
+          <span class="hl-b"> Deeper,</span><br>
+          <span class="hl-y">Grow</span> Further
+        </h1>
+
+        <p class="hero-tagline">
+          Explore Maths, Science, English, Computer Science and more —
+          interactive lessons, quizzes and simulations designed for
+          curious minds in Grades 5 through 10.
+        </p>
+
+        <div class="hero-btns">
+          <a href="#subjects" class="btn btn-chalk">🚀 Start Learning</a>
+          <a href="#subjects" class="btn btn-ghost-chalk">📚 Browse Subjects</a>
+        </div>
+
+        <div class="hero-stats" aria-label="Platform highlights">
+          <div>
+            <div class="stat-num">5,000+</div>
+            <div class="stat-lbl">Students Learning</div>
+          </div>
+          <div>
+            <div class="stat-num">200+</div>
+            <div class="stat-lbl">Topics Covered</div>
+          </div>
+          <div>
+            <div class="stat-num">5</div>
+            <div class="stat-lbl">Core Subjects</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Illustration -->
+      <div class="hero-visual" aria-hidden="true">
+        <div class="board-frame">
+          <div class="board-brand">Kutle<span class="acc">Ed</span></div>
+          <div class="board-lines">
+            <div class="b-line" style="background:var(--chalk-green);"></div>
+            <div class="b-line" style="background:var(--chalk-yellow);width:70%;"></div>
+            <div class="b-line" style="background:var(--chalk-blue);width:55%;"></div>
+          </div>
+        </div>
+
+        <div class="float-chip"><div class="chip-ico" style="background:rgba(128,206,255,0.15);">📐</div>Mathematics</div>
+        <div class="float-chip"><div class="chip-ico" style="background:rgba(126,232,162,0.15);">🔬</div>Science</div>
+        <div class="float-chip"><div class="chip-ico" style="background:rgba(255,179,128,0.15);">📖</div>English</div>
+        <div class="float-chip"><div class="chip-ico" style="background:rgba(201,170,255,0.15);">💻</div>Computer Sci.</div>
+        <div class="float-chip"><div class="chip-ico" style="background:rgba(255,179,198,0.15);">🧩</div>Logical Reasoning</div>
+        <div class="float-chip"><div class="chip-ico" style="background:rgba(255,236,128,0.15);">🏆</div>+200 Topics</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ==========================================
+     SUBJECTS
+     ========================================== -->
+<section id="subjects" aria-labelledby="subj-heading">
+  <div class="container" style="padding-top:100px;padding-bottom:100px;">
+
+    <div class="section-head center reveal">
+      <span class="section-label">📚 Core Subjects</span>
+      <h2 class="section-title" id="subj-heading">Every Subject You <span class="hl-g">Need</span></h2>
+      <p class="section-sub">Carefully curated curriculum from Grade 5–10 — clear, concise and curriculum-aligned.</p>
+    </div>
+
+    <div class="subjects-grid">
+
+      <article class="subject-card reveal rd1" aria-label="Mathematics">
+        <div class="subj-ico" style="background:rgba(128,206,255,0.12);">📐</div>
+        <div class="subj-grade" style="color:var(--chalk-blue);">Grade 5–10 · 60+ Topics</div>
+        <h3 class="subj-name">Mathematics</h3>
+        <p class="subj-desc">Arithmetic to algebra, geometry, fractions and statistics — step-by-step with worked examples.</p>
+        <button class="subj-btn wip-trigger" style="background:rgba(128,206,255,0.12);color:var(--chalk-blue);">Explore →</button>
+      </article>
+
+      <article class="subject-card reveal rd2" aria-label="Science">
+        <div class="subj-ico" style="background:rgba(126,232,162,0.12);">🔬</div>
+        <div class="subj-grade" style="color:var(--chalk-green);">Grade 5–10 · 55+ Topics</div>
+        <h3 class="subj-name">Science</h3>
+        <p class="subj-desc">Physics, Chemistry and Biology through interactive diagrams, experiments and real-world scenarios.</p>
+        <button class="subj-btn wip-trigger" style="background:rgba(126,232,162,0.12);color:var(--chalk-green);">Explore →</button>
+      </article>
+
+      <article class="subject-card reveal rd3" aria-label="English">
+        <div class="subj-ico" style="background:rgba(255,179,128,0.12);">📖</div>
+        <div class="subj-grade" style="color:var(--chalk-orange);">Grade 5–10 · 40+ Topics</div>
+        <h3 class="subj-name">English</h3>
+        <p class="subj-desc">Grammar, comprehension, creative writing and vocabulary with structured lessons.</p>
+        <button class="subj-btn wip-trigger" style="background:rgba(255,179,128,0.12);color:var(--chalk-orange);">Explore →</button>
+      </article>
+
+      <article class="subject-card reveal rd4" aria-label="Computer Science">
+        <div class="subj-ico" style="background:rgba(201,170,255,0.12);">💻</div>
+        <div class="subj-grade" style="color:var(--chalk-purple);">Grade 5–10 · 35+ Topics</div>
+        <h3 class="subj-name">Computer Science</h3>
+        <p class="subj-desc">Coding basics, algorithms, digital literacy and problem-solving with Scratch and Python.</p>
+        <button class="subj-btn wip-trigger" style="background:rgba(201,170,255,0.12);color:var(--chalk-purple);">Explore →</button>
+      </article>
+
+      <article class="subject-card reveal rd1" aria-label="Logical Reasoning">
+        <div class="subj-ico" style="background:rgba(255,179,198,0.12);">🧩</div>
+        <div class="subj-grade" style="color:var(--chalk-pink);">Grade 5–10 · 30+ Topics</div>
+        <h3 class="subj-name">Logical Reasoning</h3>
+        <p class="subj-desc">Critical thinking, pattern recognition and analytical skills for exams and everyday life.</p>
+        <button class="subj-btn wip-trigger" style="background:rgba(255,179,198,0.12);color:var(--chalk-pink);">Explore →</button>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<!-- ==========================================
+     INTERACTIVE LEARNING
+     ========================================== -->
+<section id="interactive" aria-labelledby="int-heading">
+  <div class="container" style="padding-top:100px;padding-bottom:100px;">
+
+    <div class="section-head reveal">
+      <span class="section-label">🎮 Interactive Tools</span>
+      <h2 class="section-title" id="int-heading">Learning That <span class="hl-y">Comes Alive</span></h2>
+      <p class="section-sub">Hands-on tools that make learning engaging, memorable and genuinely fun.</p>
+    </div>
+
+    <div class="interact-grid">
+
+      <div class="interact-card wip-trigger reveal">
+        <div class="ic-icon" style="background:rgba(126,232,162,0.12);">🧠</div>
+        <div>
+          <div class="ic-tag" style="color:var(--chalk-green);">All Subjects</div>
+          <h3 class="ic-title">Interactive Quizzes</h3>
+          <p class="ic-desc">Topic-wise quizzes with instant feedback and detailed explanations for every answer.</p>
+          <span class="ic-link" style="color:var(--chalk-green);">Start a Quiz <span>→</span></span>
+        </div>
+      </div>
+
+      <div class="interact-card wip-trigger reveal rd1">
+        <div class="ic-icon" style="background:rgba(128,206,255,0.12);">🔭</div>
+        <div>
+          <div class="ic-tag" style="color:var(--chalk-blue);">Science · Physics</div>
+          <h3 class="ic-title">Science Simulations</h3>
+          <p class="ic-desc">Visualise Newton's laws, chemical reactions and cell biology with browser-based simulations.</p>
+          <span class="ic-link" style="color:var(--chalk-blue);">Explore Labs <span>→</span></span>
+        </div>
+        <span class="soon-badge">Coming Soon</span>
+      </div>
+
+      <div class="interact-card wip-trigger reveal rd2">
+        <div class="ic-icon" style="background:rgba(255,236,128,0.1);">👨‍💻</div>
+        <div>
+          <div class="ic-tag" style="color:var(--chalk-yellow);">Computer Science</div>
+          <h3 class="ic-title">Coding Playground</h3>
+          <p class="ic-desc">Write and run real code in your browser — mini-projects with guided instructions.</p>
+          <span class="ic-link" style="color:var(--chalk-yellow);">Open Editor <span>→</span></span>
+        </div>
+        <span class="soon-badge">Coming Soon</span>
+      </div>
+
+      <div class="interact-card wip-trigger reveal rd3">
+        <div class="ic-icon" style="background:rgba(255,179,198,0.12);">📝</div>
+        <div>
+          <div class="ic-tag" style="color:var(--chalk-pink);">Exam Prep</div>
+          <h3 class="ic-title">Practice Tests</h3>
+          <p class="ic-desc">Full-length mock exams with auto-grading and performance analytics.</p>
+          <span class="ic-link" style="color:var(--chalk-pink);">Take a Test <span>→</span></span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ==========================================
+     FEATURED TOPICS
+     ========================================== -->
+<section id="topics" aria-labelledby="top-heading">
+  <div class="container" style="padding-top:100px;padding-bottom:100px;">
+
+    <div class="section-head center reveal">
+      <span class="section-label">💡 Featured Topics</span>
+      <h2 class="section-title" id="top-heading">Start With These <span class="hl-y">Popular Topics</span></h2>
+      <p class="section-sub">Handpicked lessons students love — clear, concise, full of examples that make concepts click.</p>
+    </div>
+
+    <div class="topics-grid">
+
+      <article class="topic-card wip-trigger reveal">
+        <span class="topic-badge" style="background:rgba(128,206,255,0.12);color:var(--chalk-blue);">📐 Mathematics</span>
+        <h3 class="topic-title">Algebra Basics</h3>
+        <p class="topic-desc">Variables, equations and expressions with step-by-step examples and practice problems.</p>
+        <div class="topic-foot"><span class="topic-grade">Grade 6–8</span><div class="topic-arrow">→</div></div>
+      </article>
+
+      <article class="topic-card wip-trigger reveal rd1">
+        <span class="topic-badge" style="background:rgba(126,232,162,0.12);color:var(--chalk-green);">🔬 Physics</span>
+        <h3 class="topic-title">Newton's Laws of Motion</h3>
+        <p class="topic-desc">All three laws with real-world demos and guided practice scenarios.</p>
+        <div class="topic-foot"><span class="topic-grade">Grade 8–10</span><div class="topic-arrow">→</div></div>
+      </article>
+
+      <article class="topic-card wip-trigger reveal rd2">
+        <span class="topic-badge" style="background:rgba(255,179,128,0.12);color:var(--chalk-orange);">📖 English</span>
+        <h3 class="topic-title">Grammar Essentials</h3>
+        <p class="topic-desc">Tenses, parts of speech and sentence structure with interactive exercises.</p>
+        <div class="topic-foot"><span class="topic-grade">Grade 5–7</span><div class="topic-arrow">→</div></div>
+      </article>
+
+      <article class="topic-card wip-trigger reveal rd3">
+        <span class="topic-badge" style="background:rgba(201,170,255,0.12);color:var(--chalk-purple);">💻 Computer Sci.</span>
+        <h3 class="topic-title">Programming for Kids</h3>
+        <p class="topic-desc">Block-based and text coding — build your first app in minutes!</p>
+        <div class="topic-foot"><span class="topic-grade">Grade 5–7</span><div class="topic-arrow">→</div></div>
+      </article>
+
+      <article class="topic-card wip-trigger reveal">
+        <span class="topic-badge" style="background:rgba(128,206,255,0.12);color:var(--chalk-blue);">📐 Mathematics</span>
+        <h3 class="topic-title">Fractions & Decimals</h3>
+        <p class="topic-desc">Visual models that make fractions, decimals and percentages finally click.</p>
+        <div class="topic-foot"><span class="topic-grade">Grade 5–6</span><div class="topic-arrow">→</div></div>
+      </article>
+
+      <article class="topic-card wip-trigger reveal rd1">
+        <span class="topic-badge" style="background:rgba(126,232,162,0.12);color:var(--chalk-green);">🔬 Biology</span>
+        <h3 class="topic-title">Cell Biology Basics</h3>
+        <p class="topic-desc">Cell structure and function — plant vs animal cells made simple.</p>
+        <div class="topic-foot"><span class="topic-grade">Grade 7–9</span><div class="topic-arrow">→</div></div>
+      </article>
+
+      <article class="topic-card wip-trigger reveal rd2">
+        <span class="topic-badge" style="background:rgba(255,179,198,0.12);color:var(--chalk-pink);">🧩 Reasoning</span>
+        <h3 class="topic-title">Pattern Recognition</h3>
+        <p class="topic-desc">Number patterns, series and visual sequences for competitive exams.</p>
+        <div class="topic-foot"><span class="topic-grade">Grade 5–10</span><div class="topic-arrow">→</div></div>
+      </article>
+
+      <article class="topic-card wip-trigger reveal rd3">
+        <span class="topic-badge" style="background:rgba(126,232,162,0.12);color:var(--chalk-green);">🔬 Chemistry</span>
+        <h3 class="topic-title">The Periodic Table</h3>
+        <p class="topic-desc">Interactive exploration of elements, groups and chemical patterns.</p>
+        <div class="topic-foot"><span class="topic-grade">Grade 8–10</span><div class="topic-arrow">→</div></div>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<!-- ==========================================
+     PLATFORM EXTENSION
+     ========================================== -->
+<section id="platform" aria-labelledby="plat-heading">
+  <div class="container" style="padding-top:100px;padding-bottom:100px;">
+
+    <div class="platform-top">
+
+      <!-- Orbit diagram -->
+      <div class="platform-diagram reveal" aria-hidden="true">
+        <div class="pd-ring pd-ring-1">
+          <div class="pd-dot">🤖</div>
+          <div class="pd-dot">🧪</div>
+          <div class="pd-dot">📊</div>
+          <div class="pd-dot">🏅</div>
+        </div>
+        <div class="pd-ring pd-ring-2"></div>
+        <div class="pd-center">🌐</div>
+      </div>
+
+      <!-- Text -->
+      <div class="reveal rd1">
+        <span class="section-label">🔧 Extend the Platform</span>
+        <h2 class="section-title" id="plat-heading">Built to <span class="hl-g">Grow With You</span></h2>
+        <p class="section-sub">KutleEd is modular — new learning modules plug in seamlessly. Here's what's on our roadmap.</p>
+        <div style="margin-top:26px;">
+          <button class="btn btn-chalk wip-trigger">Explore Full Platform →</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="module-grid">
+
+      <div class="mod-card wip-trigger reveal">
+        <div class="mod-icon" style="background:rgba(128,206,255,0.1);">🤖</div>
+        <div>
+          <div class="mod-name">AI Tutor</div>
+          <p class="mod-desc">Personalised 24/7 explanations powered by adaptive AI.</p>
+          <span class="mod-status" style="background:rgba(128,206,255,0.1);color:var(--chalk-blue);">In Development</span>
+        </div>
+      </div>
+
+      <div class="mod-card wip-trigger reveal rd1">
+        <div class="mod-icon" style="background:rgba(126,232,162,0.1);">🧪</div>
+        <div>
+          <div class="mod-name">Interactive Labs</div>
+          <p class="mod-desc">Virtual science labs and Maths manipulatives — no equipment needed.</p>
+          <span class="mod-status" style="background:rgba(126,232,162,0.1);color:var(--chalk-green);">Coming Soon</span>
+        </div>
+      </div>
+
+      <div class="mod-card wip-trigger reveal rd2">
+        <div class="mod-icon" style="background:rgba(255,179,128,0.1);">📊</div>
+        <div>
+          <div class="mod-name">Exam Preparation</div>
+          <p class="mod-desc">Board and competitive exam prep with full mock tests and analytics.</p>
+          <span class="mod-status" style="background:rgba(255,179,128,0.1);color:var(--chalk-orange);">Available Soon</span>
+        </div>
+      </div>
+
+      <div class="mod-card wip-trigger reveal rd3">
+        <div class="mod-icon" style="background:rgba(255,236,128,0.1);">🏅</div>
+        <div>
+          <div class="mod-name">Olympiad Training</div>
+          <p class="mod-desc">Special problems for Maths, Science and Reasoning olympiads.</p>
+          <span class="mod-status" style="background:rgba(255,236,128,0.1);color:var(--chalk-yellow);">Coming Soon</span>
+        </div>
+      </div>
+
+      <div class="mod-card wip-trigger reveal">
+        <div class="mod-icon" style="background:rgba(201,170,255,0.1);">📈</div>
+        <div>
+          <div class="mod-name">Progress Dashboard</div>
+          <p class="mod-desc">Visual analytics — scores, topics done, time spent and suggestions.</p>
+          <span class="mod-status" style="background:rgba(201,170,255,0.1);color:var(--chalk-purple);">In Development</span>
+        </div>
+      </div>
+
+      <div class="mod-card wip-trigger reveal rd1">
+        <div class="mod-icon" style="background:rgba(255,179,198,0.1);">👩‍🏫</div>
+        <div>
+          <div class="mod-name">Teacher & Parent Portal</div>
+          <p class="mod-desc">Monitor student progress and assign tasks from one dashboard.</p>
+          <span class="mod-status" style="background:rgba(255,179,198,0.1);color:var(--chalk-pink);">Planned</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ==========================================
+     ABOUT
+     ========================================== -->
+<section id="about" aria-labelledby="about-heading">
+  <div class="container" style="padding-top:100px;padding-bottom:100px;">
+    <div class="about-grid">
+
+      <!-- Left -->
+      <div class="reveal">
+        <span class="section-label">ℹ️ Our Mission</span>
+        <h2 class="section-title" id="about-heading">Education for <span class="hl-g">Every Student</span></h2>
+        <p style="color:var(--chalk-dim);line-height:1.8;margin-bottom:10px;">
+          KutleEd was built around one belief — every student deserves access to
+          high-quality, engaging education regardless of where they are.
+        </p>
+        <p style="color:var(--chalk-dim);line-height:1.8;">
+          We combine modern design, sound content and interactive tools to make
+          school subjects less intimidating and more exciting.
+        </p>
+
+        <div class="about-feats">
+          <div class="about-feat reveal rd1">
+            <div class="feat-icon" style="background:rgba(128,206,255,0.1);">🎯</div>
+            <div>
+              <div class="feat-title">Curriculum-Aligned Content</div>
+              <p class="feat-desc">All topics mapped to national frameworks — relevant for school exams.</p>
+            </div>
+          </div>
+          <div class="about-feat reveal rd2">
+            <div class="feat-icon" style="background:rgba(126,232,162,0.1);">🌱</div>
+            <div>
+              <div class="feat-title">Learn at Your Own Pace</div>
+              <p class="feat-desc">Revisit topics, retry quizzes, track progress — no pressure.</p>
+            </div>
+          </div>
+          <div class="about-feat reveal rd3">
+            <div class="feat-icon" style="background:rgba(255,179,128,0.1);">🤝</div>
+            <div>
+              <div class="feat-title">Always Free to Start</div>
+              <p class="feat-desc">Core subjects are completely free. Premium features are optional.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: mission card -->
+      <div class="reveal rd2" style="position:relative;">
+        <div class="mission-board">
+          <span class="mission-qmark" aria-hidden="true">"</span>
+          <blockquote class="mission-quote">
+            Making education engaging, interactive and accessible for every student, everywhere.
+          </blockquote>
+          <p class="mission-sub">
+            Our platform is built on the idea that curiosity is the best teacher.
+            We create the environment — students discover the joy of learning.
+          </p>
+          <div class="mission-chips">
+            <span class="m-chip">✅ Free to Start</span>
+            <span class="m-chip">📱 Mobile Friendly</span>
+            <span class="m-chip">📚 Grade 5–10</span>
+            <span class="m-chip">🌐 Anywhere</span>
+            <span class="m-chip">🇮🇳 India Curriculum</span>
+          </div>
+        </div>
+        <div class="about-float">🚀 Join 5,000+ Learners</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ==========================================
+     CTA BAND
+     ========================================== -->
+<section id="cta-band" aria-labelledby="cta-heading">
+  <div class="container">
+    <div class="cta-inner">
+      <div>
+        <span class="section-label">🎯 Ready to Begin?</span>
+        <h2 class="cta-title" id="cta-heading">Start Your Learning Journey Today</h2>
+        <p class="cta-sub">Free access to core subjects — no account needed to explore.</p>
+      </div>
+      <div class="cta-btns">
+        <a href="#subjects" class="btn btn-chalk">📚 Start Learning</a>
+        <button class="btn btn-ghost-chalk wip-trigger">🧠 Take a Quiz</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==========================================
+     FOOTER
+     ========================================== -->
+<footer id="footer" role="contentinfo">
+  <div class="container">
+    <div class="footer-grid">
+
+      <!-- Brand -->
+      <div>
+        <div class="f-logo">
+          <div class="logo-icon" style="width:36px;height:36px;font-size:1.15rem;">🎓</div>
+          <span class="logo-text" style="font-size:1.15rem;">Kutle<span class="acc">Ed</span></span>
+        </div>
+        <p class="f-about">A modern learning platform for school students in Grades 5–10. Free, interactive, and built around the joy of discovery.</p>
+        <div class="social-row" aria-label="Social media">
+          <a href="#" class="soc-btn" aria-label="Twitter">𝕏</a>
+          <a href="#" class="soc-btn" aria-label="YouTube">▶</a>
+          <a href="#" class="soc-btn" aria-label="Instagram">📷</a>
+          <a href="#" class="soc-btn" aria-label="LinkedIn">in</a>
+        </div>
+      </div>
+
+      <!-- Subjects -->
+      <nav aria-label="Subjects">
+        <div class="f-col-title">Subjects</div>
+        <ul class="f-links">
+          <li><a class="wip-trigger">📐 Mathematics</a></li>
+          <li><a class="wip-trigger">🔬 Science</a></li>
+          <li><a class="wip-trigger">📖 English</a></li>
+          <li><a class="wip-trigger">💻 Computer Science</a></li>
+          <li><a class="wip-trigger">🧩 Logical Reasoning</a></li>
+        </ul>
+      </nav>
+
+      <!-- Tools -->
+      <nav aria-label="Tools">
+        <div class="f-col-title">Tools</div>
+        <ul class="f-links">
+          <li><a class="wip-trigger">🧠 Quizzes</a></li>
+          <li><a class="wip-trigger">📝 Practice Tests</a></li>
+          <li><a class="wip-trigger">🔭 Simulations</a></li>
+          <li><a class="wip-trigger">👨‍💻 Coding Playground</a></li>
+          <li><a class="wip-trigger">🏅 Olympiad Prep</a></li>
+          <li><a class="wip-trigger">🤖 AI Tutor</a></li>
+        </ul>
+      </nav>
+
+      <!-- Platform -->
+      <nav aria-label="Platform">
+        <div class="f-col-title">Platform</div>
+        <ul class="f-links">
+          <li><a href="#about">About Us</a></li>
+          <li><a class="wip-trigger">My Dashboard</a></li>
+          <li><a class="wip-trigger">Teacher Portal</a></li>
+          <li><a class="wip-trigger">Contact Us</a></li>
+          <li><a class="wip-trigger">Privacy Policy</a></li>
+          <li><a class="wip-trigger">Terms of Use</a></li>
+        </ul>
+      </nav>
+    </div>
+
+    <div class="footer-bot">
+      <p class="f-copy">© 2025 <span>KutleEd</span>. Made with ❤️ for curious learners everywhere.</p>
+      <div class="f-tags">
+        <span class="f-tag">Grade 5–10</span>
+        <span class="f-tag">India Curriculum</span>
+        <span class="f-tag">Free to Learn</span>
+        <span class="f-tag">No Ads</span>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- ==========================================
+     JAVASCRIPT
+     ========================================== -->
+<script>
+  /* ── Navbar scroll ── */
+  const navbar = document.getElementById('navbar');
+  window.addEventListener('scroll', () => {
+    navbar.classList.toggle('scrolled', window.scrollY > 40);
+  }, { passive: true });
+
+  /* ── Mobile hamburger ── */
+  const hamburger  = document.getElementById('hamburger');
+  const mobileMenu = document.getElementById('mobileMenu');
+
+  hamburger.addEventListener('click', () => {
+    const isOpen = mobileMenu.classList.toggle('open');
+    hamburger.setAttribute('aria-expanded', String(isOpen));
+    const spans = hamburger.querySelectorAll('span');
+    if (isOpen) {
+      spans[0].style.transform = 'rotate(45deg) translate(5px,5px)';
+      spans[1].style.opacity   = '0';
+      spans[2].style.transform = 'rotate(-45deg) translate(5px,-5px)';
+    } else {
+      spans.forEach(s => { s.style.transform = ''; s.style.opacity = ''; });
+    }
+  });
+
+  mobileMenu.querySelectorAll('a').forEach(link => {
+    link.addEventListener('click', () => {
+      mobileMenu.classList.remove('open');
+      hamburger.setAttribute('aria-expanded', 'false');
+      hamburger.querySelectorAll('span').forEach(s => { s.style.transform = ''; s.style.opacity = ''; });
+    });
+  });
+
+  /* ── WIP Overlay ── */
+  const wipOverlay = document.getElementById('wip-overlay');
+  const wipClose   = document.getElementById('wip-close-btn');
+
+  // Open overlay; suppress navigation for anchor tags
+  function openWip(e) {
+    const tag  = this.tagName.toLowerCase();
+    const href = this.getAttribute('href');
+    // Allow real section anchors (e.g. #about) to pass through
+    if (tag === 'a' && href && href.startsWith('#') && href.length > 1) return;
+    e.preventDefault();
+    wipOverlay.classList.add('show');
+    wipClose.focus();
+  }
+
+  document.querySelectorAll('.wip-trigger').forEach(el => {
+    el.addEventListener('click', openWip);
+  });
+
+  wipClose.addEventListener('click', () => wipOverlay.classList.remove('show'));
+
+  wipOverlay.addEventListener('click', e => {
+    if (e.target === wipOverlay) wipOverlay.classList.remove('show');
+  });
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') wipOverlay.classList.remove('show');
+  });
+
+  /* ── Scroll-reveal ── */
+  const revObs = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        revObs.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -36px 0px' });
+
+  document.querySelectorAll('.reveal').forEach(el => revObs.observe(el));
+</script>
+
+</body>
+</html>
