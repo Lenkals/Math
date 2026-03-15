@@ -3,23 +3,24 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>3D Matrix Basis Transform</title>
+<title>Matrix Basis Transform — 2D / 3D</title>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
-    --bg: #ffffff;
-    --bg2: #f5f4f0;
-    --border: rgba(0,0,0,0.12);
-    --border2: rgba(0,0,0,0.22);
-    --text: #1a1a18;
-    --text2: #6b6a65;
-    --blue: #378ADD;
-    --red: #D85A30;
-    --green: #1D9E75;
-    --amber: #BA7517;
-    --info-bg: #e6f1fb;
-    --info-fg: #185FA5;
+    --bg:       #ffffff;
+    --bg2:      #f5f4f0;
+    --bg3:      #eceae4;
+    --border:   rgba(0,0,0,0.10);
+    --border2:  rgba(0,0,0,0.20);
+    --text:     #1a1a18;
+    --text2:    #6b6a65;
+    --blue:     #378ADD;
+    --red:      #D85A30;
+    --green:    #1D9E75;
+    --amber:    #BA7517;
+    --info-bg:  #e6f1fb;
+    --info-fg:  #185FA5;
     --radius-md: 8px;
     --radius-lg: 12px;
     --font: 'Segoe UI', system-ui, sans-serif;
@@ -28,12 +29,13 @@
 
   @media (prefers-color-scheme: dark) {
     :root {
-      --bg: #1a1a18;
-      --bg2: #242420;
-      --border: rgba(255,255,255,0.1);
-      --border2: rgba(255,255,255,0.2);
-      --text: #e8e6de;
-      --text2: #9c9a92;
+      --bg:      #1a1a18;
+      --bg2:     #242420;
+      --bg3:     #2e2e2a;
+      --border:  rgba(255,255,255,0.09);
+      --border2: rgba(255,255,255,0.18);
+      --text:    #e8e6de;
+      --text2:   #9c9a92;
       --info-bg: #0c2d4a;
       --info-fg: #85b7eb;
     }
@@ -43,46 +45,136 @@
     font-family: var(--font);
     background: var(--bg);
     color: var(--text);
-    padding: 1.5rem 1rem;
-    max-width: 720px;
+    padding: 1.2rem 1rem 2rem;
+    max-width: 740px;
     margin: 0 auto;
+    min-height: 100vh;
   }
 
-  h1 {
-    font-size: 18px;
-    font-weight: 500;
+  /* ── Header ── */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     margin-bottom: 1rem;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .title {
+    font-size: 17px;
+    font-weight: 500;
     color: var(--text);
   }
 
+  /* ── Toggle pill ── */
+  .toggle-wrap {
+    display: flex;
+    align-items: center;
+    background: var(--bg2);
+    border: 0.5px solid var(--border2);
+    border-radius: 30px;
+    padding: 3px;
+    gap: 2px;
+  }
+
+  .toggle-btn {
+    padding: 5px 18px;
+    border-radius: 26px;
+    border: none;
+    background: transparent;
+    color: var(--text2);
+    font-size: 13px;
+    font-family: var(--font);
+    cursor: pointer;
+    transition: background 0.18s, color 0.18s;
+    font-weight: 400;
+  }
+
+  .toggle-btn.active {
+    background: var(--bg);
+    color: var(--text);
+    font-weight: 500;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+  }
+
+  /* ── Panel ── */
   .panel {
     background: var(--bg2);
     border-radius: var(--radius-lg);
-    padding: .9rem 1.1rem;
+    padding: .85rem 1rem;
     margin-bottom: 10px;
+    border: 0.5px solid var(--border);
   }
 
   .lbl {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--text2);
+    margin: 0 0 7px;
+    font-weight: 500;
+  }
+
+  /* ── Matrix table ── */
+  .matrix-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .bracket {
+    font-size: 40px;
+    line-height: 1;
+    color: var(--border2);
+    font-weight: 200;
+  }
+
+  table.mat { border-collapse: collapse; }
+  table.mat td { padding: 2px 3px; }
+
+  input.cell {
+    width: 50px;
+    text-align: center;
+    font-size: 15px;
+    font-family: var(--font-mono);
+    font-weight: 500;
+    padding: 5px 2px;
+    border-radius: 6px;
+    border: 0.5px solid var(--border2);
+    background: var(--bg);
+    color: var(--text);
+    transition: border-color 0.15s;
+  }
+
+  input.cell:focus { outline: none; border-color: var(--blue); }
+  input.cell.cb { color: var(--blue); }
+  input.cell.cr { color: var(--red); }
+  input.cell.cg { color: var(--green); }
+
+  .col-info {
     font-size: 12px;
     color: var(--text2);
-    margin: 0 0 5px;
+    line-height: 2;
   }
 
-  .mono { font-family: var(--font-mono); font-size: 13px; }
-  .col-b { color: var(--blue); font-weight: 500; }
-  .col-r { color: var(--red); font-weight: 500; }
-  .col-g { color: var(--green); font-weight: 500; }
+  .col-info span { font-weight: 500; }
 
-  canvas {
-    display: block;
-    border-radius: var(--radius-md);
-    width: 100%;
-    border: 0.5px solid var(--border);
-    background: var(--bg);
+  #detLabel {
+    margin-top: 4px;
+    font-size: 12px;
+    color: var(--text2);
   }
 
-  .tabs { display: flex; gap: 6px; margin-bottom: 10px; }
-  .tab {
+  /* ── View tabs ── */
+  .view-tabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 10px;
+  }
+
+  .view-tab {
     padding: 4px 14px;
     border-radius: 20px;
     font-size: 12px;
@@ -91,300 +183,593 @@
     background: transparent;
     color: var(--text2);
     font-family: var(--font);
+    transition: background .15s, color .15s;
   }
-  .tab.active {
+
+  .view-tab.active {
     background: var(--info-bg);
     color: var(--info-fg);
     border-color: transparent;
   }
 
-  .vec-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin: 4px 0;
-    font-size: 13px;
-  }
-
-  .dot {
-    width: 10px; height: 10px;
-    border-radius: 50%;
-    display: inline-block;
-    flex-shrink: 0;
-  }
-
-  .grid2 {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    margin-bottom: 10px;
-  }
-
-  @media (max-width: 500px) { .grid2 { grid-template-columns: 1fr; } }
-
-  input[type=number] {
-    padding: 4px 2px;
-    border-radius: 4px;
-    border: 0.5px solid var(--border2);
+  /* ── Canvas ── */
+  canvas {
+    display: block;
+    border-radius: var(--radius-md);
+    border: 0.5px solid var(--border);
     background: var(--bg);
-    color: var(--text);
-    font-family: var(--font-mono);
-    font-size: 14px;
+    width: 100%;
   }
 
   .hint {
     text-align: center;
     font-size: 11px;
     color: var(--text2);
-    margin: 4px 0 10px;
+    margin: 5px 0 10px;
   }
 
-  strong { font-weight: 500; }
-  em { font-style: italic; }
+  /* ── Info grid ── */
+  .info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  @media (max-width: 480px) { .info-grid { grid-template-columns: 1fr; } }
+
+  .vec-row {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin: 4px 0;
+    font-size: 13px;
+    font-family: var(--font-mono);
+  }
+
+  .dot {
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    display: inline-block;
+    flex-shrink: 0;
+  }
+
+  /* ── Explanation ── */
+  .explainer {
+    font-size: 13px;
+    color: var(--text2);
+    line-height: 1.75;
+  }
+
+  .explainer strong { color: var(--text); font-weight: 500; }
+
+  /* ── Section transitions ── */
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* ── 2D specific ── */
+  .canvases-2d {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 4px;
+  }
+
+  @media (max-width: 480px) { .canvases-2d { grid-template-columns: 1fr; } }
+
+  .canvas-label {
+    font-size: 11px;
+    color: var(--text2);
+    margin-bottom: 5px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+  }
 </style>
 </head>
 <body>
 
-<h1>3D Matrix Basis Transform</h1>
+<!-- Header -->
+<div class="header">
+  <div class="title">Matrix Basis Transform</div>
+  <div class="toggle-wrap">
+    <button class="toggle-btn active" id="btn2d" onclick="switchDim('2d')">2D</button>
+    <button class="toggle-btn"        id="btn3d" onclick="switchDim('3d')">3D</button>
+  </div>
+</div>
 
-<div class="panel">
-  <p class="lbl">Matrix M (edit any cell)</p>
-  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-    <span style="font-size:26px;color:var(--border2);">[</span>
-    <table style="border-collapse:collapse;">
-      <tr>
-        <td><input type="number" class="col-b" id="m00" value="2" style="width:46px;text-align:center;"></td>
-        <td><input type="number" class="col-r" id="m01" value="1" style="width:46px;text-align:center;"></td>
-        <td><input type="number" class="col-g" id="m02" value="0" style="width:46px;text-align:center;"></td>
-      </tr>
-      <tr>
-        <td><input type="number" class="col-b" id="m10" value="1" style="width:46px;text-align:center;"></td>
-        <td><input type="number" class="col-r" id="m11" value="3" style="width:46px;text-align:center;"></td>
-        <td><input type="number" class="col-g" id="m12" value="1" style="width:46px;text-align:center;"></td>
-      </tr>
-      <tr>
-        <td><input type="number" class="col-b" id="m20" value="0" style="width:46px;text-align:center;"></td>
-        <td><input type="number" class="col-r" id="m21" value="2" style="width:46px;text-align:center;"></td>
-        <td><input type="number" class="col-g" id="m22" value="2" style="width:46px;text-align:center;"></td>
-      </tr>
-    </table>
-    <span style="font-size:26px;color:var(--border2);">]</span>
-    <div style="font-size:12px;color:var(--text2);line-height:1.9;">
-      <div><span class="col-b">Col 1 → where e₁ (x-axis) goes</span></div>
-      <div><span class="col-r">Col 2 → where e₂ (y-axis) goes</span></div>
-      <div><span class="col-g">Col 3 → where e₃ (z-axis) goes</span></div>
-      <div id="detLabel" style="margin-top:3px;">det = ?</div>
+<!-- ═══════════════ 2D SECTION ═══════════════ -->
+<div class="section active" id="sec2d">
+
+  <!-- Matrix -->
+  <div class="panel">
+    <p class="lbl">2 × 2 Matrix M</p>
+    <div class="matrix-wrap">
+      <span class="bracket">[</span>
+      <table class="mat">
+        <tr>
+          <td><input class="cell cb" type="number" id="a00" value="2"></td>
+          <td><input class="cell cr" type="number" id="a01" value="1"></td>
+        </tr>
+        <tr>
+          <td><input class="cell cb" type="number" id="a10" value="1"></td>
+          <td><input class="cell cr" type="number" id="a11" value="3"></td>
+        </tr>
+      </table>
+      <span class="bracket">]</span>
+      <div class="col-info">
+        <div><span style="color:var(--blue);">Col 1</span> → where e₁ (1,0) goes</div>
+        <div><span style="color:var(--red);">Col 2</span> → where e₂ (0,1) goes</div>
+        <div id="det2Label">det = ?</div>
+      </div>
     </div>
   </div>
-</div>
 
-<div class="tabs">
-  <button class="tab active" onclick="setView('before')">Before (basis)</button>
-  <button class="tab" onclick="setView('after')">After (transformed)</button>
-  <button class="tab" onclick="setView('both')">Both together</button>
-</div>
-
-<canvas id="c3d" width="680" height="400"></canvas>
-<p class="hint">drag to rotate · scroll to zoom</p>
-
-<div class="grid2">
-  <div class="panel">
-    <p class="lbl">Standard basis (before)</p>
-    <div class="vec-row"><span class="dot" style="background:var(--blue);"></span><span class="mono">e₁ = (1, 0, 0)</span></div>
-    <div class="vec-row"><span class="dot" style="background:var(--red);"></span><span class="mono">e₂ = (0, 1, 0)</span></div>
-    <div class="vec-row"><span class="dot" style="background:var(--green);"></span><span class="mono">e₃ = (0, 0, 1)</span></div>
+  <!-- Canvases -->
+  <div class="canvases-2d">
+    <div>
+      <p class="canvas-label">Before — standard basis</p>
+      <canvas id="c2dBefore" width="340" height="300"></canvas>
+    </div>
+    <div>
+      <p class="canvas-label">After — M applied</p>
+      <canvas id="c2dAfter" width="340" height="300"></canvas>
+    </div>
   </div>
-  <div class="panel">
-    <p class="lbl">Transformed columns (after)</p>
-    <div class="vec-row"><span class="dot" style="background:var(--blue);"></span><span class="mono col-b" id="c1lbl">M·e₁ = col 1</span></div>
-    <div class="vec-row"><span class="dot" style="background:var(--red);"></span><span class="mono col-r" id="c2lbl">M·e₂ = col 2</span></div>
-    <div class="vec-row"><span class="dot" style="background:var(--green);"></span><span class="mono col-g" id="c3lbl">M·e₃ = col 3</span></div>
-  </div>
-</div>
 
-<div class="panel" style="font-size:13px;color:var(--text2);line-height:1.7;">
-  In 3D the same rule holds: <strong>M × e₁ = column 1</strong>, <strong>M × e₂ = column 2</strong>, <strong>M × e₃ = column 3</strong>. The unit cube (formed by the three basis vectors) gets stretched into a <em>parallelepiped</em>. Its volume = |det(M)|.
-</div>
+  <!-- Legend -->
+  <div style="display:flex;flex-wrap:wrap;gap:14px;font-size:12px;color:var(--text2);margin:6px 0 10px;padding:0 2px;">
+    <span style="display:flex;align-items:center;gap:5px;"><span class="dot" style="background:var(--blue);"></span>Column 1 / e₁</span>
+    <span style="display:flex;align-items:center;gap:5px;"><span class="dot" style="background:var(--red);"></span>Column 2 / e₂</span>
+    <span style="display:flex;align-items:center;gap:5px;"><span class="dot" style="background:var(--green);opacity:.6;"></span>Unit square</span>
+    <span style="display:flex;align-items:center;gap:5px;"><span style="width:18px;height:2px;background:var(--amber);display:inline-block;border-radius:1px;"></span>Sample vector v</span>
+  </div>
+
+  <!-- Info -->
+  <div class="info-grid">
+    <div class="panel">
+      <p class="lbl">Before</p>
+      <div class="vec-row"><span class="dot" style="background:var(--blue);"></span>e₁ = (1, 0)</div>
+      <div class="vec-row"><span class="dot" style="background:var(--red);"></span>e₂ = (0, 1)</div>
+      <div class="vec-row"><span class="dot" style="background:var(--amber);"></span>v  = (0.6, 0.8)</div>
+    </div>
+    <div class="panel">
+      <p class="lbl">After</p>
+      <div class="vec-row"><span class="dot" style="background:var(--blue);"></span><span id="ae1" style="color:var(--blue);">M·e₁ = ?</span></div>
+      <div class="vec-row"><span class="dot" style="background:var(--red);"></span><span id="ae2" style="color:var(--red);">M·e₂ = ?</span></div>
+      <div class="vec-row"><span class="dot" style="background:var(--amber);"></span><span id="av"  style="color:var(--amber);">M·v  = ?</span></div>
+    </div>
+  </div>
+
+  <div class="panel explainer">
+    Each column tells you <strong>where a basis vector lands</strong>. The unit square (area = 1) becomes a parallelogram whose area = |det(M)|. A matrix is orthogonal only when both columns are unit-length and perpendicular.
+  </div>
+
+</div><!-- end 2D -->
+
+<!-- ═══════════════ 3D SECTION ═══════════════ -->
+<div class="section" id="sec3d">
+
+  <!-- Matrix -->
+  <div class="panel">
+    <p class="lbl">3 × 3 Matrix M</p>
+    <div class="matrix-wrap">
+      <span class="bracket">[</span>
+      <table class="mat">
+        <tr>
+          <td><input class="cell cb" type="number" id="m00" value="2"></td>
+          <td><input class="cell cr" type="number" id="m01" value="1"></td>
+          <td><input class="cell cg" type="number" id="m02" value="0"></td>
+        </tr>
+        <tr>
+          <td><input class="cell cb" type="number" id="m10" value="1"></td>
+          <td><input class="cell cr" type="number" id="m11" value="3"></td>
+          <td><input class="cell cg" type="number" id="m12" value="1"></td>
+        </tr>
+        <tr>
+          <td><input class="cell cb" type="number" id="m20" value="0"></td>
+          <td><input class="cell cr" type="number" id="m21" value="2"></td>
+          <td><input class="cell cg" type="number" id="m22" value="2"></td>
+        </tr>
+      </table>
+      <span class="bracket">]</span>
+      <div class="col-info">
+        <div><span style="color:var(--blue);">Col 1</span> → where e₁ (x) goes</div>
+        <div><span style="color:var(--red);">Col 2</span> → where e₂ (y) goes</div>
+        <div><span style="color:var(--green);">Col 3</span> → where e₃ (z) goes</div>
+        <div id="detLabel">det = ?</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- View tabs -->
+  <div class="view-tabs">
+    <button class="view-tab active" onclick="setView('before')">Before (basis)</button>
+    <button class="view-tab"        onclick="setView('after')">After (transformed)</button>
+    <button class="view-tab"        onclick="setView('both')">Both together</button>
+  </div>
+
+  <canvas id="c3d" width="680" height="400"></canvas>
+  <p class="hint">drag to rotate · scroll to zoom</p>
+
+  <div class="info-grid">
+    <div class="panel">
+      <p class="lbl">Standard basis (before)</p>
+      <div class="vec-row"><span class="dot" style="background:var(--blue);"></span>e₁ = (1, 0, 0)</div>
+      <div class="vec-row"><span class="dot" style="background:var(--red);"></span>e₂ = (0, 1, 0)</div>
+      <div class="vec-row"><span class="dot" style="background:var(--green);"></span>e₃ = (0, 0, 1)</div>
+    </div>
+    <div class="panel">
+      <p class="lbl">Transformed columns (after)</p>
+      <div class="vec-row"><span class="dot" style="background:var(--blue);"></span><span id="c1lbl" style="color:var(--blue);">M·e₁ = ?</span></div>
+      <div class="vec-row"><span class="dot" style="background:var(--red);"></span><span id="c2lbl" style="color:var(--red);">M·e₂ = ?</span></div>
+      <div class="vec-row"><span class="dot" style="background:var(--green);"></span><span id="c3lbl" style="color:var(--green);">M·e₃ = ?</span></div>
+    </div>
+  </div>
+
+  <div class="panel explainer">
+    In 3D, <strong>M × e₁ = column 1</strong>, <strong>M × e₂ = column 2</strong>, <strong>M × e₃ = column 3</strong>. The unit cube becomes a <em>parallelepiped</em> — its volume equals |det(M)|.
+  </div>
+
+</div><!-- end 3D -->
+
 
 <script>
-const cvs = document.getElementById('c3d');
-const ctx = cvs.getContext('2d');
-let viewMode = 'before';
-let rotX = 0.42, rotY = 0.62;
-let drag = false, lastX = 0, lastY = 0;
-let zoom = 1;
+/* ══════════════════════════════════
+   TOGGLE
+══════════════════════════════════ */
+let currentDim = '2d';
 
-cvs.addEventListener('mousedown', e => { drag=true; lastX=e.offsetX; lastY=e.offsetY; });
-cvs.addEventListener('mousemove', e => {
-  if (!drag) return;
-  rotY += (e.offsetX - lastX) * 0.012;
-  rotX += (e.offsetY - lastY) * 0.012;
-  lastX=e.offsetX; lastY=e.offsetY; draw();
-});
-cvs.addEventListener('mouseup', () => drag=false);
-cvs.addEventListener('mouseleave', () => drag=false);
-cvs.addEventListener('wheel', e => {
-  zoom = Math.max(0.4, Math.min(2.5, zoom - e.deltaY*0.001));
-  draw(); e.preventDefault();
-}, {passive:false});
+function switchDim(dim) {
+  currentDim = dim;
+  document.getElementById('sec2d').classList.toggle('active', dim==='2d');
+  document.getElementById('sec3d').classList.toggle('active', dim==='3d');
+  document.getElementById('btn2d').classList.toggle('active', dim==='2d');
+  document.getElementById('btn3d').classList.toggle('active', dim==='3d');
+  if (dim==='2d') { draw2d(); } else { draw3d(); }
+}
 
-cvs.addEventListener('touchstart', e => { drag=true; lastX=e.touches[0].clientX; lastY=e.touches[0].clientY; e.preventDefault(); }, {passive:false});
-cvs.addEventListener('touchmove', e => {
-  if (!drag) return;
-  rotY += (e.touches[0].clientX - lastX)*0.012;
-  rotX += (e.touches[0].clientY - lastY)*0.012;
-  lastX=e.touches[0].clientX; lastY=e.touches[0].clientY; draw(); e.preventDefault();
-}, {passive:false});
-cvs.addEventListener('touchend', () => drag=false);
-
-function getM() {
+/* ══════════════════════════════════
+   2D LOGIC
+══════════════════════════════════ */
+function getM2() {
   return [
-    [+document.getElementById('m00').value, +document.getElementById('m01').value, +document.getElementById('m02').value],
-    [+document.getElementById('m10').value, +document.getElementById('m11').value, +document.getElementById('m12').value],
-    [+document.getElementById('m20').value, +document.getElementById('m21').value, +document.getElementById('m22').value],
+    [+document.getElementById('a00').value, +document.getElementById('a01').value],
+    [+document.getElementById('a10').value, +document.getElementById('a11').value],
   ];
 }
 
-function det3(m) {
+function r2(n){ return Math.round(n*100)/100; }
+
+function draw2dCanvas(cvs, M) {
+  const W = cvs.width, H = cvs.height;
+  const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const ctx = cvs.getContext('2d');
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle = isDark ? '#1a1a18' : '#ffffff';
+  ctx.fillRect(0,0,W,H);
+
+  // For "before" M is null (identity), for "after" we apply M
+  const transform = !!M;
+
+  // Pick scale and origin
+  let scale, ox, oy;
+  if (!transform) {
+    scale = 80; ox = W/2; oy = H/2;
+  } else {
+    // auto-fit: find max extent of transformed corners
+    const corners = [[1,0],[0,1],[1,1],[-1,0],[0,-1],[-1,-1],[1,-1],[-1,1]];
+    let maxE = 1;
+    corners.forEach(([x,y]) => {
+      const nx = M[0][0]*x+M[0][1]*y, ny = M[1][0]*x+M[1][1]*y;
+      maxE = Math.max(maxE, Math.abs(nx), Math.abs(ny));
+    });
+    scale = Math.min(W, H) / (maxE * 2.6);
+    ox = W * 0.35; oy = H * 0.6;
+  }
+
+  const toS = (x,y) => [ox + x*scale, oy - y*scale];
+  const applyMaybe = (x,y) => M ? [M[0][0]*x+M[0][1]*y, M[1][0]*x+M[1][1]*y] : [x,y];
+
+  const axCol   = isDark ? 'rgba(200,200,200,0.18)' : 'rgba(0,0,0,0.12)';
+  const gridCol = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
+  const txtCol  = isDark ? 'rgba(180,180,180,0.55)' : 'rgba(80,80,80,0.55)';
+
+  // grid
+  const gr = transform ? 5 : 2;
+  ctx.strokeStyle = gridCol; ctx.lineWidth = 0.5;
+  for (let i = -gr; i <= gr; i++) {
+    if (i===0) continue;
+    const [ax,ay]=toS(i,-gr), [bx,by]=toS(i,gr);
+    ctx.beginPath(); ctx.moveTo(ax,ay); ctx.lineTo(bx,by); ctx.stroke();
+    const [cx,cy]=toS(-gr,i), [dx,dy]=toS(gr,i);
+    ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(dx,dy); ctx.stroke();
+  }
+
+  // axes
+  ctx.strokeStyle = axCol; ctx.lineWidth = 0.8;
+  const [ax0,ay0]=toS(-gr,0), [ax1,ay1]=toS(gr,0);
+  ctx.beginPath(); ctx.moveTo(ax0,ay0); ctx.lineTo(ax1,ay1); ctx.stroke();
+  const [ay2,ay3]=toS(0,-gr), [ay4,ay5]=toS(0,gr);
+  ctx.beginPath(); ctx.moveTo(ay2,ay3); ctx.lineTo(ay4,ay5); ctx.stroke();
+
+  // tick labels
+  ctx.fillStyle = txtCol; ctx.font = '10px sans-serif'; ctx.textAlign = 'center';
+  const ticks = transform ? [2,4] : [1];
+  ticks.forEach(i => {
+    const [sx,sy]=toS(i,0);  ctx.fillText(i, sx, sy+13);
+    const [sx2,sy2]=toS(-i,0); ctx.fillText(-i, sx2, sy2+13);
+    const [sx3,sy3]=toS(0,i); ctx.fillText(i, sx3-12, sy3+3);
+    const [sx4,sy4]=toS(0,-i); ctx.fillText(-i, sx4-12, sy4+3);
+  });
+
+  function arrow(x0,y0,x1,y1, col, lw=2.2) {
+    const [sx0,sy0]=toS(x0,y0), [sx1,sy1]=toS(x1,y1);
+    ctx.strokeStyle=col; ctx.fillStyle=col; ctx.lineWidth=lw;
+    ctx.setLineDash([]);
+    ctx.beginPath(); ctx.moveTo(sx0,sy0); ctx.lineTo(sx1,sy1); ctx.stroke();
+    const ang=Math.atan2(sy1-sy0,sx1-sx0);
+    ctx.beginPath();
+    ctx.moveTo(sx1,sy1);
+    ctx.lineTo(sx1-9*Math.cos(ang-0.4), sy1-9*Math.sin(ang-0.4));
+    ctx.lineTo(sx1-9*Math.cos(ang+0.4), sy1-9*Math.sin(ang+0.4));
+    ctx.closePath(); ctx.fill();
+  }
+
+  function lbl(x,y,txt,col,dx=6,dy=-5) {
+    const [sx,sy]=toS(x,y);
+    ctx.fillStyle=col; ctx.font='bold 11px sans-serif'; ctx.textAlign='left';
+    ctx.fillText(txt, sx+dx, sy+dy);
+  }
+
+  // unit square / parallelogram
+  const sqPts = [[0,0],[1,0],[1,1],[0,1]].map(([x,y])=>applyMaybe(x,y));
+  const sqScreen = sqPts.map(([x,y])=>toS(x,y));
+  ctx.beginPath();
+  ctx.moveTo(sqScreen[0][0],sqScreen[0][1]);
+  sqScreen.slice(1).forEach(p=>ctx.lineTo(p[0],p[1]));
+  ctx.closePath();
+  ctx.fillStyle   = transform ? 'rgba(186,117,23,0.10)' : 'rgba(29,158,117,0.10)';
+  ctx.strokeStyle = transform ? 'rgba(186,117,23,0.55)' : 'rgba(29,158,117,0.45)';
+  ctx.lineWidth   = 1; ctx.setLineDash([4,3]);
+  ctx.fill(); ctx.stroke(); ctx.setLineDash([]);
+
+  // e1
+  const [e1x,e1y]=applyMaybe(1,0);
+  arrow(0,0,e1x,e1y,'#378ADD');
+  lbl(e1x,e1y, transform ? `(${r2(e1x)},${r2(e1y)})` : 'e₁','#378ADD');
+
+  // e2
+  const [e2x,e2y]=applyMaybe(0,1);
+  arrow(0,0,e2x,e2y,'#D85A30');
+  lbl(e2x,e2y, transform ? `(${r2(e2x)},${r2(e2y)})` : 'e₂','#D85A30', 6, 14);
+
+  // right-angle mark (before only)
+  if (!transform) {
+    const r=14;
+    const a1=Math.atan2(-(e1y-0)*scale,e1x*scale);
+    const a2=Math.atan2(-(e2y*scale),0);
+    const [ox2,oy2]=toS(0,0);
+    const mx=ox2+r*Math.cos(a1), my=oy2-r*Math.sin(a1);
+    const px=mx+r*Math.cos(a2-Math.PI/2), py=my-r*Math.sin(a2-Math.PI/2);
+    const qx=ox2+r*Math.cos(a2-Math.PI/2), qy=oy2-r*Math.sin(a2-Math.PI/2);
+    ctx.strokeStyle=isDark?'rgba(255,255,255,0.2)':'rgba(0,0,0,0.18)';
+    ctx.lineWidth=0.7; ctx.setLineDash([]);
+    const ra=r*0.7;
+    ctx.beginPath();
+    ctx.moveTo(ox2+ra,oy2);
+    ctx.lineTo(ox2+ra,oy2-ra);
+    ctx.lineTo(ox2,oy2-ra);
+    ctx.stroke();
+  }
+
+  // sample vector v = (0.6, 0.8)
+  const [vx,vy]=applyMaybe(0.6,0.8);
+  arrow(0,0,vx,vy,'#BA7517',1.8);
+  lbl(vx,vy, transform ? `v'` : 'v','#BA7517');
+
+  // origin dot
+  const [ox3,oy3]=toS(0,0);
+  ctx.fillStyle=isDark?'rgba(255,255,255,0.4)':'rgba(0,0,0,0.35)';
+  ctx.beginPath(); ctx.arc(ox3,oy3,3,0,2*Math.PI); ctx.fill();
+}
+
+function draw2d() {
+  const M = getM2();
+  const d = M[0][0]*M[1][1] - M[0][1]*M[1][0];
+  document.getElementById('det2Label').textContent = `det(M) = ${r2(d)}`;
+
+  const [e1x,e1y]=[M[0][0],M[1][0]];
+  const [e2x,e2y]=[M[0][1],M[1][1]];
+  const vx=M[0][0]*0.6+M[0][1]*0.8, vy=M[1][0]*0.6+M[1][1]*0.8;
+
+  document.getElementById('ae1').textContent = `M·e₁ = (${r2(e1x)}, ${r2(e1y)})`;
+  document.getElementById('ae2').textContent = `M·e₂ = (${r2(e2x)}, ${r2(e2y)})`;
+  document.getElementById('av').textContent  = `M·v  = (${r2(vx)}, ${r2(vy)})`;
+
+  const cBefore = document.getElementById('c2dBefore');
+  const cAfter  = document.getElementById('c2dAfter');
+  draw2dCanvas(cBefore, null);
+  draw2dCanvas(cAfter, M);
+}
+
+['a00','a01','a10','a11'].forEach(id =>
+  document.getElementById(id).addEventListener('input', draw2d)
+);
+
+/* ══════════════════════════════════
+   3D LOGIC
+══════════════════════════════════ */
+const c3d = document.getElementById('c3d');
+const ctx3 = c3d.getContext('2d');
+let viewMode = 'before';
+let rotX = 0.42, rotY = 0.62, zoom3 = 1;
+let drag = false, lastX = 0, lastY = 0;
+
+c3d.addEventListener('mousedown', e=>{drag=true;lastX=e.offsetX;lastY=e.offsetY;});
+c3d.addEventListener('mousemove', e=>{
+  if(!drag)return;
+  rotY+=(e.offsetX-lastX)*0.012; rotX+=(e.offsetY-lastY)*0.012;
+  lastX=e.offsetX;lastY=e.offsetY; draw3d();
+});
+c3d.addEventListener('mouseup',()=>drag=false);
+c3d.addEventListener('mouseleave',()=>drag=false);
+c3d.addEventListener('wheel', e=>{
+  zoom3=Math.max(0.4,Math.min(2.5,zoom3-e.deltaY*0.001));
+  draw3d(); e.preventDefault();
+},{passive:false});
+c3d.addEventListener('touchstart',e=>{drag=true;lastX=e.touches[0].clientX;lastY=e.touches[0].clientY;e.preventDefault();},{passive:false});
+c3d.addEventListener('touchmove',e=>{
+  if(!drag)return;
+  rotY+=(e.touches[0].clientX-lastX)*0.012; rotX+=(e.touches[0].clientY-lastY)*0.012;
+  lastX=e.touches[0].clientX;lastY=e.touches[0].clientY; draw3d(); e.preventDefault();
+},{passive:false});
+c3d.addEventListener('touchend',()=>drag=false);
+
+function getM3(){
+  return [
+    [+document.getElementById('m00').value,+document.getElementById('m01').value,+document.getElementById('m02').value],
+    [+document.getElementById('m10').value,+document.getElementById('m11').value,+document.getElementById('m12').value],
+    [+document.getElementById('m20').value,+document.getElementById('m21').value,+document.getElementById('m22').value],
+  ];
+}
+
+function det3(m){
   return m[0][0]*(m[1][1]*m[2][2]-m[1][2]*m[2][1])
        - m[0][1]*(m[1][0]*m[2][2]-m[1][2]*m[2][0])
        + m[0][2]*(m[1][0]*m[2][1]-m[1][1]*m[2][0]);
 }
 
-function rotVec(v, rx, ry) {
-  let [x,y,z] = v;
-  let x2 = x*Math.cos(ry) + z*Math.sin(ry);
-  let z2 = -x*Math.sin(ry) + z*Math.cos(ry);
-  let y2 = y*Math.cos(rx) - z2*Math.sin(rx);
-  let z3 = y*Math.sin(rx) + z2*Math.cos(rx);
-  return [x2, y2, z3];
+function rotVec(v,rx,ry){
+  let[x,y,z]=v;
+  let x2=x*Math.cos(ry)+z*Math.sin(ry), z2=-x*Math.sin(ry)+z*Math.cos(ry);
+  let y2=y*Math.cos(rx)-z2*Math.sin(rx), z3=y*Math.sin(rx)+z2*Math.cos(rx);
+  return[x2,y2,z3];
 }
 
-function project(v, W, H, scale) {
-  const fov = 5;
-  const [x,y,z] = v;
-  const sc = scale * fov / (fov + z);
-  return [W/2 + x*sc, H/2 - y*sc];
+function proj(v,W,H,sc){
+  const fov=5,[x,y,z]=v,s=sc*fov/(fov+z);
+  return[W/2+x*s,H/2-y*s];
 }
 
-function draw() {
-  const W = 680, H = 400;
-  const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-  ctx.clearRect(0, 0, W, H);
-  ctx.fillStyle = isDark ? '#1a1a18' : '#ffffff';
-  ctx.fillRect(0, 0, W, H);
+function draw3d(){
+  const W=680,H=400;
+  const isDark=window.matchMedia('(prefers-color-scheme:dark)').matches;
+  ctx3.clearRect(0,0,W,H);
+  ctx3.fillStyle=isDark?'#1a1a18':'#ffffff';
+  ctx3.fillRect(0,0,W,H);
 
-  const scale = 90 * zoom;
-  const M = getM();
-  const d = Math.round(det3(M) * 100) / 100;
-  document.getElementById('detLabel').textContent = 'det(M) = ' + d +
-    (Math.abs(Math.abs(d)-1)<0.01 ? ' (volume preserved)' : ' (volume scaled ×'+Math.abs(d)+')');
+  const sc=90*zoom3, M=getM3();
+  const d=Math.round(det3(M)*100)/100;
+  document.getElementById('detLabel').textContent='det(M) = '+d+(Math.abs(Math.abs(d)-1)<0.01?' (volume preserved)':' (×'+Math.abs(d)+')');
+  document.getElementById('c1lbl').textContent=`M·e₁ = (${M[0][0]},${M[1][0]},${M[2][0]})`;
+  document.getElementById('c2lbl').textContent=`M·e₂ = (${M[0][1]},${M[1][1]},${M[2][1]})`;
+  document.getElementById('c3lbl').textContent=`M·e₃ = (${M[0][2]},${M[1][2]},${M[2][2]})`;
 
-  document.getElementById('c1lbl').textContent = `M·e₁ = (${M[0][0]}, ${M[1][0]}, ${M[2][0]})`;
-  document.getElementById('c2lbl').textContent = `M·e₂ = (${M[0][1]}, ${M[1][1]}, ${M[2][1]})`;
-  document.getElementById('c3lbl').textContent = `M·e₃ = (${M[0][2]}, ${M[1][2]}, ${M[2][2]})`;
+  const r=v=>rotVec(v,rotX,rotY);
+  const p=v=>proj(r(v),W,H,sc);
 
-  function r(v) { return rotVec(v, rotX, rotY); }
-  function p(v) { return project(r(v), W, H, scale); }
-
-  const gridCol = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
-  for (let i = -3; i <= 3; i++) {
-    const a=p([i,-0.01,-3]),b=p([i,-0.01,3]),c=p([-3,-0.01,i]),d2=p([3,-0.01,i]);
-    ctx.strokeStyle=gridCol; ctx.lineWidth=0.5;
-    ctx.beginPath(); ctx.moveTo(a[0],a[1]); ctx.lineTo(b[0],b[1]); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(c[0],c[1]); ctx.lineTo(d2[0],d2[1]); ctx.stroke();
+  const gridCol=isDark?'rgba(255,255,255,0.06)':'rgba(0,0,0,0.06)';
+  ctx3.lineWidth=0.5; ctx3.strokeStyle=gridCol;
+  for(let i=-3;i<=3;i++){
+    const a=p([i,-.01,-3]),b=p([i,-.01,3]),c=p([-3,-.01,i]),d2=p([3,-.01,i]);
+    ctx3.beginPath();ctx3.moveTo(a[0],a[1]);ctx3.lineTo(b[0],b[1]);ctx3.stroke();
+    ctx3.beginPath();ctx3.moveTo(c[0],c[1]);ctx3.lineTo(d2[0],d2[1]);ctx3.stroke();
   }
 
-  const axCol = isDark ? 'rgba(200,200,200,0.2)' : 'rgba(0,0,0,0.15)';
-  [[3,0,0],[0,3,0],[0,0,3]].forEach(ep => {
+  const axCol=isDark?'rgba(200,200,200,0.2)':'rgba(0,0,0,0.15)';
+  [[3,0,0],[0,3,0],[0,0,3]].forEach(ep=>{
     const s=p([0,0,0]),e=p(ep);
-    ctx.strokeStyle=axCol; ctx.lineWidth=0.7;
-    ctx.beginPath(); ctx.moveTo(s[0],s[1]); ctx.lineTo(e[0],e[1]); ctx.stroke();
+    ctx3.strokeStyle=axCol;ctx3.lineWidth=0.7;
+    ctx3.beginPath();ctx3.moveTo(s[0],s[1]);ctx3.lineTo(e[0],e[1]);ctx3.stroke();
   });
-  ctx.font='11px sans-serif';
-  [['X',[3.2,0,0]],['Y',[0,3.2,0]],['Z',[0,0,3.2]]].forEach(([t,v]) => {
-    const [px,py]=p(v);
-    ctx.fillStyle=isDark?'rgba(180,180,180,0.4)':'rgba(80,80,80,0.4)';
-    ctx.fillText(t,px+3,py);
+  ctx3.font='11px sans-serif';
+  [['X',[3.2,0,0]],['Y',[0,3.2,0]],['Z',[0,0,3.2]]].forEach(([t,v])=>{
+    const[px,py]=p(v);
+    ctx3.fillStyle=isDark?'rgba(180,180,180,0.4)':'rgba(80,80,80,0.4)';
+    ctx3.fillText(t,px+3,py);
   });
 
-  function drawArrow(from,to,col,lw=2.5) {
-    const [sx,sy]=p(from),[ex,ey]=p(to);
-    ctx.strokeStyle=col; ctx.fillStyle=col; ctx.lineWidth=lw;
-    ctx.setLineDash([]);
-    ctx.beginPath(); ctx.moveTo(sx,sy); ctx.lineTo(ex,ey); ctx.stroke();
+  function arr3(from,to,col,lw=2.5){
+    const[sx,sy]=p(from),[ex,ey]=p(to);
+    ctx3.strokeStyle=col;ctx3.fillStyle=col;ctx3.lineWidth=lw;ctx3.setLineDash([]);
+    ctx3.beginPath();ctx3.moveTo(sx,sy);ctx3.lineTo(ex,ey);ctx3.stroke();
     const ang=Math.atan2(ey-sy,ex-sx);
-    ctx.beginPath();
-    ctx.moveTo(ex,ey);
-    ctx.lineTo(ex-10*Math.cos(ang-0.4),ey-10*Math.sin(ang-0.4));
-    ctx.lineTo(ex-10*Math.cos(ang+0.4),ey-10*Math.sin(ang+0.4));
-    ctx.closePath(); ctx.fill();
+    ctx3.beginPath();
+    ctx3.moveTo(ex,ey);
+    ctx3.lineTo(ex-10*Math.cos(ang-.4),ey-10*Math.sin(ang-.4));
+    ctx3.lineTo(ex-10*Math.cos(ang+.4),ey-10*Math.sin(ang+.4));
+    ctx3.closePath();ctx3.fill();
   }
 
-  function drawLabel(pos,txt,col) {
-    const [px,py]=p(pos);
-    ctx.fillStyle=col; ctx.font='bold 12px sans-serif';
-    ctx.fillText(txt,px+6,py-4);
+  function lbl3(pos,txt,col){
+    const[px,py]=p(pos);
+    ctx3.fillStyle=col;ctx3.font='bold 12px sans-serif';
+    ctx3.fillText(txt,px+6,py-4);
   }
 
-  function drawParallelepiped(v1,v2,v3,col,alpha=0.07) {
-    const O=[0,0,0];
-    const add=(a,b)=>[a[0]+b[0],a[1]+b[1],a[2]+b[2]];
+  function ppd(v1,v2,v3,alpha){
+    const O=[0,0,0],add=(a,b)=>[a[0]+b[0],a[1]+b[1],a[2]+b[2]];
     const faces=[
       [O,v1,add(v1,v2),v2],[O,v2,add(v2,v3),v3],[O,v1,add(v1,v3),v3],
       [v1,add(v1,v2),add(add(v1,v2),v3),add(v1,v3)],
       [v2,add(v1,v2),add(add(v1,v2),v3),add(v2,v3)],
       [v3,add(v2,v3),add(add(v1,v2),v3),add(v1,v3)],
     ];
-    ctx.fillStyle=`rgba(${isDark?'186,117,23':'186,117,23'},${alpha})`;
+    ctx3.fillStyle=`rgba(186,117,23,${alpha})`;
     faces.forEach(face=>{
       const pts=face.map(v=>p(v));
-      ctx.beginPath(); ctx.moveTo(pts[0][0],pts[0][1]);
-      pts.slice(1).forEach(pt=>ctx.lineTo(pt[0],pt[1]));
-      ctx.closePath(); ctx.fill();
+      ctx3.beginPath();ctx3.moveTo(pts[0][0],pts[0][1]);
+      pts.slice(1).forEach(pt=>ctx3.lineTo(pt[0],pt[1]));
+      ctx3.closePath();ctx3.fill();
     });
   }
 
-  if (viewMode==='before'||viewMode==='both') {
-    drawParallelepiped([1,0,0],[0,1,0],[0,0,1],'teal',0.08);
-    drawArrow([0,0,0],[1,0,0],'#378ADD');
-    drawArrow([0,0,0],[0,1,0],'#D85A30');
-    drawArrow([0,0,0],[0,0,1],'#1D9E75');
-    if (viewMode==='before') {
-      drawLabel([1.1,0,0],'e₁ (1,0,0)','#378ADD');
-      drawLabel([0,1.1,0],'e₂ (0,1,0)','#D85A30');
-      drawLabel([0,0,1.1],'e₃ (0,0,1)','#1D9E75');
+  if(viewMode==='before'||viewMode==='both'){
+    ppd([1,0,0],[0,1,0],[0,0,1],0.08);
+    arr3([0,0,0],[1,0,0],'#378ADD');
+    arr3([0,0,0],[0,1,0],'#D85A30');
+    arr3([0,0,0],[0,0,1],'#1D9E75');
+    if(viewMode==='before'){
+      lbl3([1.1,0,0],'e₁(1,0,0)','#378ADD');
+      lbl3([0,1.1,0],'e₂(0,1,0)','#D85A30');
+      lbl3([0,0,1.1],'e₃(0,0,1)','#1D9E75');
     }
   }
 
-  if (viewMode==='after'||viewMode==='both') {
-    const col1=[M[0][0],M[1][0],M[2][0]];
-    const col2=[M[0][1],M[1][1],M[2][1]];
-    const col3=[M[0][2],M[1][2],M[2][2]];
-    drawParallelepiped(col1,col2,col3,'amber',0.1);
-    drawArrow([0,0,0],col1,'#3299EE');
-    drawArrow([0,0,0],col2,'#E06030');
-    drawArrow([0,0,0],col3,'#18B882');
-    drawLabel([col1[0]+.15,col1[1]+.15,col1[2]],'M·e₁','#3299EE');
-    drawLabel([col2[0]+.15,col2[1]+.15,col2[2]],'M·e₂','#E06030');
-    drawLabel([col3[0]+.15,col3[1]+.15,col3[2]],'M·e₃','#18B882');
+  if(viewMode==='after'||viewMode==='both'){
+    const c1=[M[0][0],M[1][0],M[2][0]];
+    const c2=[M[0][1],M[1][1],M[2][1]];
+    const c3=[M[0][2],M[1][2],M[2][2]];
+    ppd(c1,c2,c3,0.1);
+    arr3([0,0,0],c1,'#3299EE');
+    arr3([0,0,0],c2,'#E06030');
+    arr3([0,0,0],c3,'#18B882');
+    lbl3([c1[0]+.15,c1[1]+.15,c1[2]],'M·e₁','#3299EE');
+    lbl3([c2[0]+.15,c2[1]+.15,c2[2]],'M·e₂','#E06030');
+    lbl3([c3[0]+.15,c3[1]+.15,c3[2]],'M·e₃','#18B882');
   }
 
-  const [ox,oy]=p([0,0,0]);
-  ctx.fillStyle=isDark?'rgba(255,255,255,0.5)':'rgba(0,0,0,0.4)';
-  ctx.beginPath(); ctx.arc(ox,oy,3,0,2*Math.PI); ctx.fill();
+  const[ox,oy]=p([0,0,0]);
+  ctx3.fillStyle=isDark?'rgba(255,255,255,0.5)':'rgba(0,0,0,0.4)';
+  ctx3.beginPath();ctx3.arc(ox,oy,3,0,2*Math.PI);ctx3.fill();
 }
 
-function setView(v) {
+function setView(v){
   viewMode=v;
-  document.querySelectorAll('.tab').forEach((t,i)=>{
+  document.querySelectorAll('.view-tab').forEach((t,i)=>{
     t.classList.toggle('active',['before','after','both'][i]===v);
   });
-  draw();
+  draw3d();
 }
 
-document.querySelectorAll('input[type=number]').forEach(inp=>inp.addEventListener('input',draw));
-draw();
+['m00','m01','m02','m10','m11','m12','m20','m21','m22'].forEach(id=>
+  document.getElementById(id).addEventListener('input', draw3d)
+);
+
+/* ══════ init ══════ */
+draw2d();
+draw3d();
 </script>
 </body>
 </html>
