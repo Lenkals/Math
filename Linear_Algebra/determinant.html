@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Determinant — The Geometry of Transformation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:opsz,wght@9..144,300;9..144,700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0b0c10;
+    --bg2: #13141a;
+    --bg3: #1c1e27;
+    --border: rgba(255,255,255,0.08);
+    --text: #e8e6de;
+    --muted: #7a7870;
+    --accent: #c8f55a;
+    --accent2: #5af0c8;
+    --accent3: #f05a5a;
+    --orange: #f0a25a;
+    --grid-col: rgba(255,255,255,0.05);
+    --grid-strong: rgba(255,255,255,0.12);
+    --shape-before: #5af0c8;
+    --shape-after: #c8f55a;
+    --handle-r: 9px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* NOISE TEXTURE overlay */
+  body::before {
+    content:''; position:fixed; inset:0; pointer-events:none; z-index:0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+    opacity: 0.025;
+  }
+
+  .page { position: relative; z-index:1; max-width: 1160px; margin: 0 auto; padding: 0 24px 80px; }
+
+  /* HEADER */
+  header {
+    padding: 52px 0 40px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 40px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+
+  .header-left h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 700;
+    font-size: clamp(36px, 5vw, 60px);
+    letter-spacing: -0.02em;
+    line-height: 1.05;
+    color: var(--text);
+  }
+  .header-left h1 span { color: var(--accent); }
+  .header-left p {
+    margin-top: 10px;
+    font-size: 15px;
+    color: var(--muted);
+    max-width: 460px;
+    line-height: 1.6;
+  }
+  .badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    padding: 4px 10px;
+    border-radius: 4px;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+  }
+
+  /* DET DISPLAY */
+  .det-hero {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+  }
+  .det-value {
+    font-family: 'Fraunces', serif;
+    font-size: 56px;
+    font-weight: 700;
+    line-height: 1;
+    transition: color 0.3s;
+  }
+  .det-value.pos { color: var(--accent); }
+  .det-value.zero { color: var(--accent3); }
+  .det-value.neg { color: var(--orange); }
+  .det-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+  }
+  .det-insight {
+    font-size: 14px;
+    color: var(--muted);
+    padding: 8px 14px;
+    background: var(--bg2);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 6px 6px 0;
+    transition: border-color 0.3s;
+    max-width: 400px;
+    line-height: 1.5;
+  }
+  .det-insight.zero { border-color: var(--accent3); }
+  .det-insight.one  { border-color: var(--accent2); }
+
+  /* LAYOUT */
+  .main-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 24px;
+  }
+  @media(max-width:800px){.main-layout{grid-template-columns:1fr;}}
+
+  .panel {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+  .panel-header {
+    padding: 14px 18px 12px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .panel-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .area-pill {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    transition: all 0.3s;
+  }
+  .area-pill.highlight { border-color: var(--accent); color: var(--accent); }
+
+  canvas {
+    display: block;
+    width: 100%;
+    cursor: default;
+    touch-action: none;
+  }
+
+  /* CONTROLS PANEL */
+  .controls-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    padding: 18px;
+  }
+  @media(max-width:600px){.controls-grid{grid-template-columns:1fr;}}
+
+  .ctrl-group {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .ctrl-group:hover { border-color: rgba(255,255,255,0.2); }
+  .ctrl-group.active { border-color: var(--accent); background: rgba(200,245,90,0.06); }
+  .ctrl-name { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); letter-spacing: 0.08em; margin-bottom: 6px; }
+  .ctrl-matrix {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2px 12px;
+    color: var(--text);
+  }
+  .ctrl-det { font-size: 11px; margin-top: 6px; color: var(--muted); }
+  .ctrl-det span { font-family: 'DM Mono', monospace; }
+
+  /* MATRIX editor */
+  .matrix-editor {
+    padding: 18px;
+    display: flex;
+    gap: 24px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .matrix-bracket {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'DM Mono', monospace;
+  }
+  .brace { font-size: 52px; font-weight: 200; color: var(--muted); line-height: 1; }
+  .mat-inputs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+  .mat-inputs input {
+    width: 64px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 15px;
+    padding: 8px 10px;
+    text-align: center;
+    outline: none;
+    transition: border-color 0.2s;
+    -moz-appearance: textfield;
+  }
+  .mat-inputs input:focus { border-color: var(--accent); }
+  .mat-inputs input::-webkit-outer-spin-button,
+  .mat-inputs input::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+  /* SLIDERS */
+  .sliders-section { padding: 18px; }
+  .sl-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+  }
+  .sl-label { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--accent); width: 14px; }
+  .sl-row input[type=range] {
+    flex: 1;
+    -webkit-appearance: none;
+    height: 3px;
+    background: var(--bg3);
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+  }
+  .sl-row input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: grab;
+    border: 2px solid var(--bg);
+  }
+  .sl-row input[type=range]::-moz-range-thumb {
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: grab;
+    border: 2px solid var(--bg);
+  }
+  .sl-val { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--text); min-width: 36px; text-align: right; }
+
+  /* DRAG HINT */
+  .drag-hint {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--muted);
+    padding: 10px 18px;
+    border-top: 1px solid var(--border);
+  }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); display: inline-block; }
+  .dot.blue { background: var(--shape-before); }
+  .dot.red { background: var(--accent3); }
+
+  /* EIGEN INFO */
+  .info-bar {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px 22px;
+    display: flex;
+    gap: 32px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+  .info-item { }
+  .info-item .lbl { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+  .info-item .val { font-family: 'DM Mono', monospace; font-size: 14px; color: var(--text); }
+
+  /* FOOTER */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 24px 0 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    color: var(--muted);
+    font-size: 13px;
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+
+  /* ANIM TOGGLE */
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 18px;
+    border-top: 1px solid var(--border);
+  }
+  .toggle-label { font-size: 13px; color: var(--muted); }
+  .toggle {
+    width: 36px; height: 20px;
+    background: var(--bg3);
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    position: relative;
+    transition: background 0.2s;
+  }
+  .toggle.on { background: var(--accent); }
+  .toggle-thumb {
+    position: absolute;
+    top: 2px; left: 2px;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: var(--bg);
+    transition: transform 0.2s;
+  }
+  .toggle.on .toggle-thumb { transform: translateX(16px); background: var(--bg); }
+
+  /* ghost anim */
+  @keyframes ghostPulse { 0%,100%{opacity:0.18} 50%{opacity:0.32} }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <div class="header-left">
+      <h1>The <span>Determinant</span><br>Visualized</h1>
+      <p>Drag the vertices of the green parallelogram — or pull its edges — to transform space and feel how area changes.</p>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end">
+      <span class="badge">LINEAR ALGEBRA · INTERACTIVE</span>
+      <span class="badge" id="det-formula-badge">det(M) = ad − bc</span>
+    </div>
+  </header>
+
+  <!-- DET HERO -->
+  <div class="det-hero">
+    <div>
+      <div class="det-label">DETERMINANT</div>
+      <div class="det-value pos" id="det-display">1.00</div>
+    </div>
+    <div class="det-insight" id="insight">
+      Area is perfectly preserved — space is rotated or sheared.
+    </div>
+  </div>
+
+  <!-- INFO BAR -->
+  <div class="info-bar">
+    <div class="info-item">
+      <div class="lbl">trace</div>
+      <div class="val" id="val-trace">2.00</div>
+    </div>
+    <div class="info-item">
+      <div class="lbl">rank</div>
+      <div class="val" id="val-rank">2</div>
+    </div>
+    <div class="info-item">
+      <div class="lbl">area before</div>
+      <div class="val">1.00</div>
+    </div>
+    <div class="info-item">
+      <div class="lbl">area after</div>
+      <div class="val" id="val-area">1.00</div>
+    </div>
+    <div class="info-item">
+      <div class="lbl">orientation</div>
+      <div class="val" id="val-orient">preserved</div>
+    </div>
+    <div class="info-item">
+      <div class="lbl">invertible?</div>
+      <div class="val" id="val-inv">yes</div>
+    </div>
+  </div>
+
+  <!-- MAIN TWO-CANVAS LAYOUT -->
+  <div class="main-layout">
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">Before · input space</span>
+        <span class="area-pill" id="pill-before">Area = 1.00</span>
+      </div>
+      <canvas id="canvas-before" height="320"></canvas>
+      <div class="drag-hint">
+        <span class="dot blue"></span> Drag vertices or edges to reshape the parallelogram
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">After · transformed space</span>
+        <span class="area-pill highlight" id="pill-after">Area = 1.00</span>
+      </div>
+      <canvas id="canvas-after" height="320"></canvas>
+      <div class="drag-hint">
+        <span class="dot"></span> Live result — shows how the grid and shape warp
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTROLS -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;" id="bottom-grid">
+
+    <!-- PRESETS -->
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">Presets</span>
+      </div>
+      <div class="controls-grid" id="presets-grid"></div>
+    </div>
+
+    <!-- MATRIX + SLIDERS -->
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">Matrix entries</span>
+        <span class="badge" id="matrix-badge">[ a b / c d ]</span>
+      </div>
+      <div class="matrix-editor">
+        <div class="matrix-bracket">
+          <span class="brace">[</span>
+          <div class="mat-inputs">
+            <input type="number" id="in-a" step="0.1">
+            <input type="number" id="in-b" step="0.1">
+            <input type="number" id="in-c" step="0.1">
+            <input type="number" id="in-d" step="0.1">
+          </div>
+          <span class="brace">]</span>
+        </div>
+      </div>
+      <div class="sliders-section">
+        <div class="sl-row"><span class="sl-label">a</span><input type="range" id="sl-a" min="-3" max="3" step="0.05"><span class="sl-val" id="sv-a">1.0</span></div>
+        <div class="sl-row"><span class="sl-label">b</span><input type="range" id="sl-b" min="-3" max="3" step="0.05"><span class="sl-val" id="sv-b">0.0</span></div>
+        <div class="sl-row"><span class="sl-label">c</span><input type="range" id="sl-c" min="-3" max="3" step="0.05"><span class="sl-val" id="sv-c">0.0</span></div>
+        <div class="sl-row"><span class="sl-label">d</span><input type="range" id="sl-d" min="-3" max="3" step="0.05"><span class="sl-val" id="sv-d">1.0</span></div>
+      </div>
+      <div class="toggle-row">
+        <div class="toggle on" id="toggle-ghost" onclick="toggleGhost()"><div class="toggle-thumb"></div></div>
+        <span class="toggle-label">Show ghost (before shape on after canvas)</span>
+      </div>
+      <div class="toggle-row">
+        <div class="toggle on" id="toggle-eigen" onclick="toggleEigen()"><div class="toggle-thumb"></div></div>
+        <span class="toggle-label">Show eigenvectors</span>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <span>Drag vertices &amp; edges directly · Use sliders or type matrix entries · Presets explore key determinant cases</span>
+    <span>Built with Canvas API &amp; vanilla JS · <a href="https://github.com/" id="gh-link">View on GitHub</a></span>
+  </footer>
+
+</div>
+
+<script>
+// ── STATE ────────────────────────────────────────────────────────────────────
+let M = [1, 0, 0, 1]; // [a, b, c, d]
+let showGhost = true;
+let showEigen = true;
+
+// The shape vertices in "math space" (unit square: O, e1, e1+e2, e2)
+// Users drag these; they update M via the inverse relationship
+let shapeVerts = [ [0,0],[1,0],[1,1],[0,1] ]; // always the unit square in "before"
+
+// Canvas sizes
+const CW = 460, CH = 320;
+const ORIGIN_B = {x: CW/2, y: CH/2};
+const ORIGIN_A = {x: CW/2, y: CH/2};
+const SCALE = 72;
+
+// Drag state
+let drag = null; // {type:'vertex'|'edge', idx, startMX,startMY, startM, startVerts}
+
+// ── PRESETS ──────────────────────────────────────────────────────────────────
+const PRESETS = [
+  { name:'Identity',   M:[1,0,0,1],  desc:'det = 1.00' },
+  { name:'Stretch ×2', M:[2,0,0,1],  desc:'det = 2.00' },
+  { name:'Rotation',   M:[Math.cos(.8),-Math.sin(.8),Math.sin(.8),Math.cos(.8)], desc:'det = 1.00' },
+  { name:'Shear',      M:[1,1.2,0,1],desc:'det = 1.00' },
+  { name:'Collapse',   M:[1,2,0.5,1],desc:'det = 0.00' },
+  { name:'Scale ½',    M:[0.5,0,0,0.5],desc:'det = 0.25' },
+  { name:'Flip',       M:[-1,0,0,1], desc:'det = −1.00' },
+  { name:'Diagonal',   M:[2,0,0,0.5],desc:'det = 1.00' },
+];
+
+// ── CANVAS SETUP ─────────────────────────────────────────────────────────────
+const cBefore = document.getElementById('canvas-before');
+const cAfter  = document.getElementById('canvas-after');
+cBefore.width = CW; cBefore.height = CH;
+cAfter.width  = CW; cAfter.height  = CH;
+const ctxB = cBefore.getContext('2d');
+const ctxA = cAfter.getContext('2d');
+
+// ── MATH ─────────────────────────────────────────────────────────────────────
+function det(m) { return m[0]*m[3] - m[1]*m[2]; }
+function applyM(m, [x,y]) { return [m[0]*x+m[1]*y, m[2]*x+m[3]*y]; }
+function toScreen(o, [x,y]) { return [o.x + x*SCALE, o.y - y*SCALE]; }
+function fromScreen(o, [sx,sy]) { return [(sx-o.x)/SCALE, (o.y-sy)/SCALE]; }
+
+function eigenvalues(m) {
+  const tr = m[0]+m[3], d = det(m);
+  const disc = tr*tr/4 - d;
+  if(disc < 0) return null; // complex
+  const sq = Math.sqrt(disc);
+  return [tr/2 + sq, tr/2 - sq];
+}
+function eigenvector(m, lam) {
+  // (M - λI)v = 0
+  const a = m[0]-lam, b = m[1], c = m[2], dd = m[3]-lam;
+  if(Math.abs(b) > 1e-6) { const len=Math.hypot(b,-a); return [-a/len, -b/len]; } // wait, normalize
+  if(Math.abs(c) > 1e-6) { const len=Math.hypot(dd,-c); return [dd/len, -c/len]; } // hmm
+  if(Math.abs(b) > 1e-9) return normalize([-b, a]);
+  return normalize([1, 0]);
+}
+function normalize([x,y]) { const l=Math.hypot(x,y)||1; return [x/l, y/l]; }
+
+// ── DRAW ─────────────────────────────────────────────────────────────────────
+function drawGrid(ctx, o, M2) {
+  const rng = 5;
+  ctx.strokeStyle = '#1c2030';
+  ctx.lineWidth = 0.8;
+  for(let i=-rng;i<=rng;i++) {
+    // horizontal line in math-space: y=i
+    const [x0s,y0s] = toScreen(o, applyM(M2, [-rng,i]));
+    const [x1s,y1s] = toScreen(o, applyM(M2, [ rng,i]));
+    ctx.beginPath(); ctx.moveTo(x0s,y0s); ctx.lineTo(x1s,y1s); ctx.stroke();
+    const [x0v,y0v] = toScreen(o, applyM(M2, [i,-rng]));
+    const [x1v,y1v] = toScreen(o, applyM(M2, [i, rng]));
+    ctx.beginPath(); ctx.moveTo(x0v,y0v); ctx.lineTo(x1v,y1v); ctx.stroke();
+  }
+  // Axes
+  ctx.lineWidth = 1.2;
+  ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+  let [ax,ay]=toScreen(o,applyM(M2,[-rng,0])), [bx,by]=toScreen(o,applyM(M2,[rng,0]));
+  ctx.beginPath(); ctx.moveTo(ax,ay); ctx.lineTo(bx,by); ctx.stroke();
+  let [cx2,cy2]=toScreen(o,applyM(M2,[0,-rng])), [dx2,dy2]=toScreen(o,applyM(M2,[0,rng]));
+  ctx.beginPath(); ctx.moveTo(cx2,cy2); ctx.lineTo(dx2,dy2); ctx.stroke();
+}
+
+function drawParallelogram(ctx, o, M2, verts, strokeColor, fillColor, alpha) {
+  const pts = verts.map(v => toScreen(o, applyM(M2, v)));
+  ctx.beginPath();
+  ctx.moveTo(...pts[0]);
+  for(let i=1;i<pts.length;i++) ctx.lineTo(...pts[i]);
+  ctx.closePath();
+  ctx.fillStyle = fillColor;
+  ctx.globalAlpha = alpha;
+  ctx.fill();
+  ctx.globalAlpha = 1;
+  ctx.strokeStyle = strokeColor;
+  ctx.lineWidth = 2;
+  ctx.stroke();
+}
+
+function drawHandles(ctx, o, M2, verts, hovered) {
+  const d = det(M2);
+  verts.forEach(([vx,vy], i) => {
+    const [sx,sy] = toScreen(o, applyM(M2, [vx,vy]));
+    ctx.beginPath();
+    ctx.arc(sx, sy, 9, 0, Math.PI*2);
+    ctx.fillStyle = (hovered===i) ? '#fff' : '#5af0c8';
+    ctx.fill();
+    ctx.strokeStyle = '#0b0c10';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  });
+  // Edge midpoint handles
+  const n = verts.length;
+  for(let i=0;i<n;i++){
+    const v0=verts[i], v1=verts[(i+1)%n];
+    const mid=[(v0[0]+v1[0])/2,(v0[1]+v1[1])/2];
+    const [sx,sy] = toScreen(o, applyM(M2, mid));
+    ctx.beginPath();
+    ctx.arc(sx, sy, 6, 0, Math.PI*2);
+    ctx.fillStyle = (hovered===10+i) ? 'rgba(200,245,90,0.9)' : 'rgba(200,245,90,0.45)';
+    ctx.fill();
+    ctx.strokeStyle = '#0b0c10';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+  }
+}
+
+function drawArrow(ctx, x1,y1,x2,y2, color) {
+  const angle = Math.atan2(y2-y1,x2-x1);
+  const len = Math.hypot(x2-x1,y2-y1);
+  if(len<10) return;
+  ctx.save();
+  ctx.strokeStyle = color; ctx.fillStyle = color;
+  ctx.lineWidth = 1.8;
+  ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+  ctx.translate(x2,y2); ctx.rotate(angle);
+  ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(-9,-5); ctx.lineTo(-9,5); ctx.closePath(); ctx.fill();
+  ctx.restore();
+}
+
+function drawEigenvectors(ctx, o) {
+  const ev = eigenvalues(M);
+  if(!ev) return;
+  ev.forEach((lam, i) => {
+    if(Math.abs(lam) < 1e-6) return;
+    const v = eigenvector(M, lam);
+    const color = i===0 ? '#f0a25a' : '#f05a5a';
+    const [x1,y1] = toScreen(o, [0,0]);
+    const [x2,y2] = toScreen(o, [v[0]*2, v[1]*2]);
+    ctx.setLineDash([5,4]);
+    drawArrow(ctx, x1,y1,x2,y2, color);
+    ctx.setLineDash([]);
+    // label
+    ctx.fillStyle = color;
+    ctx.font = '11px DM Mono, monospace';
+    ctx.fillText('λ='+lam.toFixed(2), x2+6, y2);
+  });
+}
+
+let hoveredHandle = -1;
+
+function render() {
+  // BEFORE
+  ctxB.clearRect(0,0,CW,CH);
+  drawGrid(ctxB, ORIGIN_B, [1,0,0,1]);
+  drawParallelogram(ctxB, ORIGIN_B, [1,0,0,1], shapeVerts, '#5af0c8', '#5af0c8', 0.22);
+  drawHandles(ctxB, ORIGIN_B, [1,0,0,1], shapeVerts, hoveredHandle);
+
+  // AFTER
+  ctxA.clearRect(0,0,CW,CH);
+  drawGrid(ctxA, ORIGIN_A, M);
+  if(showGhost) {
+    drawParallelogram(ctxA, ORIGIN_A, M, shapeVerts, 'rgba(90,240,200,0.25)', 'rgba(90,240,200,0.08)', 1);
+  }
+  drawParallelogram(ctxA, ORIGIN_A, M, shapeVerts, '#c8f55a', '#c8f55a', 0.22);
+  if(showEigen) drawEigenvectors(ctxA, ORIGIN_A);
+
+  // UI update
+  const d = det(M);
+  const dStr = d.toFixed(2);
+  const dd = document.getElementById('det-display');
+  dd.textContent = dStr;
+  dd.className = 'det-value ' + (Math.abs(d)<0.01?'zero':(d<0?'neg':'pos'));
+
+  const ins = document.getElementById('insight');
+  if(Math.abs(d)<0.01){
+    ins.textContent = 'Space collapses to a line — the transformation is singular and not invertible.';
+    ins.className='det-insight zero';
+  } else if(Math.abs(Math.abs(d)-1)<0.02){
+    ins.textContent='Area preserved (= 1) — a rotation, reflection, or shear that conserves space.';
+    ins.className='det-insight one';
+  } else if(d>1){
+    ins.textContent='Space expands by ×'+Math.abs(d).toFixed(2)+' — every region grows proportionally.';
+    ins.className='det-insight';
+  } else if(d>0){
+    ins.textContent='Space contracts by ×'+Math.abs(d).toFixed(2)+' — shapes shrink but structure stays.';
+    ins.className='det-insight';
+  } else {
+    ins.textContent='Orientation flipped! det = '+dStr+' — a mirror with area scaling of ×'+Math.abs(d).toFixed(2)+'.';
+    ins.className='det-insight';
+  }
+
+  document.getElementById('val-trace').textContent=(M[0]+M[3]).toFixed(2);
+  document.getElementById('val-rank').textContent=Math.abs(d)<0.01?'1':'2';
+  document.getElementById('val-area').textContent=Math.abs(d).toFixed(2);
+  document.getElementById('val-orient').textContent=d<-0.01?'flipped':d<0.01?'collapsed':'preserved';
+  document.getElementById('val-inv').textContent=Math.abs(d)>0.01?'yes':'no';
+
+  document.getElementById('pill-after').textContent='Area = '+Math.abs(d).toFixed(2);
+  document.getElementById('pill-after').className='area-pill'+(Math.abs(d)>0.01?' highlight':'');
+
+  // sync sliders & inputs
+  ['a','b','c','d'].forEach((k,i)=>{
+    document.getElementById('sl-'+k).value = M[i];
+    document.getElementById('sv-'+k).textContent = M[i].toFixed(2);
+    document.getElementById('in-'+k).value = parseFloat(M[i].toFixed(2));
+  });
+  document.getElementById('det-formula-badge').textContent = `det = ${M[0].toFixed(1)}×${M[3].toFixed(1)} − ${M[1].toFixed(1)}×${M[2].toFixed(1)} = ${d.toFixed(2)}`;
+
+  // preset active
+  document.querySelectorAll('.ctrl-group').forEach((el,i)=>{
+    const pm = PRESETS[i].M;
+    el.classList.toggle('active', pm.every((v,j)=>Math.abs(v-M[j])<0.05));
+  });
+}
+
+// ── DRAG: BEFORE CANVAS ──────────────────────────────────────────────────────
+function hitTestBefore(sx,sy) {
+  // vertices first (higher priority)
+  for(let i=0;i<shapeVerts.length;i++){
+    const [px,py] = toScreen(ORIGIN_B, shapeVerts[i]);
+    if(Math.hypot(sx-px,sy-py)<14) return {type:'vertex',idx:i};
+  }
+  // edge midpoints
+  const n = shapeVerts.length;
+  for(let i=0;i<n;i++){
+    const v0=shapeVerts[i],v1=shapeVerts[(i+1)%n];
+    const mid=[(v0[0]+v1[0])/2,(v0[1]+v1[1])/2];
+    const [px,py] = toScreen(ORIGIN_B, mid);
+    if(Math.hypot(sx-px,sy-py)<12) return {type:'edge',idx:i};
+  }
+  return null;
+}
+
+function getEventPos(e, canvas) {
+  const r = canvas.getBoundingClientRect();
+  const scaleX = CW / r.width, scaleY = CH / r.height;
+  if(e.touches) {
+    return [(e.touches[0].clientX-r.left)*scaleX, (e.touches[0].clientY-r.top)*scaleY];
+  }
+  return [(e.clientX-r.left)*scaleX, (e.clientY-r.top)*scaleY];
+}
+
+function onBeforeDown(e) {
+  e.preventDefault();
+  const [sx,sy] = getEventPos(e, cBefore);
+  const hit = hitTestBefore(sx,sy);
+  if(!hit) return;
+  drag = {
+    ...hit,
+    startMX: (sx-ORIGIN_B.x)/SCALE,
+    startMY: (ORIGIN_B.y-sy)/SCALE,
+    startVerts: shapeVerts.map(v=>[...v]),
+    startM: [...M]
+  };
+  cBefore.style.cursor='grabbing';
+}
+
+function onBeforeMove(e) {
+  e.preventDefault();
+  const [sx,sy] = getEventPos(e, cBefore);
+  if(!drag) {
+    // hover
+    const hit = hitTestBefore(sx,sy);
+    hoveredHandle = hit ? (hit.type==='edge'? 10+hit.idx : hit.idx) : -1;
+    cBefore.style.cursor = hit ? 'grab' : 'default';
+    render(); return;
+  }
+
+  const mx = (sx-ORIGIN_B.x)/SCALE;
+  const my = (ORIGIN_B.y-sy)/SCALE;
+  const dx = mx - drag.startMX;
+  const dy = my - drag.startMY;
+
+  if(drag.type==='vertex') {
+    shapeVerts = drag.startVerts.map((v,i)=> i===drag.idx ? [v[0]+dx, v[1]+dy] : [...v]);
+    // Recompute M from verts: col1 = v1-v0, col2 = v3-v0
+    const v0=shapeVerts[0], v1=shapeVerts[1], v3=shapeVerts[3];
+    const col1 = [v1[0]-v0[0], v1[1]-v0[1]];
+    const col2 = [v3[0]-v0[0], v3[1]-v0[1]];
+    M = [col1[0], col2[0], col1[1], col2[1]];
+    clampM();
+  } else if(drag.type==='edge') {
+    // Move both vertices of this edge together
+    const i = drag.idx, j=(i+1)%shapeVerts.length;
+    shapeVerts = drag.startVerts.map((v,k)=>{
+      if(k===i||k===j) return [v[0]+dx,v[1]+dy]; return [...v];
+    });
+    const v0=shapeVerts[0], v1=shapeVerts[1], v3=shapeVerts[3];
+    const col1=[v1[0]-v0[0],v1[1]-v0[1]];
+    const col2=[v3[0]-v0[0],v3[1]-v0[1]];
+    M=[col1[0],col2[0],col1[1],col2[1]];
+    clampM();
+  }
+  render();
+}
+
+function onBeforeUp(e) {
+  drag=null; cBefore.style.cursor='default';
+}
+
+function clampM() {
+  M=M.map(v=>Math.max(-3.5,Math.min(3.5,v)));
+}
+
+cBefore.addEventListener('mousedown',  onBeforeDown);
+cBefore.addEventListener('mousemove',  onBeforeMove);
+cBefore.addEventListener('mouseup',    onBeforeUp);
+cBefore.addEventListener('mouseleave', onBeforeUp);
+cBefore.addEventListener('touchstart', onBeforeDown, {passive:false});
+cBefore.addEventListener('touchmove',  onBeforeMove, {passive:false});
+cBefore.addEventListener('touchend',   onBeforeUp);
+
+// ── SLIDERS ──────────────────────────────────────────────────────────────────
+['a','b','c','d'].forEach((k,i)=>{
+  document.getElementById('sl-'+k).addEventListener('input', function(){
+    M[i] = parseFloat(this.value);
+    syncVertsFromM();
+    render();
+  });
+  document.getElementById('in-'+k).addEventListener('input', function(){
+    const v = parseFloat(this.value);
+    if(!isNaN(v)) { M[i]=Math.max(-3.5,Math.min(3.5,v)); syncVertsFromM(); render(); }
+  });
+});
+
+function syncVertsFromM() {
+  // col1=[M[0],M[2]], col2=[M[1],M[3]] give e1,e2 images
+  // v0=origin, v1=e1 image, v2=e1+e2, v3=e2
+  shapeVerts = [
+    [0,0],
+    [M[0],M[2]],
+    [M[0]+M[1],M[2]+M[3]],
+    [M[1],M[3]]
+  ];
+}
+
+// ── PRESETS ──────────────────────────────────────────────────────────────────
+const pg = document.getElementById('presets-grid');
+PRESETS.forEach((p,i)=>{
+  const d = p.M[0]*p.M[3]-p.M[1]*p.M[2];
+  const el = document.createElement('div');
+  el.className='ctrl-group';
+  el.innerHTML=`<div class="ctrl-name">${p.name}</div>
+    <div class="ctrl-matrix">
+      <span>${p.M[0].toFixed(1)}</span><span>${p.M[1].toFixed(1)}</span>
+      <span>${p.M[2].toFixed(1)}</span><span>${p.M[3].toFixed(1)}</span>
+    </div>
+    <div class="ctrl-det">det = <span>${d.toFixed(2)}</span></div>`;
+  el.addEventListener('click',()=>{ M=[...p.M]; syncVertsFromM(); render(); });
+  pg.appendChild(el);
+});
+
+// ── TOGGLES ──────────────────────────────────────────────────────────────────
+function toggleGhost() {
+  showGhost=!showGhost;
+  document.getElementById('toggle-ghost').classList.toggle('on',showGhost);
+  render();
+}
+function toggleEigen() {
+  showEigen=!showEigen;
+  document.getElementById('toggle-eigen').classList.toggle('on',showEigen);
+  render();
+}
+
+// ── INIT ─────────────────────────────────────────────────────────────────────
+syncVertsFromM();
+render();
+</script>
+</body>
+</html>
