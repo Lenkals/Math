@@ -347,6 +347,61 @@
   }
   .toggle.on .toggle-thumb { transform: translateX(16px); background: var(--bg); }
 
+  /* SLIDER TOP BAR — unified above canvases */
+  .slider-top-bar {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px 20px 14px;
+    margin-bottom: 16px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0 28px;
+    align-items: center;
+  }
+  .sliders-left { display: flex; flex-direction: column; gap: 6px; flex: 1; }
+  .slider-top-bar .sl-row { margin-bottom: 0; }
+  .matrix-mini {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .brace-sm { font-family: 'DM Mono', monospace; font-size: 36px; font-weight: 200; color: var(--muted); line-height: 1; }
+  .mat-inputs-mini { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+  .mat-inputs-mini input {
+    width: 56px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    padding: 6px 8px;
+    text-align: center;
+    outline: none;
+    transition: border-color 0.2s;
+    -moz-appearance: textfield;
+  }
+  .mat-inputs-mini input:focus { border-color: var(--accent); }
+  .mat-inputs-mini input::-webkit-outer-spin-button,
+  .mat-inputs-mini input::-webkit-inner-spin-button { -webkit-appearance: none; }
+  .toggles-right {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-left: 20px;
+    border-left: 1px solid var(--border);
+  }
+  .toggle-mini-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+  }
+  @media(max-width:700px){
+    .slider-top-bar { grid-template-columns: 1fr; }
+    .toggles-right { border-left: none; border-top: 1px solid var(--border); padding-left: 0; padding-top: 12px; flex-direction: row; flex-wrap: wrap; }
+  }
   /* ghost anim */
   @keyframes ghostPulse { 0%,100%{opacity:0.18} 50%{opacity:0.32} }
 </style>
@@ -404,74 +459,79 @@
     </div>
   </div>
 
-  <!-- MAIN TWO-CANVAS LAYOUT -->
+  <!-- MAIN TWO-CANVAS LAYOUT — sliders live inside each panel, above canvas -->
   <div class="main-layout">
+
+    <!-- BEFORE panel -->
     <div class="panel">
       <div class="panel-header">
         <span class="panel-title">Before · input space</span>
         <span class="area-pill" id="pill-before">Area = 1.00</span>
       </div>
-      <canvas id="canvas-before" height="320"></canvas>
+
+      <!-- SLIDERS for a, c (column 1) -->
+      <div style="padding:14px 18px 10px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:7px;">
+        <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.1em;color:var(--muted);margin-bottom:2px;">MATRIX ENTRIES — drag or type</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 20px;align-items:center;">
+          <div class="sl-row"><span class="sl-label">a</span><input type="range" id="sl-a" min="-3" max="3" step="0.05"><span class="sl-val" id="sv-a">1.00</span></div>
+          <div class="sl-row"><span class="sl-label">b</span><input type="range" id="sl-b" min="-3" max="3" step="0.05"><span class="sl-val" id="sv-b">0.00</span></div>
+          <div class="sl-row"><span class="sl-label">c</span><input type="range" id="sl-c" min="-3" max="3" step="0.05"><span class="sl-val" id="sv-c">0.00</span></div>
+          <div class="sl-row"><span class="sl-label">d</span><input type="range" id="sl-d" min="-3" max="3" step="0.05"><span class="sl-val" id="sv-d">1.00</span></div>
+        </div>
+      </div>
+
+      <canvas id="canvas-before" height="300"></canvas>
       <div class="drag-hint">
         <span class="dot blue"></span> Drag vertices or edges to reshape the parallelogram
       </div>
     </div>
+
+    <!-- AFTER panel -->
     <div class="panel">
       <div class="panel-header">
         <span class="panel-title">After · transformed space</span>
         <span class="area-pill highlight" id="pill-after">Area = 1.00</span>
       </div>
-      <canvas id="canvas-after" height="320"></canvas>
+
+      <!-- Matrix display + toggles above after-canvas -->
+      <div style="padding:14px 18px 10px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:20px;flex-wrap:wrap;">
+        <div class="matrix-mini">
+          <span class="brace-sm">[</span>
+          <div class="mat-inputs-mini">
+            <input type="number" id="in-a" step="0.1" placeholder="a">
+            <input type="number" id="in-b" step="0.1" placeholder="b">
+            <input type="number" id="in-c" step="0.1" placeholder="c">
+            <input type="number" id="in-d" step="0.1" placeholder="d">
+          </div>
+          <span class="brace-sm">]</span>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;gap:8px;border-left:1px solid var(--border);padding-left:18px;">
+          <div class="toggle-mini-row">
+            <div class="toggle on" id="toggle-ghost" onclick="toggleGhost()"><div class="toggle-thumb"></div></div>
+            <span style="font-size:12px;color:var(--muted);">Ghost shape</span>
+          </div>
+          <div class="toggle-mini-row">
+            <div class="toggle on" id="toggle-eigen" onclick="toggleEigen()"><div class="toggle-thumb"></div></div>
+            <span style="font-size:12px;color:var(--muted);">Eigenvectors</span>
+          </div>
+        </div>
+        <span class="badge" id="det-formula-badge" style="font-size:10px;white-space:nowrap;align-self:flex-start;">det = 1.00</span>
+      </div>
+
+      <canvas id="canvas-after" height="300"></canvas>
       <div class="drag-hint">
         <span class="dot"></span> Live result — shows how the grid and shape warp
       </div>
     </div>
   </div>
 
-  <!-- CONTROLS -->
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;" id="bottom-grid">
-
-    <!-- PRESETS -->
-    <div class="panel">
-      <div class="panel-header">
-        <span class="panel-title">Presets</span>
-      </div>
-      <div class="controls-grid" id="presets-grid"></div>
+  <!-- PRESETS -->
+  <div class="panel" style="margin-top:20px;margin-bottom:20px;">
+    <div class="panel-header">
+      <span class="panel-title">Presets</span>
+      <span class="badge">click to apply</span>
     </div>
-
-    <!-- MATRIX + SLIDERS -->
-    <div class="panel">
-      <div class="panel-header">
-        <span class="panel-title">Matrix entries</span>
-        <span class="badge" id="matrix-badge">[ a b / c d ]</span>
-      </div>
-      <div class="matrix-editor">
-        <div class="matrix-bracket">
-          <span class="brace">[</span>
-          <div class="mat-inputs">
-            <input type="number" id="in-a" step="0.1">
-            <input type="number" id="in-b" step="0.1">
-            <input type="number" id="in-c" step="0.1">
-            <input type="number" id="in-d" step="0.1">
-          </div>
-          <span class="brace">]</span>
-        </div>
-      </div>
-      <div class="sliders-section">
-        <div class="sl-row"><span class="sl-label">a</span><input type="range" id="sl-a" min="-3" max="3" step="0.05"><span class="sl-val" id="sv-a">1.0</span></div>
-        <div class="sl-row"><span class="sl-label">b</span><input type="range" id="sl-b" min="-3" max="3" step="0.05"><span class="sl-val" id="sv-b">0.0</span></div>
-        <div class="sl-row"><span class="sl-label">c</span><input type="range" id="sl-c" min="-3" max="3" step="0.05"><span class="sl-val" id="sv-c">0.0</span></div>
-        <div class="sl-row"><span class="sl-label">d</span><input type="range" id="sl-d" min="-3" max="3" step="0.05"><span class="sl-val" id="sv-d">1.0</span></div>
-      </div>
-      <div class="toggle-row">
-        <div class="toggle on" id="toggle-ghost" onclick="toggleGhost()"><div class="toggle-thumb"></div></div>
-        <span class="toggle-label">Show ghost (before shape on after canvas)</span>
-      </div>
-      <div class="toggle-row">
-        <div class="toggle on" id="toggle-eigen" onclick="toggleEigen()"><div class="toggle-thumb"></div></div>
-        <span class="toggle-label">Show eigenvectors</span>
-      </div>
-    </div>
+    <div class="controls-grid" id="presets-grid"></div>
   </div>
 
   <footer>
@@ -699,7 +759,8 @@ function render() {
     document.getElementById('sv-'+k).textContent = M[i].toFixed(2);
     document.getElementById('in-'+k).value = parseFloat(M[i].toFixed(2));
   });
-  document.getElementById('det-formula-badge').textContent = `det = ${M[0].toFixed(1)}×${M[3].toFixed(1)} − ${M[1].toFixed(1)}×${M[2].toFixed(1)} = ${d.toFixed(2)}`;
+  const mb = document.getElementById('matrix-badge');
+  if(mb) mb.textContent = `det = ${M[0].toFixed(1)}×${M[3].toFixed(1)} − ${M[1].toFixed(1)}×${M[2].toFixed(1)} = ${d.toFixed(2)}`;
 
   // preset active
   document.querySelectorAll('.ctrl-group').forEach((el,i)=>{
