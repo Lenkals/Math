@@ -402,6 +402,23 @@
     .slider-top-bar { grid-template-columns: 1fr; }
     .toggles-right { border-left: none; border-top: 1px solid var(--border); padding-left: 0; padding-top: 12px; flex-direction: row; flex-wrap: wrap; }
   }
+  /* ZOOM BUTTONS */
+  .zoom-btn {
+    font-family: 'DM Mono', monospace;
+    font-size: 14px;
+    line-height: 1;
+    width: 24px; height: 24px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    color: var(--muted);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: border-color 0.15s, color 0.15s;
+    padding: 0;
+  }
+  .zoom-btn:hover { border-color: var(--accent); color: var(--accent); }
+
   /* ghost anim */
   @keyframes ghostPulse { 0%,100%{opacity:0.18} 50%{opacity:0.32} }
 
@@ -512,23 +529,29 @@
     <div class="panel">
       <div class="panel-header">
         <span class="panel-title">Before · input space</span>
-        <span class="area-pill" id="pill-before">Area = 1.00</span>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span id="zoom-badge-b" style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);min-width:36px;text-align:right;">100%</span>
+          <button class="zoom-btn" onclick="applyZoom(viewB,1.25,CW/2,CH/2);render();" title="Zoom in">+</button>
+          <button class="zoom-btn" onclick="applyZoom(viewB,1/1.25,CW/2,CH/2);render();" title="Zoom out">−</button>
+          <button class="zoom-btn" onclick="resetView(viewB);render();" title="Reset view" style="font-size:10px;padding:2px 7px;">⌂</button>
+          <span class="area-pill" id="pill-before">Area = 1.00</span>
+        </div>
       </div>
 
       <!-- SLIDERS for a, c (column 1) -->
       <div style="padding:14px 18px 10px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:7px;">
         <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.1em;color:var(--muted);margin-bottom:2px;">MATRIX ENTRIES — drag or type</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 20px;align-items:center;">
-          <div class="sl-row"><span class="sl-label">a</span><input type="range" id="sl-a" min="-3" max="3" step="0.05"><span class="sl-val" id="sv-a">1.00</span></div>
-          <div class="sl-row"><span class="sl-label">b</span><input type="range" id="sl-b" min="-3" max="3" step="0.05"><span class="sl-val" id="sv-b">0.00</span></div>
-          <div class="sl-row"><span class="sl-label">c</span><input type="range" id="sl-c" min="-3" max="3" step="0.05"><span class="sl-val" id="sv-c">0.00</span></div>
-          <div class="sl-row"><span class="sl-label">d</span><input type="range" id="sl-d" min="-3" max="3" step="0.05"><span class="sl-val" id="sv-d">1.00</span></div>
+          <div class="sl-row"><span class="sl-label">a</span><input type="range" id="sl-a" min="-1000" max="1000" step="0.5"><span class="sl-val" id="sv-a">1.00</span></div>
+          <div class="sl-row"><span class="sl-label">b</span><input type="range" id="sl-b" min="-1000" max="1000" step="0.5"><span class="sl-val" id="sv-b">0.00</span></div>
+          <div class="sl-row"><span class="sl-label">c</span><input type="range" id="sl-c" min="-1000" max="1000" step="0.5"><span class="sl-val" id="sv-c">0.00</span></div>
+          <div class="sl-row"><span class="sl-label">d</span><input type="range" id="sl-d" min="-1000" max="1000" step="0.5"><span class="sl-val" id="sv-d">1.00</span></div>
         </div>
       </div>
 
       <canvas id="canvas-before" height="300"></canvas>
       <div class="drag-hint">
-        <span class="dot blue"></span> Drag vertices or edges to reshape the parallelogram
+        <span class="dot blue"></span> Drag vertices/edges to reshape · Drag empty space to pan · Scroll to zoom
       </div>
     </div>
 
@@ -536,7 +559,14 @@
     <div class="panel">
       <div class="panel-header">
         <span class="panel-title">After · transformed space</span>
-        <span class="area-pill highlight" id="pill-after">Area = 1.00</span>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span id="zoom-badge-a" style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);min-width:36px;text-align:right;">100%</span>
+          <button class="zoom-btn" onclick="applyZoom(viewA,1.25,CW/2,CH/2);render();" title="Zoom in">+</button>
+          <button class="zoom-btn" onclick="applyZoom(viewA,1/1.25,CW/2,CH/2);render();" title="Zoom out">−</button>
+          <button class="zoom-btn" onclick="autoFitAfter();render();" title="Fit to shape" style="font-size:10px;padding:2px 7px;">⊡</button>
+          <button class="zoom-btn" onclick="resetView(viewA);render();" title="Reset view" style="font-size:10px;padding:2px 7px;">⌂</button>
+          <span class="area-pill highlight" id="pill-after">Area = 1.00</span>
+        </div>
       </div>
 
       <!-- Matrix expression inputs + toggles above after-canvas -->
@@ -603,12 +633,17 @@ let shapeVerts = [ [0,0],[1,0],[1,1],[0,1] ]; // always the unit square in "befo
 
 // Canvas sizes
 const CW = 460, CH = 320;
-const ORIGIN_B = {x: CW/2, y: CH/2};
-const ORIGIN_A = {x: CW/2, y: CH/2};
-const SCALE = 72;
+
+// Per-canvas view state: zoom (pixels per unit) and pan (origin in screen px)
+const viewB = { scale: 72, ox: CW/2, oy: CH/2 };
+const viewA = { scale: 72, ox: CW/2, oy: CH/2 };
+
+// Backward-compat shims (used in draw functions)
+const ORIGIN_B = { get x(){ return viewB.ox; }, get y(){ return viewB.oy; } };
+const ORIGIN_A = { get x(){ return viewA.ox; }, get y(){ return viewA.oy; } };
 
 // Drag state
-let drag = null; // {type:'vertex'|'edge', idx, startMX,startMY, startM, startVerts}
+let drag = null; // {type:'vertex'|'edge'|'pan', canvas:'B'|'A', ...}
 
 // ── PRESETS ──────────────────────────────────────────────────────────────────
 const PRESETS = [
@@ -633,8 +668,14 @@ const ctxA = cAfter.getContext('2d');
 // ── MATH ─────────────────────────────────────────────────────────────────────
 function det(m) { return m[0]*m[3] - m[1]*m[2]; }
 function applyM(m, [x,y]) { return [m[0]*x+m[1]*y, m[2]*x+m[3]*y]; }
-function toScreen(o, [x,y]) { return [o.x + x*SCALE, o.y - y*SCALE]; }
-function fromScreen(o, [sx,sy]) { return [(sx-o.x)/SCALE, (o.y-sy)/SCALE]; }
+function toScreen(o, [x,y], sc) {
+  const s = sc !== undefined ? sc : (o === ORIGIN_B ? viewB.scale : viewA.scale);
+  return [o.x + x*s, o.y - y*s];
+}
+function fromScreen(o, [sx,sy], sc) {
+  const s = sc !== undefined ? sc : (o === ORIGIN_B ? viewB.scale : viewA.scale);
+  return [(sx-o.x)/s, (o.y-sy)/s];
+}
 
 function eigenvalues(m) {
   const tr = m[0]+m[3], d = det(m);
@@ -826,13 +867,20 @@ function render() {
 }
 
 // ── DRAG: BEFORE CANVAS ──────────────────────────────────────────────────────
+function getEventPos(e, canvas) {
+  const r = canvas.getBoundingClientRect();
+  const scaleX = CW / r.width, scaleY = CH / r.height;
+  if(e.touches && e.touches.length>0) {
+    return [(e.touches[0].clientX-r.left)*scaleX, (e.touches[0].clientY-r.top)*scaleY];
+  }
+  return [(e.clientX-r.left)*scaleX, (e.clientY-r.top)*scaleY];
+}
+
 function hitTestBefore(sx,sy) {
-  // vertices first (higher priority)
   for(let i=0;i<shapeVerts.length;i++){
     const [px,py] = toScreen(ORIGIN_B, shapeVerts[i]);
     if(Math.hypot(sx-px,sy-py)<14) return {type:'vertex',idx:i};
   }
-  // edge midpoints
   const n = shapeVerts.length;
   for(let i=0;i<n;i++){
     const v0=shapeVerts[i],v1=shapeVerts[(i+1)%n];
@@ -843,75 +891,159 @@ function hitTestBefore(sx,sy) {
   return null;
 }
 
-function getEventPos(e, canvas) {
-  const r = canvas.getBoundingClientRect();
-  const scaleX = CW / r.width, scaleY = CH / r.height;
-  if(e.touches) {
-    return [(e.touches[0].clientX-r.left)*scaleX, (e.touches[0].clientY-r.top)*scaleY];
-  }
-  return [(e.clientX-r.left)*scaleX, (e.clientY-r.top)*scaleY];
+// ── ZOOM helpers ──────────────────────────────────────────────────────────────
+function applyZoom(view, factor, pivotSX, pivotSY) {
+  const newScale = Math.max(8, Math.min(600, view.scale * factor));
+  // pivot stays fixed on screen
+  view.ox = pivotSX + (view.ox - pivotSX) * (newScale / view.scale);
+  view.oy = pivotSY + (view.oy - pivotSY) * (newScale / view.scale);
+  view.scale = newScale;
+  updateZoomBadges();
+}
+function resetView(view) {
+  view.scale = 72; view.ox = CW/2; view.oy = CH/2;
+  updateZoomBadges();
+}
+function fitView(view, pts) {
+  const xs=pts.map(p=>p[0]), ys=pts.map(p=>p[1]);
+  const minX=Math.min(...xs), maxX=Math.max(...xs);
+  const minY=Math.min(...ys), maxY=Math.max(...ys);
+  const rX=Math.max(maxX-minX,0.5), rY=Math.max(maxY-minY,0.5);
+  const sc = Math.min(CW/(rX+1.2), CH/(rY+1.2), 500);
+  view.scale = Math.max(sc, 8);
+  view.ox = CW/2 - ((minX+maxX)/2)*view.scale;
+  view.oy = CH/2 + ((minY+maxY)/2)*view.scale;
+  updateZoomBadges();
+}
+function updateZoomBadges() {
+  const zb = document.getElementById('zoom-badge-b');
+  const za = document.getElementById('zoom-badge-a');
+  if(zb) zb.textContent = Math.round(viewB.scale/72*100)+'%';
+  if(za) za.textContent = Math.round(viewA.scale/72*100)+'%';
 }
 
+// wheel zoom — before canvas
+cBefore.addEventListener('wheel', e => {
+  e.preventDefault();
+  const [sx,sy] = getEventPos(e, cBefore);
+  applyZoom(viewB, e.deltaY < 0 ? 1.12 : 1/1.12, sx, sy);
+  render();
+}, {passive:false});
+// wheel zoom — after canvas
+cAfter.addEventListener('wheel', e => {
+  e.preventDefault();
+  const [sx,sy] = getEventPos(e, cAfter);
+  applyZoom(viewA, e.deltaY < 0 ? 1.12 : 1/1.12, sx, sy);
+  render();
+}, {passive:false});
+
+// Pinch zoom support
+let pinchDistB = null, pinchDistA = null;
+cBefore.addEventListener('touchstart', e => { if(e.touches.length===2){ pinchDistB = Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY); } }, {passive:true});
+cAfter.addEventListener('touchstart',  e => { if(e.touches.length===2){ pinchDistA = Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY); } }, {passive:true});
+cBefore.addEventListener('touchmove', e => {
+  if(e.touches.length===2 && pinchDistB){
+    const d = Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
+    const r = cBefore.getBoundingClientRect();
+    const cx = ((e.touches[0].clientX+e.touches[1].clientX)/2-r.left)*CW/r.width;
+    const cy = ((e.touches[0].clientY+e.touches[1].clientY)/2-r.top)*CH/r.height;
+    applyZoom(viewB, d/pinchDistB, cx, cy); pinchDistB=d; render(); e.preventDefault();
+  }
+}, {passive:false});
+cAfter.addEventListener('touchmove', e => {
+  if(e.touches.length===2 && pinchDistA){
+    const d = Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
+    const r = cAfter.getBoundingClientRect();
+    const cx = ((e.touches[0].clientX+e.touches[1].clientX)/2-r.left)*CW/r.width;
+    const cy = ((e.touches[0].clientY+e.touches[1].clientY)/2-r.top)*CH/r.height;
+    applyZoom(viewA, d/pinchDistA, cx, cy); pinchDistA=d; render(); e.preventDefault();
+  }
+}, {passive:false});
+
+// ── POINTER DRAG ─────────────────────────────────────────────────────────────
 function onBeforeDown(e) {
   e.preventDefault();
   const [sx,sy] = getEventPos(e, cBefore);
   const hit = hitTestBefore(sx,sy);
-  if(!hit) return;
-  drag = {
-    ...hit,
-    startMX: (sx-ORIGIN_B.x)/SCALE,
-    startMY: (ORIGIN_B.y-sy)/SCALE,
-    startVerts: shapeVerts.map(v=>[...v]),
-    startM: [...M]
-  };
-  cBefore.style.cursor='grabbing';
+  if(hit) {
+    drag = {
+      ...hit, canvas:'B',
+      startSX:sx, startSY:sy,
+      startMX: fromScreen(ORIGIN_B,[sx,sy])[0],
+      startMY: fromScreen(ORIGIN_B,[sx,sy])[1],
+      startVerts: shapeVerts.map(v=>[...v]),
+    };
+    cBefore.style.cursor='grabbing';
+  } else {
+    drag = { type:'pan', canvas:'B', startSX:sx, startSY:sy, startOX:viewB.ox, startOY:viewB.oy };
+    cBefore.style.cursor='move';
+  }
 }
 
 function onBeforeMove(e) {
   e.preventDefault();
   const [sx,sy] = getEventPos(e, cBefore);
   if(!drag) {
-    // hover
     const hit = hitTestBefore(sx,sy);
     hoveredHandle = hit ? (hit.type==='edge'? 10+hit.idx : hit.idx) : -1;
     cBefore.style.cursor = hit ? 'grab' : 'default';
     render(); return;
   }
-
-  const mx = (sx-ORIGIN_B.x)/SCALE;
-  const my = (ORIGIN_B.y-sy)/SCALE;
-  const dx = mx - drag.startMX;
-  const dy = my - drag.startMY;
-
+  if(drag.type==='pan') {
+    viewB.ox = drag.startOX + (sx - drag.startSX);
+    viewB.oy = drag.startOY + (sy - drag.startSY);
+    render(); return;
+  }
+  const [mx,my] = fromScreen(ORIGIN_B,[sx,sy]);
+  const dx = mx - drag.startMX, dy = my - drag.startMY;
   if(drag.type==='vertex') {
     shapeVerts = drag.startVerts.map((v,i)=> i===drag.idx ? [v[0]+dx, v[1]+dy] : [...v]);
-    // Recompute M from verts: col1 = v1-v0, col2 = v3-v0
     const v0=shapeVerts[0], v1=shapeVerts[1], v3=shapeVerts[3];
-    const col1 = [v1[0]-v0[0], v1[1]-v0[1]];
-    const col2 = [v3[0]-v0[0], v3[1]-v0[1]];
-    M = [col1[0], col2[0], col1[1], col2[1]];
-    clampM();
+    M = [v1[0]-v0[0], v3[0]-v0[0], v1[1]-v0[1], v3[1]-v0[1]];
+    autoFitAfter();
   } else if(drag.type==='edge') {
-    // Move both vertices of this edge together
-    const i = drag.idx, j=(i+1)%shapeVerts.length;
-    shapeVerts = drag.startVerts.map((v,k)=>{
-      if(k===i||k===j) return [v[0]+dx,v[1]+dy]; return [...v];
-    });
+    const i=drag.idx, j=(i+1)%shapeVerts.length;
+    shapeVerts = drag.startVerts.map((v,k)=> (k===i||k===j) ? [v[0]+dx,v[1]+dy] : [...v]);
     const v0=shapeVerts[0], v1=shapeVerts[1], v3=shapeVerts[3];
-    const col1=[v1[0]-v0[0],v1[1]-v0[1]];
-    const col2=[v3[0]-v0[0],v3[1]-v0[1]];
-    M=[col1[0],col2[0],col1[1],col2[1]];
-    clampM();
+    M = [v1[0]-v0[0], v3[0]-v0[0], v1[1]-v0[1], v3[1]-v0[1]];
+    autoFitAfter();
+  }
+  // also keep Before canvas fitted when shape grows large from dragging
+  {
+    const pts = shapeVerts;
+    const allX=[0,...pts.map(p=>p[0])], allY=[0,...pts.map(p=>p[1])];
+    const rX=Math.max(Math.max(...allX)-Math.min(...allX),0.01);
+    const rY=Math.max(Math.max(...allY)-Math.min(...allY),0.01);
+    const needed = Math.max(rX,rY);
+    const current = Math.min(viewB.ox, CH-viewB.oy) / viewB.scale;
+    if(needed > current * 0.7) {
+      const sc = Math.min(CW*0.7/rX, CH*0.7/rY);
+      if(sc < viewB.scale) { viewB.scale=Math.max(sc,0.001); viewB.ox=CW/2; viewB.oy=CH/2; updateZoomBadges(); }
+    }
   }
   render();
 }
 
-function onBeforeUp(e) {
-  drag=null; cBefore.style.cursor='default';
-}
-
-function clampM() {
-  M=M.map(v=>Math.max(-3.5,Math.min(3.5,v)));
+function onBeforeUp(e) { drag=null; cBefore.style.cursor='default'; }
+function clampM() { /* no hard clamp */ }
+function autoFitAfter() {
+  // Fit viewA to show origin + all transformed shape vertices
+  const pts = shapeVerts.map(v => applyM(M, v));
+  const allX = [0, ...pts.map(p=>p[0])];
+  const allY = [0, ...pts.map(p=>p[1])];
+  const minX=Math.min(...allX), maxX=Math.max(...allX);
+  const minY=Math.min(...allY), maxY=Math.max(...allY);
+  const rangeX = Math.max(maxX-minX, 0.01), rangeY = Math.max(maxY-minY, 0.01);
+  const padding = 0.18; // fraction of canvas
+  const sc = Math.min(
+    CW * (1 - padding*2) / rangeX,
+    CH * (1 - padding*2) / rangeY
+  );
+  viewA.scale = Math.max(sc, 0.001); // no upper cap — supports values like 1000
+  const cx = (minX + maxX) / 2, cy = (minY + maxY) / 2;
+  viewA.ox = CW/2 - cx * viewA.scale;
+  viewA.oy = CH/2 + cy * viewA.scale;
+  updateZoomBadges();
 }
 
 cBefore.addEventListener('mousedown',  onBeforeDown);
@@ -1009,7 +1141,6 @@ CHIPS.forEach(c => {
       erEl.textContent = raw.trim()==='' ? '' : 'err';
     } else {
       this.classList.remove('error');
-      v = Math.max(-3.5, Math.min(3.5, v));
       evEl.textContent = '= ' + parseFloat(v.toFixed(4));
       erEl.textContent = '';
       M[i] = v;
@@ -1021,15 +1152,14 @@ CHIPS.forEach(c => {
   });
 });
 
-function syncVertsFromM() {
-  // col1=[M[0],M[2]], col2=[M[1],M[3]] give e1,e2 images
-  // v0=origin, v1=e1 image, v2=e1+e2, v3=e2
+function syncVertsFromM(fit=true) {
   shapeVerts = [
     [0,0],
     [M[0],M[2]],
     [M[0]+M[1],M[2]+M[3]],
     [M[1],M[3]]
   ];
+  if(fit) autoFitAfter();
 }
 
 // ── PRESETS ──────────────────────────────────────────────────────────────────
