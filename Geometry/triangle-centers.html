@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Triangle Centers Explorer</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#06090f;
+  --surface:#0d1420;
+  --card:#111825;
+  --border:#1c2e4a;
+  --text:#d0e4ff;
+  --muted:#4a6480;
+  --cG:#ffd84d;
+  --cO:#2ee8ff;
+  --cH:#ff4d84;
+  --cI:#4dff96;
+}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:'JetBrains Mono',monospace;
+  min-height:100vh;
+  display:flex;flex-direction:column;align-items:center;
+  padding:28px 16px 60px;gap:0;
+}
+
+/* ── HEADER ── */
+.header{text-align:center;margin-bottom:28px;}
+.header h1{
+  font-family:'Syne',sans-serif;font-size:clamp(1.5rem,4vw,2.6rem);
+  font-weight:800;letter-spacing:.06em;text-transform:uppercase;
+  color:#fff;line-height:1.1;margin-bottom:6px;
+  text-shadow:0 0 40px rgba(100,160,255,0.5);
+}
+.header h1 span{
+  background:linear-gradient(90deg,#2ee8ff,#7b6fff,#ff4d84);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.header .tagline{
+  font-size:.72rem;letter-spacing:.18em;color:var(--muted);text-transform:uppercase;
+}
+
+/* ── SHAPE PICKER ── */
+.shape-row{
+  display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:22px;
+}
+.shape-btn{
+  padding:8px 18px;border-radius:8px;border:1.5px solid var(--border);
+  background:var(--card);color:var(--muted);cursor:pointer;
+  font-family:'JetBrains Mono',monospace;font-size:.7rem;letter-spacing:.12em;
+  text-transform:uppercase;transition:all .2s;font-weight:600;
+}
+.shape-btn:hover{border-color:#2ee8ff55;color:#aac8e8;}
+.shape-btn.active{
+  border-color:#2ee8ff;color:#2ee8ff;background:rgba(46,232,255,0.07);
+  box-shadow:0 0 16px rgba(46,232,255,0.2);
+}
+
+/* ── MAIN PANEL ── */
+.main-panel{
+  width:100%;max-width:780px;
+  background:var(--surface);border:1.5px solid var(--border);
+  border-radius:16px;overflow:hidden;
+  box-shadow:0 8px 60px rgba(0,0,0,.6);
+}
+.panel-header{
+  padding:14px 20px;border-bottom:1.5px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;
+}
+.panel-title{
+  font-family:'Syne',sans-serif;font-size:1.05rem;font-weight:800;
+  letter-spacing:.1em;color:#fff;text-transform:uppercase;
+}
+.panel-subtitle{
+  font-size:.6rem;letter-spacing:.14em;color:var(--muted);text-transform:uppercase;
+}
+.type-badge{
+  padding:5px 14px;border-radius:20px;
+  font-size:.65rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+  background:rgba(46,232,255,0.1);border:1px solid rgba(46,232,255,0.35);color:#2ee8ff;
+  font-family:'Syne',sans-serif;
+}
+
+canvas{display:block;width:100%;touch-action:none;}
+
+/* ── TOGGLE CONTROLS ── */
+.toggles{
+  padding:14px 18px;border-top:1.5px solid var(--border);
+  display:grid;grid-template-columns:repeat(2,1fr);gap:8px;
+}
+@media(min-width:520px){.toggles{grid-template-columns:repeat(4,1fr);}}
+.tgl{
+  display:flex;align-items:center;gap:9px;padding:10px 12px;
+  border-radius:9px;border:1.5px solid var(--border);
+  background:var(--card);cursor:pointer;
+  font-family:'JetBrains Mono',monospace;font-size:.63rem;
+  font-weight:600;letter-spacing:.04em;color:var(--muted);
+  transition:all .18s;user-select:none;-webkit-user-select:none;
+}
+.tgl .pip{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.tgl.on{color:#c8dcf5;border-color:rgba(255,255,255,.15);background:rgba(255,255,255,.04);}
+.tgl.on .pip{box-shadow:0 0 10px 3px var(--c);}
+.tgl.off{opacity:.28;}
+
+/* ── DESCRIPTIONS ── */
+.descriptions{
+  width:100%;max-width:780px;margin-top:24px;
+  display:grid;grid-template-columns:1fr 1fr;gap:12px;
+}
+@media(min-width:580px){.descriptions{grid-template-columns:repeat(4,1fr);}}
+.desc-card{
+  background:var(--card);border:1.5px solid var(--border);
+  border-radius:12px;padding:14px 14px 16px;
+  transition:border-color .2s,box-shadow .2s;
+}
+.desc-card:hover{box-shadow:0 0 20px rgba(0,0,0,.4);}
+.desc-top{display:flex;align-items:center;gap:9px;margin-bottom:8px;}
+.desc-pip{width:11px;height:11px;border-radius:50%;flex-shrink:0;}
+.desc-label{
+  font-family:'Syne',sans-serif;font-size:.82rem;font-weight:800;
+  letter-spacing:.1em;text-transform:uppercase;
+}
+.desc-name{font-size:.62rem;color:var(--muted);margin-bottom:6px;letter-spacing:.06em;font-weight:600;}
+.desc-text{font-size:.6rem;color:#7090aa;line-height:1.7;letter-spacing:.02em;}
+.desc-fact{
+  margin-top:8px;font-size:.57rem;color:var(--muted);
+  border-top:1px solid var(--border);padding-top:7px;line-height:1.6;
+  font-style:italic;
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Triangle <span>Centers</span></h1>
+  <p class="tagline">Drag vertices or edges · Toggle construction lines</p>
+</div>
+
+<!-- Shape presets -->
+<div class="shape-row">
+  <button class="shape-btn active" data-shape="acute">▲ Acute</button>
+  <button class="shape-btn" data-shape="right">⊾ Right</button>
+  <button class="shape-btn" data-shape="obtuse">◣ Obtuse</button>
+  <button class="shape-btn" data-shape="equilateral">△ Equilateral</button>
+  <button class="shape-btn" data-shape="isosceles">▽ Isosceles</button>
+</div>
+
+<div class="main-panel">
+  <div class="panel-header">
+    <div>
+      <div class="panel-title">Triangle Centers</div>
+      <div class="panel-subtitle">Interactive geometry explorer</div>
+    </div>
+    <div class="type-badge" id="typeBadge">Acute Triangle</div>
+  </div>
+  <canvas id="cv"></canvas>
+  <div class="toggles" id="toggles"></div>
+</div>
+
+<!-- Point descriptions -->
+<div class="descriptions">
+  <div class="desc-card" id="card-G">
+    <div class="desc-top">
+      <div class="desc-pip" style="background:var(--cG);box-shadow:0 0 8px var(--cG)"></div>
+      <div class="desc-label" style="color:var(--cG)">G — Centroid</div>
+    </div>
+    <div class="desc-name">Center of Mass</div>
+    <div class="desc-text">The point where all three medians intersect. A median connects a vertex to the midpoint of the opposite side.</div>
+    <div class="desc-fact">Divides each median in a 2∶1 ratio from vertex. This is where the triangle would balance perfectly on a pin.</div>
+  </div>
+  <div class="desc-card" id="card-O">
+    <div class="desc-top">
+      <div class="desc-pip" style="background:var(--cO);box-shadow:0 0 8px var(--cO)"></div>
+      <div class="desc-label" style="color:var(--cO)">O — Circumcenter</div>
+    </div>
+    <div class="desc-name">Circumscribed Circle Center</div>
+    <div class="desc-text">Where the three perpendicular bisectors of the sides meet. Equidistant from all three vertices.</div>
+    <div class="desc-fact">For acute triangles it lies inside; for right triangles on the hypotenuse midpoint; for obtuse triangles outside.</div>
+  </div>
+  <div class="desc-card" id="card-H">
+    <div class="desc-top">
+      <div class="desc-pip" style="background:var(--cH);box-shadow:0 0 8px var(--cH)"></div>
+      <div class="desc-label" style="color:var(--cH)">H — Orthocenter</div>
+    </div>
+    <div class="desc-name">Altitude Intersection</div>
+    <div class="desc-text">The point where all three altitudes meet. An altitude is the perpendicular from a vertex to the opposite side.</div>
+    <div class="desc-fact">G, O and H are always collinear on the Euler Line, with HG = 2·GO always holding true.</div>
+  </div>
+  <div class="desc-card" id="card-I">
+    <div class="desc-top">
+      <div class="desc-pip" style="background:var(--cI);box-shadow:0 0 8px var(--cI)"></div>
+      <div class="desc-label" style="color:var(--cI)">I — Incenter</div>
+    </div>
+    <div class="desc-name">Inscribed Circle Center</div>
+    <div class="desc-text">Where the three angle bisectors meet. Each bisector divides an interior angle into two equal parts.</div>
+    <div class="desc-fact">Always lies inside the triangle. The incircle is the largest circle that fits entirely within the triangle.</div>
+  </div>
+</div>
+
+<script>
+const DPR=Math.min(window.devicePixelRatio||1,2);
+const sub =(a,b)=>({x:a.x-b.x,y:a.y-b.y});
+const add =(a,b)=>({x:a.x+b.x,y:a.y+b.y});
+const dst =(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+const norm=v=>{const l=Math.hypot(v.x,v.y);return l<1e-9?{x:0,y:0}:{x:v.x/l,y:v.y/l};};
+const lerp=(a,b,t)=>({x:a.x+(b.x-a.x)*t,y:a.y+(b.y-a.y)*t});
+
+function dstSeg(p,a,b){
+  const dx=b.x-a.x,dy=b.y-a.y,l2=dx*dx+dy*dy;
+  if(l2<1e-9)return dst(p,a);
+  const t=Math.max(0,Math.min(1,((p.x-a.x)*dx+(p.y-a.y)*dy)/l2));
+  return dst(p,{x:a.x+t*dx,y:a.y+t*dy});
+}
+function raySeg(P,D,A,B){
+  const ex=B.x-A.x,ey=B.y-A.y;
+  const den=D.x*ey-D.y*ex;
+  if(Math.abs(den)<1e-9)return null;
+  const dx=A.x-P.x,dy=A.y-P.y;
+  const t=(dx*ey-dy*ex)/den;
+  const s=(dx*D.y-dy*D.x)/den;
+  if(t<0||s<-0.01||s>1.01)return null;
+  return t;
+}
+
+/* ── Triangle type detector ── */
+function triangleType(verts){
+  const[A,B,C]=verts;
+  const a=dst(B,C),b=dst(A,C),c=dst(A,B);
+  const sides=[a,b,c].sort((x,y)=>x-y);
+  const eq=(x,y)=>Math.abs(x-y)<2;
+  const diff=sides[2]*sides[2]-(sides[0]*sides[0]+sides[1]*sides[1]);
+  const isEq=eq(a,b)&&eq(b,c);
+  const isIso=!isEq&&(eq(a,b)||eq(b,c)||eq(a,c));
+  let type='';
+  if(isEq) type='Equilateral';
+  else if(isIso) type='Isosceles';
+  else type='Scalene';
+  if(!isEq){
+    if(Math.abs(diff)<200) type+=' Right';
+    else if(diff>0) type+=' Obtuse';
+    else type+=' Acute';
+  }
+  return type;
+}
+
+/* ── Shape presets (fractions of canvas) ── */
+const SHAPES={
+  acute:      [[.50,.10],[.08,.88],[.92,.88]],
+  right:      [[.10,.10],[.10,.88],[.88,.88]],
+  obtuse:     [[.12,.20],[.88,.45],[.28,.88]],
+  equilateral:[[.50,.10],[.07,.88],[.93,.88]],
+  isosceles:  [[.50,.08],[.17,.88],[.83,.88]],
+};
+
+class Triangle{
+  constructor(){
+    this.cv=document.getElementById('cv');
+    this.ctx=this.cv.getContext('2d');
+    this.canvasW=0;this.canvasH=0;
+    this.verts=[{x:0,y:0},{x:0,y:0},{x:0,y:0}];
+    this.drag=null;
+    this.show={centroid:true,circumcenter:true,orthocenter:true,bisectors:true};
+    this._resize();
+    this.setShape('acute');
+    this._buildToggles();
+    this._buildShapeBtns();
+    this._bindEvents();
+    this._draw();
+  }
+
+  _resize(){
+    const panel=this.cv.closest('.main-panel');
+    const cw=panel.clientWidth||760;
+    const ch=Math.round(cw*.62);
+    this.canvasW=cw;this.canvasH=ch;
+    this.cv.width=cw*DPR;this.cv.height=ch*DPR;
+    this.cv.style.width=cw+'px';this.cv.style.height=ch+'px';
+    this.ctx.setTransform(DPR,0,0,DPR,0,0);
+  }
+
+  setShape(name){
+    const pts=SHAPES[name]||SHAPES.acute;
+    const W=this.canvasW,H=this.canvasH;
+    this.verts=pts.map(([fx,fy])=>({x:fx*W,y:fy*H}));
+    this._draw();
+  }
+
+  /* ── GETTERS ── */
+  get G(){
+    const[A,B,C]=this.verts;
+    return{x:(A.x+B.x+C.x)/3,y:(A.y+B.y+C.y)/3};
+  }
+  get O(){
+    const[A,B,C]=this.verts;
+    const D=2*(A.x*(B.y-C.y)+B.x*(C.y-A.y)+C.x*(A.y-B.y));
+    if(Math.abs(D)<.01)return null;
+    const a2=A.x*A.x+A.y*A.y,b2=B.x*B.x+B.y*B.y,c2=C.x*C.x+C.y*C.y;
+    return{
+      x:(a2*(B.y-C.y)+b2*(C.y-A.y)+c2*(A.y-B.y))/D,
+      y:(a2*(C.x-B.x)+b2*(A.x-C.x)+c2*(B.x-A.x))/D
+    };
+  }
+  get H(){
+    const g=this.G,o=this.O;
+    if(!o)return null;
+    return{x:3*g.x-2*o.x,y:3*g.y-2*o.y};
+  }
+  get I(){
+    const[A,B,C]=this.verts;
+    const a=dst(B,C),b=dst(A,C),c=dst(A,B),s=a+b+c;
+    if(s<1e-9)return null;
+    return{x:(a*A.x+b*B.x+c*C.x)/s,y:(a*A.y+b*B.y+c*C.y)/s};
+  }
+
+  /* ── Construction lines ── */
+  _median(i){
+    const V=this.verts;
+    return{from:V[i],to:{x:(V[(i+1)%3].x+V[(i+2)%3].x)/2,y:(V[(i+1)%3].y+V[(i+2)%3].y)/2}};
+  }
+  _altitude(i){
+    const V=this.verts,P=V[i],Q=V[(i+1)%3],R=V[(i+2)%3];
+    const ex=R.x-Q.x,ey=R.y-Q.y,l2=ex*ex+ey*ey;
+    if(l2<1e-9)return null;
+    const t=((P.x-Q.x)*ex+(P.y-Q.y)*ey)/l2;
+    return{from:P,to:{x:Q.x+t*ex,y:Q.y+t*ey}};
+  }
+  _bisector(i){
+    const V=this.verts,P=V[i],Q=V[(i+1)%3],R=V[(i+2)%3];
+    const dir=norm(add(norm(sub(Q,P)),norm(sub(R,P))));
+    if(Math.hypot(dir.x,dir.y)<1e-9)return null;
+    const t=raySeg(P,dir,Q,R);
+    if(t===null)return null;
+    return{from:P,to:{x:P.x+dir.x*t,y:P.y+dir.y*t}};
+  }
+  _perpBisector(P,Q){
+    const mx=(P.x+Q.x)/2,my=(P.y+Q.y)/2;
+    const nx=-(Q.y-P.y),ny=Q.x-P.x;
+    const l=Math.hypot(nx,ny);if(l<1)return null;
+    const ext=Math.max(this.canvasW,this.canvasH)*1.5;
+    return{
+      from:{x:mx-nx/l*ext,y:my-ny/l*ext},
+      to:{x:mx+nx/l*ext,y:my+ny/l*ext},
+      mid:{x:mx,y:my}
+    };
+  }
+
+  /* ── DRAW ── */
+  _draw(){
+    const ctx=this.ctx,W=this.canvasW,H=this.canvasH;
+    ctx.clearRect(0,0,W,H);
+
+    // subtle dot grid
+    ctx.save();
+    ctx.fillStyle='rgba(30,55,95,0.6)';
+    for(let x=24;x<W;x+=28)for(let y=24;y<H;y+=28){
+      ctx.beginPath();ctx.arc(x,y,1,0,Math.PI*2);ctx.fill();
+    }
+    ctx.restore();
+
+    const[A,B,C]=this.verts;
+
+    /* ─ Medians (Centroid) ─ */
+    if(this.show.centroid){
+      for(let i=0;i<3;i++){
+        const l=this._median(i);
+        this._line(l.from,l.to,'rgba(255,216,77,0.55)',1.6);
+        // midpoint tick
+        ctx.save();ctx.fillStyle='rgba(255,216,77,0.7)';
+        ctx.beginPath();ctx.arc(l.to.x,l.to.y,3,0,Math.PI*2);ctx.fill();ctx.restore();
+      }
+    }
+
+    /* ─ Altitudes (Orthocenter) ─ */
+    if(this.show.orthocenter){
+      for(let i=0;i<3;i++){
+        const l=this._altitude(i);
+        if(l){
+          this._line(l.from,l.to,'rgba(255,77,132,0.55)',1.6);
+          this._rightAngle(l.to,l.from,this.verts[(i+1)%3],'rgba(255,77,132,0.6)');
+        }
+      }
+    }
+
+    /* ─ Perpendicular bisectors (Circumcenter) ─ */
+    if(this.show.circumcenter){
+      [[A,B],[B,C],[C,A]].forEach(([P,Q])=>{
+        const pb=this._perpBisector(P,Q);
+        if(pb){
+          this._line(pb.from,pb.to,'rgba(46,232,255,0.38)',1.4);
+          ctx.save();ctx.fillStyle='rgba(46,232,255,0.6)';
+          ctx.beginPath();ctx.arc(pb.mid.x,pb.mid.y,3,0,Math.PI*2);ctx.fill();ctx.restore();
+        }
+      });
+      const oc=this.O;
+      if(oc){
+        const r=dst(oc,A);
+        ctx.save();ctx.strokeStyle='rgba(46,232,255,0.18)';ctx.lineWidth=1.2;
+        ctx.beginPath();ctx.arc(oc.x,oc.y,r,0,Math.PI*2);ctx.stroke();ctx.restore();
+      }
+    }
+
+    /* ─ Angle bisectors (Incenter) ─ */
+    if(this.show.bisectors){
+      for(let i=0;i<3;i++){
+        const l=this._bisector(i);
+        if(l) this._line(l.from,l.to,'rgba(77,255,150,0.72)',2);
+      }
+      const ic=this.I;
+      if(ic){
+        const a=dst(B,C),b=dst(A,C),c=dst(A,B);
+        const area=Math.abs((B.x-A.x)*(C.y-A.y)-(C.x-A.x)*(B.y-A.y))/2;
+        const r=2*area/(a+b+c);
+        ctx.save();ctx.strokeStyle='rgba(77,255,150,0.2)';ctx.lineWidth=1.2;
+        ctx.beginPath();ctx.arc(ic.x,ic.y,r,0,Math.PI*2);ctx.stroke();ctx.restore();
+      }
+    }
+
+    /* ─ Triangle fill + outline ─ */
+    ctx.save();
+    ctx.beginPath();ctx.moveTo(A.x,A.y);ctx.lineTo(B.x,B.y);ctx.lineTo(C.x,C.y);ctx.closePath();
+    ctx.fillStyle='rgba(80,120,220,0.08)';ctx.fill();
+    ctx.strokeStyle='rgba(180,210,255,0.9)';ctx.lineWidth=2.5;ctx.stroke();
+    ctx.restore();
+
+    /* ─ Euler line ─ */
+    if(this.show.centroid&&this.show.circumcenter&&this.show.orthocenter){
+      const oc=this.O,hc=this.H;
+      if(oc&&hc){
+        ctx.save();
+        ctx.strokeStyle='rgba(255,255,255,0.09)';ctx.lineWidth=1.2;
+        const dir=norm(sub(hc,oc));const ext=Math.max(W,H)*2;
+        ctx.beginPath();
+        ctx.moveTo(oc.x-dir.x*ext,oc.y-dir.y*ext);
+        ctx.lineTo(oc.x+dir.x*ext,oc.y+dir.y*ext);
+        ctx.stroke();ctx.restore();
+      }
+    }
+
+    /* ─ Center dots ─ */
+    if(this.show.circumcenter){const p=this.O;if(p)this._dot(p,'#2ee8ff','O');}
+    if(this.show.orthocenter) {const p=this.H;if(p)this._dot(p,'#ff4d84','H');}
+    if(this.show.centroid)    {this._dot(this.G,'#ffd84d','G');}
+    if(this.show.bisectors)   {const p=this.I;if(p)this._dot(p,'#4dff96','I');}
+
+    /* ─ Vertices ─ */
+    const g=this.G;
+    ['A','B','C'].forEach((lbl,i)=>{
+      const v=this.verts[i];
+      // glow
+      const gr=ctx.createRadialGradient(v.x,v.y,0,v.x,v.y,20);
+      gr.addColorStop(0,'rgba(160,200,255,0.2)');gr.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=gr;ctx.beginPath();ctx.arc(v.x,v.y,20,0,Math.PI*2);ctx.fill();
+      // ring + core
+      ctx.fillStyle='#1a2d4a';ctx.beginPath();ctx.arc(v.x,v.y,7,0,Math.PI*2);ctx.fill();
+      ctx.strokeStyle='rgba(180,215,255,0.9)';ctx.lineWidth=2;
+      ctx.beginPath();ctx.arc(v.x,v.y,7,0,Math.PI*2);ctx.stroke();
+      ctx.fillStyle='#c8deff';ctx.beginPath();ctx.arc(v.x,v.y,2.5,0,Math.PI*2);ctx.fill();
+      // label
+      const off=norm(sub(v,g));
+      ctx.save();ctx.shadowColor='rgba(0,0,0,0.8)';ctx.shadowBlur=6;
+      ctx.fillStyle='#e0eeff';ctx.font='bold 13px "JetBrains Mono",monospace';
+      ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.fillText(lbl,v.x+off.x*22,v.y+off.y*22);
+      ctx.restore();
+    });
+
+    // update badge
+    document.getElementById('typeBadge').textContent=triangleType(this.verts)+' Triangle';
+  }
+
+  _line(a,b,color,width){
+    const ctx=this.ctx;
+    ctx.save();ctx.strokeStyle=color;ctx.lineWidth=width;
+    ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();
+    ctx.restore();
+  }
+
+  _dot(P,color,label){
+    const ctx=this.ctx;
+    // outer glow
+    const gr=ctx.createRadialGradient(P.x,P.y,0,P.x,P.y,26);
+    gr.addColorStop(0,color+'55');gr.addColorStop(1,color+'00');
+    ctx.fillStyle=gr;ctx.beginPath();ctx.arc(P.x,P.y,26,0,Math.PI*2);ctx.fill();
+    // crosshair
+    ctx.save();ctx.strokeStyle=color+'99';ctx.lineWidth=1.2;
+    ctx.beginPath();ctx.moveTo(P.x-11,P.y);ctx.lineTo(P.x+11,P.y);
+    ctx.moveTo(P.x,P.y-11);ctx.lineTo(P.x,P.y+11);ctx.stroke();ctx.restore();
+    // dot
+    ctx.fillStyle='#0d1420';ctx.beginPath();ctx.arc(P.x,P.y,6,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle=color;ctx.beginPath();ctx.arc(P.x,P.y,4.5,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle=color+'cc';ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.arc(P.x,P.y,6,0,Math.PI*2);ctx.stroke();
+    // label
+    ctx.save();ctx.shadowColor='rgba(0,0,0,0.9)';ctx.shadowBlur=8;
+    ctx.fillStyle=color;ctx.font='800 12px "Syne",sans-serif';
+    ctx.textAlign='left';ctx.textBaseline='bottom';
+    ctx.fillText(label,P.x+10,P.y-5);ctx.restore();
+  }
+
+  _rightAngle(foot,from,along,color){
+    const s=8,d1=norm(sub(from,foot)),d2=norm(sub(along,foot));
+    const p1={x:foot.x+d1.x*s,y:foot.y+d1.y*s};
+    const p2={x:foot.x+d2.x*s,y:foot.y+d2.y*s};
+    const pc={x:p1.x+d2.x*s,y:p1.y+d2.y*s};
+    const ctx=this.ctx;
+    ctx.save();ctx.strokeStyle=color;ctx.lineWidth=1.2;
+    ctx.beginPath();ctx.moveTo(p1.x,p1.y);ctx.lineTo(pc.x,pc.y);ctx.lineTo(p2.x,p2.y);
+    ctx.stroke();ctx.restore();
+  }
+
+  /* ── INPUT ── */
+  _pos(e){
+    const r=this.cv.getBoundingClientRect();
+    const sx=this.canvasW/r.width,sy=this.canvasH/r.height;
+    const src=e.touches?e.touches[0]:e;
+    return{x:(src.clientX-r.left)*sx,y:(src.clientY-r.top)*sy};
+  }
+  _hitTest(p){
+    for(let i=0;i<3;i++)if(dst(p,this.verts[i])<20)return{type:'vert',idx:i};
+    for(const[i,j]of[[0,1],[1,2],[2,0]])
+      if(dstSeg(p,this.verts[i],this.verts[j])<13)return{type:'edge',i0:i,i1:j};
+    return null;
+  }
+  _bindEvents(){
+    const cv=this.cv;
+    cv.addEventListener('mousedown', e=>this._onDown(e));
+    cv.addEventListener('mousemove', e=>this._onMove(e));
+    cv.addEventListener('mouseup',   ()=>{this.drag=null;});
+    cv.addEventListener('mouseleave',()=>{this.drag=null;});
+    cv.addEventListener('touchstart',e=>{e.preventDefault();this._onDown(e);},{passive:false});
+    cv.addEventListener('touchmove', e=>{e.preventDefault();this._onMove(e);},{passive:false});
+    cv.addEventListener('touchend',  ()=>{this.drag=null;});
+  }
+  _onDown(e){
+    const p=this._pos(e),hit=this._hitTest(p);
+    if(!hit)return;
+    if(hit.type==='vert')
+      this.drag={type:'vert',idx:hit.idx,ox:p.x-this.verts[hit.idx].x,oy:p.y-this.verts[hit.idx].y};
+    else
+      this.drag={type:'edge',i0:hit.i0,i1:hit.i1,ox:p.x,oy:p.y};
+  }
+  _onMove(e){
+    const p=this._pos(e);
+    if(!this.drag){
+      const hit=this._hitTest(p);
+      this.cv.style.cursor=hit?(hit.type==='vert'?'grab':'move'):'crosshair';
+      return;
+    }
+    if(this.drag.type==='vert'){
+      this.verts[this.drag.idx]={x:p.x-this.drag.ox,y:p.y-this.drag.oy};
+    } else {
+      const dx=p.x-this.drag.ox,dy=p.y-this.drag.oy;
+      this.verts[this.drag.i0].x+=dx;this.verts[this.drag.i0].y+=dy;
+      this.verts[this.drag.i1].x+=dx;this.verts[this.drag.i1].y+=dy;
+      this.drag.ox=p.x;this.drag.oy=p.y;
+    }
+    this._draw();
+  }
+
+  /* ── TOGGLE BUTTONS ── */
+  _buildToggles(){
+    const el=document.getElementById('toggles');
+    [{key:'centroid',color:'#ffd84d',label:'Centroid G'},
+     {key:'circumcenter',color:'#2ee8ff',label:'Circumcenter O'},
+     {key:'orthocenter',color:'#ff4d84',label:'Orthocenter H'},
+     {key:'bisectors',color:'#4dff96',label:'Angle Bisectors I'}
+    ].forEach(({key,color,label})=>{
+      const btn=document.createElement('button');
+      btn.className='tgl on';btn.style.setProperty('--c',color);
+      btn.innerHTML=`<span class="pip" style="background:${color}"></span>${label}`;
+      btn.addEventListener('click',()=>{
+        this.show[key]=!this.show[key];
+        btn.className='tgl '+(this.show[key]?'on':'off');
+        this._draw();
+      });
+      el.appendChild(btn);
+    });
+  }
+
+  /* ── SHAPE BUTTONS ── */
+  _buildShapeBtns(){
+    document.querySelectorAll('.shape-btn').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        document.querySelectorAll('.shape-btn').forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');
+        this.setShape(btn.dataset.shape);
+      });
+    });
+  }
+}
+
+window.addEventListener('DOMContentLoaded',()=>{
+  requestAnimationFrame(()=>{ new Triangle(); });
+  let rt;
+  window.addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>location.reload(),350);});
+});
+</script>
+</body>
+</html>
