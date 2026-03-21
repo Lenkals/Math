@@ -109,6 +109,15 @@ input[type=range]::-webkit-slider-thumb{
   color:#7aa0c0 !important;border-color:rgba(80,130,190,0.45) !important;
   background:rgba(14,30,58,0.7) !important;box-shadow:none;
 }
+.reset-btn{
+  padding:7px 18px;border-radius:7px;border:2px solid #ff5c8a;
+  background:rgba(255,92,138,0.08);color:#ff5c8a;cursor:pointer;
+  font-family:'Share Tech Mono',monospace;font-size:.72rem;
+  font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+  transition:all .2s;white-space:nowrap;
+  box-shadow:0 0 0px rgba(255,92,138,0);
+}
+.reset-btn:hover{background:rgba(255,92,138,0.2);box-shadow:0 0 16px rgba(255,92,138,0.35);}
 
 /* SCRUBBER */
 .scrubber-wrap{
@@ -143,7 +152,7 @@ input[type=range]::-webkit-slider-thumb{
 .card-formula{font-size:.7rem;color:#4a80a0;background:rgba(0,0,0,.45);border-radius:5px;padding:5px 9px;margin-bottom:8px;display:inline-block;}
 .card-desc{font-size:.63rem;color:#7aa0b8;line-height:1.82;}
 
-/* LEGEND */
+/* LEGEND — 3×4 grid of angle cards */
 .legend-wrap{
   width:100%;max-width:1100px;margin-top:18px;
   background:var(--surf);border:1.5px solid var(--bdr);border-radius:14px;overflow:hidden;
@@ -152,35 +161,46 @@ input[type=range]::-webkit-slider-thumb{
   padding:12px 18px;border-bottom:1.5px solid var(--bdr);
   font-family:'Rajdhani',sans-serif;font-size:.95rem;font-weight:700;
   letter-spacing:.18em;color:#8ab8d8;text-transform:uppercase;
-  display:flex;align-items:center;justify-content:space-between;
 }
-.reset-btn{
-  padding:6px 16px;border-radius:8px;border:1.5px solid #ff5c8a;
-  background:rgba(255,92,138,0.08);color:#ff5c8a;cursor:pointer;
-  font-family:'Share Tech Mono',monospace;font-size:.65rem;
-  font-weight:700;letter-spacing:.14em;text-transform:uppercase;
-  transition:all .2s;
+/* column headers row */
+.leg-col-hdr{
+  display:grid;
+  grid-template-columns:52px 60px repeat(5,1fr) 46px;
+  gap:0;padding:7px 14px;
+  background:rgba(0,0,0,.3);border-bottom:1px solid var(--bdr);
+  font-family:'Rajdhani',sans-serif;font-size:.62rem;letter-spacing:.14em;
+  text-transform:uppercase;color:#6a95b8;font-weight:600;
 }
-.reset-btn:hover{background:rgba(255,92,138,0.2);box-shadow:0 0 14px rgba(255,92,138,0.3);}
-.legend-scroll{overflow-x:auto;}
-.lt{width:100%;border-collapse:collapse;font-size:.66rem;letter-spacing:.03em;white-space:nowrap;}
-.lt th{
-  padding:9px 14px;text-align:center;font-size:.62rem;letter-spacing:.14em;
-  text-transform:uppercase;color:#6a95b8;background:rgba(0,0,0,.3);
-  border-bottom:1.5px solid var(--bdr);font-weight:600;font-family:'Rajdhani',sans-serif;
+.leg-col-hdr span{text-align:center;}
+/* grid of angle rows — 3 columns of angle-cards side by side */
+.leg-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:0;
 }
-.lt td{padding:8px 14px;text-align:center;color:#c8dff5;border-bottom:1px solid rgba(27,51,88,0.4);}
-.lt tr:last-child td{border-bottom:none;}
-.lt tr:hover td{background:rgba(255,255,255,.025);}
-.td-deg{font-family:'Rajdhani',sans-serif;font-size:.82rem;font-weight:700;color:#fff;}
-.td-rad{color:#8ab8d8;}
-.td-sin{color:var(--sin);font-weight:700;}
-.td-cos{color:var(--cos);font-weight:700;}
-.td-tan{color:var(--tan);font-weight:700;}
-.td-sec{color:var(--sec);font-weight:700;}
-.td-csc{color:var(--csc);font-weight:700;}
-.td-q{font-size:.6rem;color:#3a6080;font-style:italic;}
-.und{color:#2a4a68;font-style:italic;}
+@media(max-width:700px){.leg-grid{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:460px){.leg-grid{grid-template-columns:1fr;}}
+/* each angle row is an inner row */
+.leg-row{
+  display:grid;
+  grid-template-columns:52px 60px repeat(5,1fr) 46px;
+  gap:0;padding:7px 14px;align-items:center;
+  border-bottom:1px solid rgba(27,51,88,0.35);
+  transition:background .15s;
+}
+.leg-row:hover{background:rgba(255,255,255,.025);}
+.leg-row:last-child{border-bottom:none;}
+/* column in each row */
+.lc{text-align:center;font-size:.64rem;padding:0 2px;}
+.lc-deg{font-family:'Rajdhani',sans-serif;font-size:.82rem;font-weight:700;color:#fff;}
+.lc-rad{color:#7aa8cc;font-size:.62rem;}
+.lc-sin{color:var(--sin);font-weight:700;}
+.lc-cos{color:var(--cos);font-weight:700;}
+.lc-tan{color:var(--tan);font-weight:700;}
+.lc-sec{color:var(--sec);font-weight:700;}
+.lc-csc{color:var(--csc);font-weight:700;}
+.lc-q{color:#3a6080;font-size:.58rem;font-style:italic;}
+.und{color:#2a4a68;font-style:italic;font-size:.58rem;}
 </style>
 </head>
 <body>
@@ -242,6 +262,7 @@ input[type=range]::-webkit-slider-thumb{
     <span class="rpm-disp" id="rpmDisp">1.0 RPM</span>
   </div>
   <div class="fn-bar" id="fnBar"></div>
+  <button class="reset-btn" id="resetBtn">⟳ Reset Waves</button>
 </div>
 
 <!-- Time scrubber -->
@@ -281,30 +302,44 @@ input[type=range]::-webkit-slider-thumb{
   </div>
 </div>
 
-<!-- Legend with Reset -->
+<!-- Legend — 3-column grid, no overlap -->
 <div class="legend-wrap">
-  <div class="legend-hdr">
-    <span>📐 Reference Angles — Exact Values</span>
-    <button class="reset-btn" id="resetBtn">⟳ Reset All Waves</button>
+  <div class="legend-hdr">📐 Reference Angles — Exact Trigonometric Values</div>
+  <!-- column header — repeated 3 times implicitly by the grid -->
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);border-bottom:1.5px solid var(--bdr);">
+    <div class="leg-col-hdr" style="border-right:1px solid var(--bdr);">
+      <span>°</span><span>rad</span>
+      <span style="color:var(--sin)">sin</span>
+      <span style="color:var(--cos)">cos</span>
+      <span style="color:var(--tan)">tan</span>
+      <span style="color:var(--sec)">sec</span>
+      <span style="color:var(--csc)">csc</span>
+      <span>Q</span>
+    </div>
+    <div class="leg-col-hdr" style="border-right:1px solid var(--bdr);">
+      <span>°</span><span>rad</span>
+      <span style="color:var(--sin)">sin</span>
+      <span style="color:var(--cos)">cos</span>
+      <span style="color:var(--tan)">tan</span>
+      <span style="color:var(--sec)">sec</span>
+      <span style="color:var(--csc)">csc</span>
+      <span>Q</span>
+    </div>
+    <div class="leg-col-hdr">
+      <span>°</span><span>rad</span>
+      <span style="color:var(--sin)">sin</span>
+      <span style="color:var(--cos)">cos</span>
+      <span style="color:var(--tan)">tan</span>
+      <span style="color:var(--sec)">sec</span>
+      <span style="color:var(--csc)">csc</span>
+      <span>Q</span>
+    </div>
   </div>
-  <div class="legend-scroll">
-    <table class="lt">
-      <thead><tr>
-        <th>Angle °</th><th>Radians</th>
-        <th style="color:var(--sin)">sin θ</th>
-        <th style="color:var(--cos)">cos θ</th>
-        <th style="color:var(--tan)">tan θ</th>
-        <th style="color:var(--sec)">sec θ</th>
-        <th style="color:var(--csc)">csc θ</th>
-        <th>Quadrant</th>
-      </tr></thead>
-      <tbody id="lbody"></tbody>
-    </table>
-  </div>
+  <div class="leg-grid" id="legGrid"></div>
 </div>
 
 <script>
-/* ═══ LEGEND DATA ═══ */
+/* ═══ LEGEND GRID — 3 columns × 6 rows ═══ */
 const REF=[
   {d:0,  r:'0',    s:'0',    c:'1',     t:'0',    se:'1',     cs:'—',      q:'—'},
   {d:30, r:'π/6',  s:'½',    c:'√3/2',  t:'√3/3', se:'2√3/3', cs:'2',      q:'I'},
@@ -324,13 +359,29 @@ const REF=[
   {d:330,r:'11π/6',s:'−½',   c:'√3/2',  t:'−√3/3',se:'2√3/3', cs:'−2',     q:'IV'},
   {d:360,r:'2π',   s:'0',    c:'1',     t:'0',    se:'1',     cs:'∞',      q:'—'},
 ];
-const u=v=>v==='∞'?'<span class="und">undef</span>':v;
-document.getElementById('lbody').innerHTML=REF.map(a=>`<tr>
-  <td class="td-deg">${a.d}°</td><td class="td-rad">${a.r}</td>
-  <td class="td-sin">${u(a.s)}</td><td class="td-cos">${u(a.c)}</td>
-  <td class="td-tan">${u(a.t)}</td><td class="td-sec">${u(a.se)}</td>
-  <td class="td-csc">${u(a.cs)}</td><td class="td-q">${a.q||'—'}</td>
-</tr>`).join('');
+function uv(v){return v==='∞'?'<span class="und">undef</span>':v;}
+// Split 17 rows across 3 columns: col1=rows 0-5, col2=rows 6-11, col3=rows 12-16
+function makeCol(rows){
+  return rows.map(a=>`
+  <div class="leg-row">
+    <div class="lc lc-deg">${a.d}°</div>
+    <div class="lc lc-rad">${a.r}</div>
+    <div class="lc lc-sin">${uv(a.s)}</div>
+    <div class="lc lc-cos">${uv(a.c)}</div>
+    <div class="lc lc-tan">${uv(a.t)}</div>
+    <div class="lc lc-sec">${uv(a.se)}</div>
+    <div class="lc lc-csc">${uv(a.cs)}</div>
+    <div class="lc lc-q">${a.q||'—'}</div>
+  </div>`).join('');
+}
+// Wrap each column in a div with a right border
+function colWrap(html,last=false){
+  return `<div style="display:flex;flex-direction:column;${last?'':'border-right:1px solid #1b3358;'}">${html}</div>`;
+}
+document.getElementById('legGrid').innerHTML=
+  colWrap(makeCol(REF.slice(0,6)))+
+  colWrap(makeCol(REF.slice(6,12)))+
+  colWrap(makeCol(REF.slice(12)),true);
 
 /* ═══ CANVAS ENGINE ═══ */
 const cv=document.getElementById('cv');
