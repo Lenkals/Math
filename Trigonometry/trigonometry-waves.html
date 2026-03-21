@@ -43,19 +43,25 @@ header{text-align:center;margin-bottom:18px;}
 canvas{display:block;width:100%;cursor:crosshair;}
 canvas.dragging{cursor:grabbing;}
 
-/* HUD */
-.hud{
-  position:absolute;top:12px;left:14px;
-  background:rgba(3,6,16,0.94);border:1.5px solid #1b3358;border-radius:10px;
-  padding:11px 15px;backdrop-filter:blur(8px);
-  display:flex;flex-direction:column;gap:5px;
-  box-shadow:0 4px 24px rgba(0,0,0,.6);min-width:148px;
+/* LIVE VALUES BAR — horizontal strip, outside canvas */
+.hud-bar{
+  width:100%;max-width:1100px;
+  background:rgba(3,6,16,0.96);border:1.5px solid #1b3358;border-radius:12px;
+  padding:10px 20px;margin-top:10px;
+  display:flex;align-items:center;gap:0;flex-wrap:wrap;
+  box-shadow:0 4px 24px rgba(0,0,0,.5);
 }
-.hud-sep{height:1px;background:#1b3358;margin:3px 0;}
-.hud-row{display:flex;gap:8px;align-items:baseline;}
-.hud-lbl{font-size:.66rem;color:#5a85a8;width:34px;letter-spacing:.04em;}
-.hud-val{font-size:.82rem;font-weight:700;min-width:70px;letter-spacing:.02em;}
-.hud-unit{font-size:.56rem;color:#3a6080;letter-spacing:.08em;margin-left:2px;}
+.hud-cell{
+  display:flex;flex-direction:column;align-items:center;gap:3px;
+  padding:4px 16px;flex:1;min-width:72px;
+}
+.hb-lbl{font-size:.58rem;letter-spacing:.18em;font-weight:700;text-transform:uppercase;opacity:.75;}
+.hb-val{font-size:.82rem;font-weight:700;letter-spacing:.03em;font-family:'Share Tech Mono',monospace;}
+.hud-div{width:1px;height:36px;background:#1b3358;flex-shrink:0;}
+.hud-sep{display:none;}
+.hud-row{display:none;}
+.hud-lbl{display:none;}
+.hud-val{display:none;}
 
 /* RPM badge */
 .rpm-badge{
@@ -213,43 +219,44 @@ input[type=range]::-webkit-slider-thumb{
 <div class="cv-wrap" id="wrap">
   <canvas id="cv"></canvas>
 
-  <!-- HUD: radians row ABOVE theta -->
-  <div class="hud">
-    <div class="hud-row">
-      <span class="hud-lbl" style="color:#8ab8d8">rad</span>
-      <span class="hud-val" id="hv-r" style="color:#b8d8ff;font-size:.78rem">0.000</span>
-    </div>
-    <div class="hud-row">
-      <span class="hud-lbl" style="color:#fff">θ</span>
-      <span class="hud-val" id="hv-t" style="color:#fff;font-size:.9rem">0.0°</span>
-    </div>
-    <div class="hud-sep"></div>
-    <div class="hud-row">
-      <span class="hud-lbl" style="color:var(--sin)">sin</span>
-      <span class="hud-val" id="hv-s" style="color:var(--sin)">0.000</span>
-    </div>
-    <div class="hud-row">
-      <span class="hud-lbl" style="color:var(--cos)">cos</span>
-      <span class="hud-val" id="hv-c" style="color:var(--cos)">1.000</span>
-    </div>
-    <div class="hud-row">
-      <span class="hud-lbl" style="color:var(--tan)">tan</span>
-      <span class="hud-val" id="hv-ta" style="color:var(--tan)">0.000</span>
-    </div>
-    <div class="hud-row">
-      <span class="hud-lbl" style="color:var(--sec)">sec</span>
-      <span class="hud-val" id="hv-se" style="color:var(--sec)">1.000</span>
-    </div>
-    <div class="hud-row">
-      <span class="hud-lbl" style="color:var(--csc)">csc</span>
-      <span class="hud-val" id="hv-cs" style="color:var(--csc)">∞</span>
-    </div>
-  </div>
-
   <!-- RPM badge -->
   <div class="rpm-badge">
     <div class="rpm-num" id="rpmBadge">1.0</div>
     <div class="rpm-lbl">RPM</div>
+  </div>
+</div>
+
+<!-- Live values bar — horizontal, outside canvas so it never covers the circle -->
+<div class="hud-bar" id="hudBar">
+  <div class="hud-cell">
+    <span class="hb-lbl" style="color:#8ab8d8">RAD</span>
+    <span class="hb-val" id="hv-r" style="color:#b8d8ff">0.0000</span>
+  </div>
+  <div class="hud-div"></div>
+  <div class="hud-cell">
+    <span class="hb-lbl" style="color:#fff">θ</span>
+    <span class="hb-val" id="hv-t" style="color:#fff;font-size:.92rem">0.0°</span>
+  </div>
+  <div class="hud-div"></div>
+  <div class="hud-cell">
+    <span class="hb-lbl" style="color:var(--sin)">SIN</span>
+    <span class="hb-val" id="hv-s" style="color:var(--sin)">0.000</span>
+  </div>
+  <div class="hud-cell">
+    <span class="hb-lbl" style="color:var(--cos)">COS</span>
+    <span class="hb-val" id="hv-c" style="color:var(--cos)">1.000</span>
+  </div>
+  <div class="hud-cell">
+    <span class="hb-lbl" style="color:var(--tan)">TAN</span>
+    <span class="hb-val" id="hv-ta" style="color:var(--tan)">0.000</span>
+  </div>
+  <div class="hud-cell">
+    <span class="hb-lbl" style="color:var(--sec)">SEC</span>
+    <span class="hb-val" id="hv-se" style="color:var(--sec)">1.000</span>
+  </div>
+  <div class="hud-cell">
+    <span class="hb-lbl" style="color:var(--csc)">CSC</span>
+    <span class="hb-val" id="hv-cs" style="color:var(--csc)">∞</span>
   </div>
 </div>
 
