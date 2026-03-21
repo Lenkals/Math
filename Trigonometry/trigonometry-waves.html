@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trigonometry Visualizer</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#04080f;--surf:#09111e;--card:#0c1624;--bdr:#1b3358;
+  --sin:#00ff9d;--cos:#00cfff;--tan:#ffc200;--sec:#ff5c8a;--csc:#cc80ff;
+  --txt:#ddeeff;
+}
+body{
+  background:var(--bg);color:var(--txt);
+  font-family:'Share Tech Mono',monospace;
+  min-height:100vh;display:flex;flex-direction:column;align-items:center;
+  padding:20px 12px 56px;overflow-x:hidden;
+}
+body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:999;
+  background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.035) 3px,rgba(0,0,0,0.035) 4px);}
+
+/* HEADER */
+header{text-align:center;margin-bottom:18px;}
+.title{
+  font-family:'Rajdhani',sans-serif;font-weight:700;
+  font-size:clamp(1.9rem,4.5vw,3.2rem);letter-spacing:.2em;text-transform:uppercase;
+  color:#fff;margin-bottom:5px;
+  text-shadow:0 0 28px rgba(0,255,157,0.55),0 0 55px rgba(0,200,255,0.3);
+}
+.title span{background:linear-gradient(90deg,var(--sin),var(--cos));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.subtitle{font-size:.65rem;letter-spacing:.24em;color:#3a6080;text-transform:uppercase;}
+
+/* CANVAS */
+.cv-wrap{
+  width:100%;max-width:1100px;background:var(--surf);
+  border:1.5px solid var(--bdr);border-radius:14px;overflow:hidden;
+  box-shadow:0 0 80px rgba(0,255,157,0.04),0 10px 50px rgba(0,0,0,.8);
+  position:relative;
+}
+canvas{display:block;width:100%;cursor:crosshair;}
+canvas.dragging{cursor:grabbing;}
+
+/* HUD */
+.hud{
+  position:absolute;top:12px;left:14px;
+  background:rgba(3,6,16,0.94);border:1.5px solid #1b3358;border-radius:10px;
+  padding:11px 15px;backdrop-filter:blur(8px);
+  display:flex;flex-direction:column;gap:5px;
+  box-shadow:0 4px 24px rgba(0,0,0,.6);min-width:148px;
+}
+.hud-sep{height:1px;background:#1b3358;margin:3px 0;}
+.hud-row{display:flex;gap:8px;align-items:baseline;}
+.hud-lbl{font-size:.66rem;color:#5a85a8;width:34px;letter-spacing:.04em;}
+.hud-val{font-size:.82rem;font-weight:700;min-width:70px;letter-spacing:.02em;}
+.hud-unit{font-size:.56rem;color:#3a6080;letter-spacing:.08em;margin-left:2px;}
+
+/* RPM badge */
+.rpm-badge{
+  position:absolute;top:12px;right:14px;
+  background:rgba(3,6,16,0.94);border:1.5px solid #1b3358;border-radius:10px;
+  padding:10px 18px;display:flex;flex-direction:column;align-items:center;gap:1px;
+}
+.rpm-num{font-family:'Rajdhani',sans-serif;font-size:1.8rem;font-weight:700;color:#fff;line-height:1;}
+.rpm-lbl{font-size:.58rem;letter-spacing:.2em;color:#3a6080;text-transform:uppercase;}
+
+/* CONTROLS */
+.controls{
+  width:100%;max-width:1100px;margin-top:12px;
+  display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:center;
+}
+.play-btn{
+  width:54px;height:54px;border-radius:50%;
+  border:2px solid var(--sin);background:rgba(0,255,157,0.07);
+  color:var(--sin);cursor:pointer;font-size:1.35rem;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .2s;box-shadow:0 0 22px rgba(0,255,157,0.22);flex-shrink:0;
+}
+.play-btn:hover{background:rgba(0,255,157,0.15);}
+.play-btn.paused{border-color:#1b3358;color:#3a6080;box-shadow:none;}
+.pill{
+  display:flex;align-items:center;gap:10px;
+  background:var(--surf);border:1.5px solid var(--bdr);border-radius:12px;padding:9px 16px;
+}
+.pill-lbl{font-size:.62rem;letter-spacing:.15em;color:#6a95b8;text-transform:uppercase;white-space:nowrap;}
+input[type=range]{
+  -webkit-appearance:none;appearance:none;height:4px;
+  background:#1b3358;border-radius:2px;outline:none;cursor:pointer;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:16px;height:16px;border-radius:50%;
+  background:var(--sin);cursor:pointer;box-shadow:0 0 10px var(--sin);
+}
+.rpm-disp{font-size:.82rem;font-weight:700;color:var(--sin);width:80px;text-align:right;letter-spacing:.04em;}
+.fn-bar{
+  display:flex;flex-wrap:wrap;gap:8px;
+  background:var(--surf);border:1.5px solid var(--bdr);border-radius:12px;padding:9px 14px;
+}
+.fn-btn{
+  padding:7px 18px;border-radius:7px;border:2px solid;cursor:pointer;
+  font-family:'Share Tech Mono',monospace;font-size:.74rem;
+  letter-spacing:.12em;font-weight:700;text-transform:uppercase;
+  transition:all .2s;user-select:none;
+}
+.fn-btn.on{color:#fff;box-shadow:0 0 14px var(--fc),inset 0 0 8px rgba(255,255,255,0.05);}
+.fn-btn.off{
+  color:#7aa0c0 !important;border-color:rgba(80,130,190,0.45) !important;
+  background:rgba(14,30,58,0.7) !important;box-shadow:none;
+}
+
+/* SCRUBBER */
+.scrubber-wrap{
+  width:100%;max-width:1100px;margin-top:10px;
+  background:var(--surf);border:1.5px solid var(--bdr);border-radius:12px;
+  padding:12px 18px;display:flex;align-items:center;gap:14px;
+}
+.scr-edge{font-size:.62rem;letter-spacing:.12em;color:#4a7090;text-transform:uppercase;white-space:nowrap;flex-shrink:0;}
+#scrubber{flex:1;min-width:0;}
+#scrubber::-webkit-slider-thumb{background:var(--cos);box-shadow:0 0 10px var(--cos);}
+.live-badge{
+  flex-shrink:0;padding:4px 12px;border-radius:20px;
+  font-size:.62rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+  border:1.5px solid;transition:all .3s;
+}
+.live-badge.live{border-color:var(--sin);color:var(--sin);background:rgba(0,255,157,0.08);
+  box-shadow:0 0 12px rgba(0,255,157,0.25);}
+.live-badge.hist{border-color:#2a4a70;color:#4a7090;background:transparent;box-shadow:none;}
+.scr-pos{font-size:.64rem;color:#3a6080;width:90px;text-align:right;flex-shrink:0;}
+
+/* CARDS */
+.cards{
+  width:100%;max-width:1100px;margin-top:14px;
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;
+}
+.card{background:var(--card);border:1.5px solid var(--bdr);border-radius:12px;padding:16px 15px 18px;}
+.card:hover{box-shadow:0 0 26px rgba(0,0,0,.5);}
+.card-top{display:flex;align-items:center;gap:9px;margin-bottom:7px;}
+.card-pip{width:12px;height:12px;border-radius:50%;flex-shrink:0;}
+.card-fn{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:1.05rem;letter-spacing:.1em;}
+.card-ratio{font-size:.63rem;color:#5a85a8;letter-spacing:.08em;margin-bottom:5px;text-transform:uppercase;}
+.card-formula{font-size:.7rem;color:#4a80a0;background:rgba(0,0,0,.45);border-radius:5px;padding:5px 9px;margin-bottom:8px;display:inline-block;}
+.card-desc{font-size:.63rem;color:#7aa0b8;line-height:1.82;}
+
+/* LEGEND */
+.legend-wrap{
+  width:100%;max-width:1100px;margin-top:18px;
+  background:var(--surf);border:1.5px solid var(--bdr);border-radius:14px;overflow:hidden;
+}
+.legend-hdr{
+  padding:12px 18px;border-bottom:1.5px solid var(--bdr);
+  font-family:'Rajdhani',sans-serif;font-size:.95rem;font-weight:700;
+  letter-spacing:.18em;color:#8ab8d8;text-transform:uppercase;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.reset-btn{
+  padding:6px 16px;border-radius:8px;border:1.5px solid #ff5c8a;
+  background:rgba(255,92,138,0.08);color:#ff5c8a;cursor:pointer;
+  font-family:'Share Tech Mono',monospace;font-size:.65rem;
+  font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+  transition:all .2s;
+}
+.reset-btn:hover{background:rgba(255,92,138,0.2);box-shadow:0 0 14px rgba(255,92,138,0.3);}
+.legend-scroll{overflow-x:auto;}
+.lt{width:100%;border-collapse:collapse;font-size:.66rem;letter-spacing:.03em;white-space:nowrap;}
+.lt th{
+  padding:9px 14px;text-align:center;font-size:.62rem;letter-spacing:.14em;
+  text-transform:uppercase;color:#6a95b8;background:rgba(0,0,0,.3);
+  border-bottom:1.5px solid var(--bdr);font-weight:600;font-family:'Rajdhani',sans-serif;
+}
+.lt td{padding:8px 14px;text-align:center;color:#c8dff5;border-bottom:1px solid rgba(27,51,88,0.4);}
+.lt tr:last-child td{border-bottom:none;}
+.lt tr:hover td{background:rgba(255,255,255,.025);}
+.td-deg{font-family:'Rajdhani',sans-serif;font-size:.82rem;font-weight:700;color:#fff;}
+.td-rad{color:#8ab8d8;}
+.td-sin{color:var(--sin);font-weight:700;}
+.td-cos{color:var(--cos);font-weight:700;}
+.td-tan{color:var(--tan);font-weight:700;}
+.td-sec{color:var(--sec);font-weight:700;}
+.td-csc{color:var(--csc);font-weight:700;}
+.td-q{font-size:.6rem;color:#3a6080;font-style:italic;}
+.und{color:#2a4a68;font-style:italic;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="title">Trig<span>onometry</span> Waves</div>
+  <p class="subtitle">Unit circle · Drag to spin · Scrub history · No wave distortion</p>
+</header>
+
+<div class="cv-wrap" id="wrap">
+  <canvas id="cv"></canvas>
+
+  <!-- HUD: radians row ABOVE theta -->
+  <div class="hud">
+    <div class="hud-row">
+      <span class="hud-lbl" style="color:#8ab8d8">rad</span>
+      <span class="hud-val" id="hv-r" style="color:#b8d8ff;font-size:.78rem">0.000</span>
+    </div>
+    <div class="hud-row">
+      <span class="hud-lbl" style="color:#fff">θ</span>
+      <span class="hud-val" id="hv-t" style="color:#fff;font-size:.9rem">0.0°</span>
+    </div>
+    <div class="hud-sep"></div>
+    <div class="hud-row">
+      <span class="hud-lbl" style="color:var(--sin)">sin</span>
+      <span class="hud-val" id="hv-s" style="color:var(--sin)">0.000</span>
+    </div>
+    <div class="hud-row">
+      <span class="hud-lbl" style="color:var(--cos)">cos</span>
+      <span class="hud-val" id="hv-c" style="color:var(--cos)">1.000</span>
+    </div>
+    <div class="hud-row">
+      <span class="hud-lbl" style="color:var(--tan)">tan</span>
+      <span class="hud-val" id="hv-ta" style="color:var(--tan)">0.000</span>
+    </div>
+    <div class="hud-row">
+      <span class="hud-lbl" style="color:var(--sec)">sec</span>
+      <span class="hud-val" id="hv-se" style="color:var(--sec)">1.000</span>
+    </div>
+    <div class="hud-row">
+      <span class="hud-lbl" style="color:var(--csc)">csc</span>
+      <span class="hud-val" id="hv-cs" style="color:var(--csc)">∞</span>
+    </div>
+  </div>
+
+  <!-- RPM badge -->
+  <div class="rpm-badge">
+    <div class="rpm-num" id="rpmBadge">1.0</div>
+    <div class="rpm-lbl">RPM</div>
+  </div>
+</div>
+
+<!-- Main controls -->
+<div class="controls">
+  <button class="play-btn paused" id="playBtn">&#9654;</button>
+  <div class="pill">
+    <span class="pill-lbl">RPM</span>
+    <input type="range" id="rpmSlider" min="1" max="60" step="0.5" value="1" style="width:160px">
+    <span class="rpm-disp" id="rpmDisp">1.0 RPM</span>
+  </div>
+  <div class="fn-bar" id="fnBar"></div>
+</div>
+
+<!-- Time scrubber -->
+<div class="scrubber-wrap">
+  <span class="scr-edge">◀ PAST</span>
+  <input type="range" id="scrubber" min="0" max="600" step="0.5" value="600">
+  <span class="live-badge live" id="liveBadge">● LIVE</span>
+  <span class="scr-pos" id="scrPos"></span>
+</div>
+
+<!-- Function cards -->
+<div class="cards">
+  <div class="card">
+    <div class="card-top"><div class="card-pip" style="background:var(--sin);box-shadow:0 0 9px var(--sin)"></div><div class="card-fn" style="color:var(--sin)">Sine — sin θ</div></div>
+    <div class="card-ratio">Opposite ÷ Hypotenuse</div><div class="card-formula">vertical height of rod tip</div>
+    <div class="card-desc">Green bar = how high the tip sits. Ranges −1 → +1. Zero at 0° & 180°, peak +1 at 90°, trough −1 at 270°.</div>
+  </div>
+  <div class="card">
+    <div class="card-top"><div class="card-pip" style="background:var(--cos);box-shadow:0 0 9px var(--cos)"></div><div class="card-fn" style="color:var(--cos)">Cosine — cos θ</div></div>
+    <div class="card-ratio">Adjacent ÷ Hypotenuse</div><div class="card-formula">horizontal reach of rod tip</div>
+    <div class="card-desc">Blue bar = how far right the tip reaches. Same shape as sine but 90° ahead. Crosses zero at 90° & 270°.</div>
+  </div>
+  <div class="card">
+    <div class="card-top"><div class="card-pip" style="background:var(--tan);box-shadow:0 0 9px var(--tan)"></div><div class="card-fn" style="color:var(--tan)">Tangent — tan θ</div></div>
+    <div class="card-ratio">sin θ ÷ cos θ</div><div class="card-formula">intercept on x = 1 tangent line</div>
+    <div class="card-desc">Where the extended rod meets x = 1. Races to ±∞ at 90° & 270° — the vertical asymptotes.</div>
+  </div>
+  <div class="card">
+    <div class="card-top"><div class="card-pip" style="background:var(--sec);box-shadow:0 0 9px var(--sec)"></div><div class="card-fn" style="color:var(--sec)">Secant — sec θ</div></div>
+    <div class="card-ratio">1 ÷ cos θ</div><div class="card-formula">hypotenuse ÷ adjacent</div>
+    <div class="card-desc">Reciprocal of cosine. Always ≥1 or ≤−1. U-arcs touch cosine peaks. Undefined where cos θ = 0.</div>
+  </div>
+  <div class="card">
+    <div class="card-top"><div class="card-pip" style="background:var(--csc);box-shadow:0 0 9px var(--csc)"></div><div class="card-fn" style="color:var(--csc)">Cosecant — csc θ</div></div>
+    <div class="card-ratio">1 ÷ sin θ</div><div class="card-formula">hypotenuse ÷ opposite</div>
+    <div class="card-desc">Reciprocal of sine, offset 90°. Undefined at 0° & 180°. Its arcs cradle every sine peak and trough.</div>
+  </div>
+</div>
+
+<!-- Legend with Reset -->
+<div class="legend-wrap">
+  <div class="legend-hdr">
+    <span>📐 Reference Angles — Exact Values</span>
+    <button class="reset-btn" id="resetBtn">⟳ Reset All Waves</button>
+  </div>
+  <div class="legend-scroll">
+    <table class="lt">
+      <thead><tr>
+        <th>Angle °</th><th>Radians</th>
+        <th style="color:var(--sin)">sin θ</th>
+        <th style="color:var(--cos)">cos θ</th>
+        <th style="color:var(--tan)">tan θ</th>
+        <th style="color:var(--sec)">sec θ</th>
+        <th style="color:var(--csc)">csc θ</th>
+        <th>Quadrant</th>
+      </tr></thead>
+      <tbody id="lbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+/* ═══ LEGEND DATA ═══ */
+const REF=[
+  {d:0,  r:'0',    s:'0',    c:'1',     t:'0',    se:'1',     cs:'—',      q:'—'},
+  {d:30, r:'π/6',  s:'½',    c:'√3/2',  t:'√3/3', se:'2√3/3', cs:'2',      q:'I'},
+  {d:45, r:'π/4',  s:'√2/2', c:'√2/2',  t:'1',    se:'√2',    cs:'√2',     q:'I'},
+  {d:60, r:'π/3',  s:'√3/2', c:'½',     t:'√3',   se:'2',     cs:'2√3/3',  q:'I'},
+  {d:90, r:'π/2',  s:'1',    c:'0',     t:'∞',    se:'∞',     cs:'1',      q:'I/II'},
+  {d:120,r:'2π/3', s:'√3/2', c:'−½',    t:'−√3',  se:'−2',    cs:'2√3/3',  q:'II'},
+  {d:135,r:'3π/4', s:'√2/2', c:'−√2/2', t:'−1',   se:'−√2',   cs:'√2',     q:'II'},
+  {d:150,r:'5π/6', s:'½',    c:'−√3/2', t:'−√3/3',se:'−2√3/3',cs:'2',      q:'II'},
+  {d:180,r:'π',    s:'0',    c:'−1',    t:'0',    se:'−1',    cs:'∞',      q:'—'},
+  {d:210,r:'7π/6', s:'−½',   c:'−√3/2', t:'√3/3', se:'−2√3/3',cs:'−2',     q:'III'},
+  {d:225,r:'5π/4', s:'−√2/2',c:'−√2/2', t:'1',    se:'−√2',   cs:'−√2',    q:'III'},
+  {d:240,r:'4π/3', s:'−√3/2',c:'−½',    t:'√3',   se:'−2',    cs:'−2√3/3', q:'III'},
+  {d:270,r:'3π/2', s:'−1',   c:'0',     t:'∞',    se:'∞',     cs:'−1',     q:'III/IV'},
+  {d:300,r:'5π/3', s:'−√3/2',c:'½',     t:'−√3',  se:'2',     cs:'−2√3/3', q:'IV'},
+  {d:315,r:'7π/4', s:'−√2/2',c:'√2/2',  t:'−1',   se:'√2',    cs:'−√2',    q:'IV'},
+  {d:330,r:'11π/6',s:'−½',   c:'√3/2',  t:'−√3/3',se:'2√3/3', cs:'−2',     q:'IV'},
+  {d:360,r:'2π',   s:'0',    c:'1',     t:'0',    se:'1',     cs:'∞',      q:'—'},
+];
+const u=v=>v==='∞'?'<span class="und">undef</span>':v;
+document.getElementById('lbody').innerHTML=REF.map(a=>`<tr>
+  <td class="td-deg">${a.d}°</td><td class="td-rad">${a.r}</td>
+  <td class="td-sin">${u(a.s)}</td><td class="td-cos">${u(a.c)}</td>
+  <td class="td-tan">${u(a.t)}</td><td class="td-sec">${u(a.se)}</td>
+  <td class="td-csc">${u(a.cs)}</td><td class="td-q">${a.q||'—'}</td>
+</tr>`).join('');
+
+/* ═══ CANVAS ENGINE ═══ */
+const cv=document.getElementById('cv');
+const ctx=cv.getContext('2d');
+const DPR=Math.min(window.devicePixelRatio||1,2);
+
+/* ── Colors (all hex) ── */
+const C={sin:'#00ff9d',cos:'#00cfff',tan:'#ffc200',sec:'#ff5c8a',csc:'#cc80ff'};
+function hexRGB(h){return[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)];}
+const RGB={};Object.keys(C).forEach(k=>{RGB[k]=hexRGB(C[k]);});
+function ca(k,a){const[r,g,b]=RGB[k];return`rgba(${r},${g},${b},${a})`;}
+
+/* ── State ── */
+let angle=0;          // current rod angle (wraps for visual)
+let totalAngle=0;     // cumulative angle (strictly increasing, for x-axis)
+let rpm=1;
+let running=false;
+let dragging=false;
+const show={sin:true,cos:true,tan:true,sec:false,csc:false};
+
+/*
+  HISTORY: array of {a, sin, cos, tan, sec, csc}
+  Samples are pushed at fixed ANGLE increments (0.02 rad) NOT fixed time.
+  This means the wave shape is ALWAYS angle-to-pixel, never squished by RPM.
+  12000 samples × 0.02 rad = 240 rad ≈ 38 full rotations of history.
+*/
+const HIST=[];
+const MAX_HIST=12000;
+const SAMPLE_STEP=0.02; // radians between stored samples
+let lastSampledAngle=-999;
+
+function maybePush(){
+  if(Math.abs(totalAngle-lastSampledAngle)<SAMPLE_STEP)return;
+  const s=Math.sin(angle),c=Math.cos(angle);
+  HIST.push({
+    a:totalAngle,
+    sin:s, cos:c,
+    tan:Math.abs(c)>.001?Math.tan(angle):Infinity,
+    sec:Math.abs(c)>.001?1/c:Infinity,
+    csc:Math.abs(s)>.001?1/s:Infinity,
+  });
+  if(HIST.length>MAX_HIST)HIST.shift();
+  lastSampledAngle=totalAngle;
+}
+
+/*
+  VIEW: always exactly VIEW_SPAN radians wide.
+  viewRight = the right edge of what we're looking at.
+  When LIVE: viewRight tracks totalAngle.
+  When scrubbing: viewRight is frozen.
+*/
+const VIEW_SPAN=4*Math.PI; // 2 full rotations, always fixed
+let viewRight=VIEW_SPAN;   // tracks live totalAngle when not scrubbing
+let isLive=true;
+
+/* ── Scrubber ── */
+const scrubberEl=document.getElementById('scrubber');
+const liveBadge=document.getElementById('liveBadge');
+const scrPos=document.getElementById('scrPos');
+
+// Scrubber max = 600 rad history; value=max → LIVE, value=0 → furthest past
+// We'll update max dynamically to match actual history span
+scrubberEl.max=600;
+scrubberEl.value=600;
+
+scrubberEl.addEventListener('input',()=>{
+  const v=parseFloat(scrubberEl.value);
+  const maxV=parseFloat(scrubberEl.max);
+  if(v>=maxV-0.01){
+    isLive=true;
+    viewRight=totalAngle;
+  } else {
+    isLive=false;
+    // map slider to angle: max=live edge, 0=oldest edge
+    const oldest=HIST.length>0?HIST[0].a:0;
+    const span=totalAngle-oldest;
+    viewRight=oldest+(v/maxV)*span;
+  }
+  updateLiveBadge();
+});
+
+function updateLiveBadge(){
+  if(isLive){
+    liveBadge.className='live-badge live';
+    liveBadge.textContent='● LIVE';
+    scrPos.textContent='';
+  } else {
+    liveBadge.className='live-badge hist';
+    liveBadge.textContent='◼ PAUSED';
+    const vL=viewRight-VIEW_SPAN;
+    scrPos.textContent=`${(vL/Math.PI).toFixed(1)}π → ${(viewRight/Math.PI).toFixed(1)}π`;
+  }
+}
+
+// Keep scrubber synced when live
+function syncScrubberLive(){
+  if(!isLive)return;
+  viewRight=totalAngle;
+  // Expand max as history grows
+  const oldest=HIST.length>0?HIST[0].a:0;
+  const span=totalAngle-oldest;
+  if(span>1){
+    scrubberEl.max=span.toFixed(1);
+    scrubberEl.value=scrubberEl.max;
+  }
+}
+
+/* ── Reset ── */
+document.getElementById('resetBtn').addEventListener('click',()=>{
+  HIST.length=0;
+  totalAngle=0;
+  angle=0;
+  lastSampledAngle=-999;
+  viewRight=VIEW_SPAN;
+  isLive=true;
+  scrubberEl.value=scrubberEl.max;
+  updateLiveBadge();
+});
+
+/* ── Layout ── */
+let CW,CH,R,CX,CY,WX,WW;
+function resize(){
+  const w=document.getElementById('wrap');
+  CW=w.clientWidth;CH=Math.max(Math.round(CW*.52),300);
+  cv.width=CW*DPR;cv.height=CH*DPR;
+  cv.style.width=CW+'px';cv.style.height=CH+'px';
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+  R=Math.min(CW*.175,CH*.36,115);
+  CX=R+(CW<640?26:56);CY=CH/2;
+  WX=CX+R+(CW<640?26:50);WW=CW-WX-12;
+}
+
+/* ── Controls ── */
+const playBtn=document.getElementById('playBtn');
+playBtn.addEventListener('click',()=>{
+  running=!running;
+  playBtn.innerHTML=running?'&#9646;&#9646;':'&#9654;';
+  playBtn.classList.toggle('paused',!running);
+});
+document.getElementById('rpmSlider').addEventListener('input',e=>{
+  rpm=parseFloat(e.target.value);
+  document.getElementById('rpmDisp').textContent=rpm.toFixed(1)+' RPM';
+  document.getElementById('rpmBadge').textContent=rpm.toFixed(1);
+});
+
+/* ── Function buttons ── */
+Object.keys(C).forEach(fn=>{
+  const btn=document.createElement('button');
+  btn.className='fn-btn '+(show[fn]?'on':'off');
+  btn.style.setProperty('--fc',C[fn]);
+  btn.style.borderColor=show[fn]?C[fn]:'rgba(80,130,190,0.45)';
+  btn.style.color=show[fn]?'#fff':'#7aa0c0';
+  btn.style.background=show[fn]?ca(fn,.1):'rgba(14,30,58,0.7)';
+  btn.textContent=fn.toUpperCase();
+  btn.addEventListener('click',()=>{
+    show[fn]=!show[fn];
+    const on=show[fn];
+    btn.className='fn-btn '+(on?'on':'off');
+    btn.style.borderColor=on?C[fn]:'rgba(80,130,190,0.45)';
+    btn.style.color=on?'#fff':'#7aa0c0';
+    btn.style.background=on?ca(fn,.1):'rgba(14,30,58,0.7)';
+  });
+  document.getElementById('fnBar').appendChild(btn);
+});
+
+/* ── Drag circle ── */
+function getPtrA(e){
+  const r=cv.getBoundingClientRect(),sx=CW/r.width,sy=CH/r.height;
+  const s=e.touches?e.touches[0]:e;
+  return Math.atan2(-((s.clientY-r.top)*sy-CY),((s.clientX-r.left)*sx-CX));
+}
+function nearCirc(e){
+  const r=cv.getBoundingClientRect(),sx=CW/r.width,sy=CH/r.height;
+  const s=e.touches?e.touches[0]:e;
+  return Math.hypot((s.clientX-r.left)*sx-CX,(s.clientY-r.top)*sy-CY)<R*1.4;
+}
+let dragBaseA=0,ptrBaseA=0,dragBaseTot=0;
+function startDrag(e){
+  if(!nearCirc(e))return;
+  if(e.cancelable)e.preventDefault();
+  dragging=true;running=false;
+  playBtn.innerHTML='&#9654;';playBtn.classList.add('paused');
+  dragBaseA=angle;ptrBaseA=getPtrA(e);dragBaseTot=totalAngle;
+  cv.classList.add('dragging');
+}
+function moveDrag(e){
+  if(!dragging)return;
+  if(e.cancelable)e.preventDefault();
+  const delta=getPtrA(e)-ptrBaseA;
+  angle=dragBaseA+delta;
+  totalAngle=dragBaseTot+delta;
+  if(isLive)viewRight=totalAngle;
+  maybePush();draw();
+}
+function endDrag(){dragging=false;cv.classList.remove('dragging');}
+cv.addEventListener('mousedown',startDrag);
+cv.addEventListener('mousemove',moveDrag);
+['mouseup','mouseleave'].forEach(ev=>cv.addEventListener(ev,endDrag));
+cv.addEventListener('touchstart',startDrag,{passive:false});
+cv.addEventListener('touchmove',moveDrag,{passive:false});
+cv.addEventListener('touchend',endDrag);
+
+/* ── HUD ── */
+const fv=v=>isFinite(v)?v.toFixed(3):(v>0?'+∞':'−∞');
+function updateHUD(){
+  const s=Math.sin(angle),c=Math.cos(angle);
+  const deg=((angle*180/Math.PI)%360+360)%360;
+  const rad=((angle%(2*Math.PI))+(2*Math.PI))%(2*Math.PI);
+  document.getElementById('hv-r').textContent=rad.toFixed(4)+' rad';
+  document.getElementById('hv-t').textContent=deg.toFixed(1)+'°';
+  document.getElementById('hv-s').textContent=fv(s);
+  document.getElementById('hv-c').textContent=fv(c);
+  document.getElementById('hv-ta').textContent=fv(Math.abs(c)>.001?Math.tan(angle):Infinity);
+  document.getElementById('hv-se').textContent=fv(Math.abs(c)>.001?1/c:Infinity);
+  document.getElementById('hv-cs').textContent=fv(Math.abs(s)>.001?1/s:Infinity);
+}
+
+/* ── Draw helpers ── */
+function line(x1,y1,x2,y2,col,lw,dash=[]){
+  ctx.save();ctx.strokeStyle=col;ctx.lineWidth=lw;ctx.setLineDash(dash);
+  ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();ctx.restore();
+}
+function strokeCirc(x,y,r,col,lw){
+  ctx.save();ctx.strokeStyle=col;ctx.lineWidth=lw;
+  ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.stroke();ctx.restore();
+}
+function glowDot(x,y,r,hex){
+  const[rv,gv,bv]=hexRGB(hex);
+  const gr=ctx.createRadialGradient(x,y,0,x,y,r*3.8);
+  gr.addColorStop(0,`rgba(${rv},${gv},${bv},0.9)`);
+  gr.addColorStop(1,`rgba(${rv},${gv},${bv},0)`);
+  ctx.save();
+  ctx.fillStyle=gr;ctx.beginPath();ctx.arc(x,y,r*3.8,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle=hex;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();
+  ctx.restore();
+}
+function lbl(str,x,y,col,sz,align='center',base='middle',fw=600){
+  ctx.save();ctx.font=`${fw} ${sz}px "Share Tech Mono",monospace`;
+  ctx.fillStyle=col;ctx.textAlign=align;ctx.textBaseline=base;
+  ctx.shadowColor=col;ctx.shadowBlur=4;ctx.fillText(str,x,y);ctx.restore();
+}
+
+/* ── WAVE DRAW — purely angle-based, no squish ──
+   x = WX + ((sample.a - viewLeft) / VIEW_SPAN) * WW
+   viewLeft = viewRight - VIEW_SPAN
+   This ensures 1 pixel always = VIEW_SPAN/WW radians, regardless of RPM.
+*/
+function drawWaves(){
+  if(HIST.length<2)return;
+  const viewLeft=viewRight-VIEW_SPAN;
+  const CLAMP=R*3.2;
+
+  // Binary-search start index for efficiency
+  let lo=0,hi=HIST.length-1;
+  while(lo<hi){
+    const mid=(lo+hi)>>1;
+    if(HIST[mid].a<viewLeft-0.1)lo=mid+1; else hi=mid;
+  }
+  const startIdx=Math.max(0,lo-1);
+
+  Object.keys(show).forEach(fn=>{
+    if(!show[fn])return;
+    ctx.save();
+    ctx.strokeStyle=C[fn];ctx.lineWidth=2.2;ctx.shadowColor=C[fn];ctx.shadowBlur=5;
+    ctx.beginPath();
+    let open=false,broken=false;
+    for(let i=startIdx;i<HIST.length;i++){
+      const h=HIST[i];
+      if(h.a>viewRight+0.1)break;
+      if(h.a<viewLeft)continue;
+      const v=h[fn];
+      if(!isFinite(v)||Math.abs(v)>CLAMP){open=false;broken=true;continue;}
+      const px=WX+((h.a-viewLeft)/VIEW_SPAN)*WW;
+      const py=CY-v*R;
+      if(!open||broken){ctx.moveTo(px,py);open=true;broken=false;}
+      else ctx.lineTo(px,py);
+    }
+    ctx.stroke();ctx.restore();
+  });
+}
+
+/* ── X-AXIS — marks π multiples in current view window ── */
+function drawXAxis(){
+  const viewLeft=viewRight-VIEW_SPAN;
+  const firstK=Math.ceil(viewLeft/Math.PI);
+  const lastK =Math.floor(viewRight/Math.PI);
+  const barY=CH-16;
+
+  for(let k=firstK;k<=lastK;k++){
+    const a=k*Math.PI;
+    const frac=(a-viewLeft)/VIEW_SPAN;
+    if(frac<0||frac>1)continue;
+    const x=WX+frac*WW;
+    const isEven=k%2===0;
+    line(x,CY-4,x,CY+4,isEven?'rgba(120,180,255,0.7)':'rgba(80,140,210,0.5)',isEven?1.5:1);
+
+    let txt;
+    if(k===0)txt='0';
+    else if(k===1)txt='π';
+    else if(k===-1)txt='−π';
+    else txt=k+'π';
+
+    lbl(txt,x,barY,'rgba(210,235,255,0.9)',10,'center','middle',700);
+  }
+
+  // Right-edge label: current viewRight in π units
+  lbl('▶ '+( viewRight/Math.PI).toFixed(2)+'π',WX+WW-2,barY,'rgba(150,200,255,0.55)',8,'right','middle',600);
+  // Left-edge label
+  lbl((viewLeft/Math.PI).toFixed(2)+'π ◀',WX+2,barY,'rgba(150,200,255,0.55)',8,'left','middle',600);
+}
+
+/* ── MAIN DRAW ── */
+function draw(){
+  ctx.clearRect(0,0,CW,CH);
+
+  // dot grid
+  ctx.save();ctx.fillStyle='rgba(22,50,92,0.5)';
+  for(let x=22;x<CW;x+=26)for(let y=22;y<CH;y+=26){
+    ctx.beginPath();ctx.arc(x,y,0.9,0,Math.PI*2);ctx.fill();
+  }
+  ctx.restore();
+
+  // wave panel grid
+  for(let i=0;i<=8;i++) line(WX+i*WW/8,14,WX+i*WW/8,CH-32,'rgba(18,44,84,0.7)',0.6);
+  line(WX,CY,WX+WW,CY,'rgba(36,72,130,0.95)',1.2);
+  line(WX,CY-R,WX+WW,CY-R,'rgba(22,52,92,0.6)',0.7);
+  line(WX,CY+R,WX+WW,CY+R,'rgba(22,52,92,0.6)',0.7);
+
+  const sA=Math.sin(angle),cA=Math.cos(angle);
+  const tA=Math.abs(cA)>.001?Math.tan(angle):Infinity;
+  const seA=Math.abs(cA)>.001?1/cA:Infinity;
+  const csA=Math.abs(sA)>.001?1/sA:Infinity;
+  const tipX=CX+R*cA,tipY=CY-R*sA;
+
+  // circle glow
+  const cg=ctx.createRadialGradient(CX,CY,R*.5,CX,CY,R*1.6);
+  cg.addColorStop(0,'rgba(0,207,255,0.08)');cg.addColorStop(.7,'rgba(0,207,255,0.02)');cg.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.save();ctx.fillStyle=cg;ctx.beginPath();ctx.arc(CX,CY,R*1.6,0,Math.PI*2);ctx.fill();ctx.restore();
+
+  strokeCirc(CX,CY,R,'rgba(0,215,255,0.95)',2.4);
+  strokeCirc(CX,CY,R*1.016,'rgba(0,180,255,0.22)',5);
+
+  // axes
+  line(CX-R-26,CY,CX+R+26,CY,'rgba(255,255,255,0.3)',1.3);
+  line(CX,CY-R-26,CX,CY+R+26,'rgba(255,255,255,0.3)',1.3);
+  lbl('+x',CX+R+34,CY,'rgba(255,255,255,0.7)',10);
+  lbl('−x',CX-R-34,CY,'rgba(255,255,255,0.45)',10);
+  lbl('+y',CX,CY-R-28,'rgba(255,255,255,0.7)',10);
+  lbl('−y',CX,CY+R+24,'rgba(255,255,255,0.45)',10);
+
+  // ticks every 30°, labels every 45°
+  for(let d=0;d<360;d+=30){
+    const a=d*Math.PI/180;
+    const big=d%90===0;
+    const inner=big?R-6:R-3;
+    line(CX+inner*Math.cos(a),CY-inner*Math.sin(a),CX+(R+.5)*Math.cos(a),CY-(R+.5)*Math.sin(a),
+      big?'rgba(255,255,255,0.55)':'rgba(255,255,255,0.22)',big?1.6:1);
+    if(d%45===0) lbl(d+'°',CX+(R+20)*Math.cos(a),CY-(R+20)*Math.sin(a),'rgba(220,240,255,0.78)',9);
+  }
+
+  // quadrant coords
+  [{d:0,l:'(1,0)'},{d:90,l:'(0,1)'},{d:180,l:'(−1,0)'},{d:270,l:'(0,−1)'}].forEach(({d,l})=>{
+    const a=d*Math.PI/180;
+    lbl(l,CX+(R+30)*Math.cos(a),CY-(R+30)*Math.sin(a),'rgba(150,210,255,0.6)',8);
+  });
+
+  // cos segment
+  if(show.cos){
+    ctx.save();ctx.strokeStyle=C.cos;ctx.lineWidth=4;ctx.shadowColor=C.cos;ctx.shadowBlur=14;
+    ctx.beginPath();ctx.moveTo(CX,CY);ctx.lineTo(tipX,CY);ctx.stroke();ctx.restore();
+    line(tipX,CY,tipX,tipY,ca('cos',.28),1.2,[4,4]);
+    lbl('cos',(CX+tipX)/2,CY+(sA>0?-14:14),C.cos,9);
+  }
+
+  // sin segment
+  if(show.sin){
+    ctx.save();ctx.strokeStyle=C.sin;ctx.lineWidth=4;ctx.shadowColor=C.sin;ctx.shadowBlur=14;
+    ctx.beginPath();ctx.moveTo(tipX,CY);ctx.lineTo(tipX,tipY);ctx.stroke();ctx.restore();
+    lbl('sin',tipX+(cA>0?14:-14),(CY+tipY)/2,C.sin,9);
+  }
+
+  // tan
+  if(show.tan&&isFinite(tA)){
+    const CLAMP=R*2.6,tv=Math.max(-CLAMP,Math.min(CLAMP,tA*R)),tx=CX+R;
+    line(tx,CY-R*2.9,tx,CY+R*2.9,ca('tan',.14),.9);
+    ctx.save();ctx.strokeStyle=C.tan;ctx.lineWidth=3;ctx.shadowColor=C.tan;ctx.shadowBlur=14;
+    ctx.beginPath();ctx.moveTo(tx,CY);ctx.lineTo(tx,CY-tv);ctx.stroke();ctx.restore();
+    line(CX,CY,tx,CY-tv,ca('tan',.32),1.2,[3,4]);
+    glowDot(tx,CY-tv,5,C.tan);
+  }
+
+  // sec
+  if(show.sec&&isFinite(seA)){
+    const sv=Math.max(-R*2.6,Math.min(R*2.6,seA*R));
+    ctx.save();ctx.strokeStyle=C.sec;ctx.lineWidth=2.5;ctx.shadowColor=C.sec;ctx.shadowBlur=10;
+    ctx.beginPath();ctx.moveTo(CX,CY);ctx.lineTo(CX+sv,CY);ctx.stroke();ctx.restore();
+  }
+
+  // csc
+  if(show.csc&&isFinite(csA)){
+    const cv2=Math.max(-R*2.6,Math.min(R*2.6,csA*R));
+    ctx.save();ctx.strokeStyle=C.csc;ctx.lineWidth=2.5;ctx.shadowColor=C.csc;ctx.shadowBlur=10;
+    ctx.beginPath();ctx.moveTo(CX,CY);ctx.lineTo(CX,CY-cv2);ctx.stroke();ctx.restore();
+  }
+
+  // angle arc + θ
+  ctx.save();ctx.strokeStyle='rgba(255,255,255,0.45)';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.arc(CX,CY,R*.22,0,-angle,angle<0);ctx.stroke();ctx.restore();
+  const ma=angle/2;
+  lbl('θ',CX+R*.3*Math.cos(-ma),CY+R*.3*Math.sin(-ma),'rgba(255,255,255,0.88)',12,'center','middle',700);
+
+  // rod
+  ctx.save();ctx.strokeStyle='rgba(255,255,255,0.95)';ctx.lineWidth=3.2;ctx.shadowColor='#ffffff';ctx.shadowBlur=22;
+  ctx.beginPath();ctx.moveTo(CX,CY);ctx.lineTo(tipX,tipY);ctx.stroke();ctx.restore();
+  lbl('r=1',CX+(tipX-CX)*.52,CY+(tipY-CY)*.52-9,'rgba(255,255,255,0.52)',8);
+
+  glowDot(CX,CY,5,'#90c8ff');
+  glowDot(tipX,tipY,7,'#ffffff');
+
+  /* ── WAVES — angle-based, no squish ── */
+  drawWaves();
+
+  /* live connector lines — only show when not scrubbing history */
+  if(isLive){
+    const wfx=WX+WW;
+    if(show.sin&&isFinite(sA)){const wy=CY-sA*R;line(tipX,tipY,wfx,wy,ca('sin',.45),1.3,[6,5]);glowDot(wfx,wy,5.5,C.sin);}
+    if(show.cos&&isFinite(cA)){const wy=CY-cA*R;line(tipX,CY,wfx,wy,ca('cos',.4),1.3,[6,5]);glowDot(wfx,wy,5.5,C.cos);}
+    if(show.tan&&isFinite(tA)){const wy=CY-Math.max(-R*3,Math.min(R*3,tA))*R;glowDot(wfx,wy,5,C.tan);}
+    if(show.sec&&isFinite(seA)){const wy=CY-Math.max(-R*3,Math.min(R*3,seA))*R;glowDot(wfx,wy,4.5,C.sec);}
+    if(show.csc&&isFinite(csA)){const wy=CY-Math.max(-R*3,Math.min(R*3,csA))*R;glowDot(wfx,wy,4.5,C.csc);}
+  }
+
+  // Y-axis labels
+  lbl('1',  WX-15,CY-R,'rgba(220,240,255,0.9)',10,'center','middle',700);
+  lbl('0',  WX-11,CY,  'rgba(220,240,255,0.75)',10,'center','middle',700);
+  lbl('−1', WX-16,CY+R,'rgba(220,240,255,0.9)',10,'center','middle',700);
+
+  // Dynamic x-axis
+  drawXAxis();
+
+  // Section headings
+  lbl('UNIT CIRCLE',CX,11,'rgba(0,215,255,0.65)',8);
+  lbl(rpm.toFixed(1)+' RPM  ·  window = 4π rad  ·  '+(isLive?'LIVE':'HISTORY'),WX+WW/2,11,'rgba(140,190,230,0.65)',8);
+
+  // Panel divider
+  line(WX-1,8,WX-1,CH-32,'rgba(22,50,90,0.95)',1.5);
+
+  updateHUD();
+}
+
+/* ═══ ANIMATION LOOP ═══ */
+let prevT=performance.now();
+function loop(nowT){
+  requestAnimationFrame(loop);
+  const dtMs=Math.min(nowT-prevT,80);
+  prevT=nowT;
+  if(running&&!dragging&&rpm>0){
+    const radPerMs=(rpm*2*Math.PI)/(60*1000);
+    const da=radPerMs*dtMs;
+    angle+=da;
+    totalAngle+=da;
+    maybePush();
+    if(isLive){syncScrubberLive();}
+  }
+  draw();
+}
+
+/* ═══ INIT ═══ */
+resize();
+
+// Prefill 2 full rotations at 1 RPM
+(function prefill(){
+  const step=SAMPLE_STEP;
+  const totalSteps=Math.round((4*Math.PI)/step);
+  for(let i=0;i<totalSteps;i++){
+    const a=angle-totalSteps*step+i*step;
+    const s=Math.sin(a),c=Math.cos(a);
+    const t_a=a; // use a as cumulative
+    HIST.push({a:t_a,sin:s,cos:c,
+      tan:Math.abs(c)>.001?Math.tan(a):Infinity,
+      sec:Math.abs(c)>.001?1/c:Infinity,
+      csc:Math.abs(s)>.001?1/s:Infinity});
+  }
+  // Set totalAngle so viewRight covers prefilled data
+  totalAngle=0;
+  viewRight=totalAngle;
+  // Shift history so its right edge = 0
+  const offset=HIST[HIST.length-1].a-totalAngle;
+  HIST.forEach(h=>{h.a-=offset;});
+  lastSampledAngle=totalAngle;
+})();
+
+requestAnimationFrame(loop);
+window.addEventListener('resize',()=>{resize();draw();});
+</script>
+</body>
+</html>
