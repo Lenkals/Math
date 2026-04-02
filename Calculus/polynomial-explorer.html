@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Polynomial Graph Explorer — Even & Odd Degree</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&family=Playfair+Display:ital,wght@0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0b0d18;--sur:#111425;--sur2:#181c30;--bor:#242840;--ce:#00e5ff;--co:#ff6b6b;--g:#56e356;--am:#ffb347;--mx:#ff4dff;--mn:#4dffdd;--tx:#e8eaf6;--mu:#7986cb}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--tx);font-family:'JetBrains Mono',monospace;min-height:100vh;overflow-x:hidden}
+
+header{background:linear-gradient(135deg,#080a14,#111425);border-bottom:1px solid var(--bor);padding:13px 22px;display:flex;align-items:center;gap:13px;position:sticky;top:0;z-index:100}
+.logo{width:36px;height:36px;background:linear-gradient(135deg,var(--ce),var(--co));border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#000;flex-shrink:0}
+header h1{font-family:'Playfair Display',serif;font-size:1.25rem;background:linear-gradient(90deg,var(--ce),#a990ff,var(--co));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+
+/* CUSTOM INPUT */
+.cbar{background:var(--sur);border-bottom:1px solid var(--bor);padding:9px 22px;display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.cbar label{font-size:.7rem;color:var(--mu);white-space:nowrap}
+#eqInput{flex:1;min-width:200px;background:var(--sur2);border:1.5px solid var(--bor);color:var(--ce);font-family:'JetBrains Mono',monospace;font-size:.85rem;padding:7px 13px;border-radius:8px;outline:none;transition:border-color .2s}
+#eqInput:focus{border-color:var(--ce)}
+#eqInput.om{color:var(--co)}
+#eqInput.om:focus{border-color:var(--co)}
+.pbtn2{padding:7px 18px;background:linear-gradient(135deg,var(--ce),#007acc);border:none;border-radius:8px;color:#000;font-family:inherit;font-size:.75rem;font-weight:700;cursor:pointer;white-space:nowrap}
+.pbtn2:hover{opacity:.85}
+.pbtn2.ob{background:linear-gradient(135deg,var(--co),#cc3300);color:#fff}
+.hint{font-size:.63rem;color:var(--mu);flex-basis:100%}
+.err{font-size:.68rem;color:var(--co);flex-basis:100%;display:none;padding:4px 0}
+
+/* LAYOUT */
+.app{display:grid;grid-template-columns:255px 1fr 248px;height:calc(100vh - 112px)}
+
+/* SIDEBAR */
+.sb{background:var(--sur);border-right:1px solid var(--bor);overflow-y:auto;padding:14px 12px}
+.sec{font-size:.6rem;text-transform:uppercase;letter-spacing:.14em;color:var(--mu);margin-bottom:9px;padding-bottom:4px;border-bottom:1px solid var(--bor);margin-top:14px}
+.sec:first-child{margin-top:0}
+.ttabs{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:12px}
+.tt{padding:6px;border:1px solid var(--bor);background:var(--sur2);color:var(--mu);border-radius:7px;cursor:pointer;font-family:inherit;font-size:.68rem;text-align:center;transition:all .2s}
+.tt.even.on{border-color:var(--ce);color:var(--ce);background:rgba(0,229,255,.07)}
+.tt.odd.on{border-color:var(--co);color:var(--co);background:rgba(255,107,107,.07)}
+.plist{display:flex;flex-direction:column;gap:6px}
+.pb{background:var(--sur2);border:1px solid var(--bor);border-radius:8px;padding:9px 11px;cursor:pointer;text-align:left;transition:all .2s;color:var(--tx);font-family:inherit}
+.pb:hover{border-color:var(--mu);transform:translateX(2px)}
+.pb.ae{border-color:var(--ce);background:rgba(0,229,255,.04)}
+.pb.ao{border-color:var(--co);background:rgba(255,107,107,.04)}
+.pn{font-size:.7rem;font-weight:600;margin-bottom:2px}
+.pe{font-size:.6rem;color:var(--mu)}
+.pe.c{color:var(--ce)}.pe.r{color:var(--co)}
+.ced{margin-top:4px}
+.crow{display:flex;align-items:center;gap:6px;margin-bottom:6px}
+.clbl{font-size:.66rem;color:var(--mu);width:24px;flex-shrink:0}
+.ci{flex:1;background:var(--sur2);border:1px solid var(--bor);color:var(--tx);font-family:inherit;font-size:.7rem;padding:5px 8px;border-radius:6px;outline:none;transition:border-color .2s}
+.ci:focus{border-color:var(--ce)}
+.dbtns{display:flex;gap:5px;margin-top:5px}
+.db{flex:1;padding:5px;background:var(--sur2);border:1px solid var(--bor);color:var(--mu);border-radius:5px;cursor:pointer;font-family:inherit;font-size:.65rem}
+.ab{width:100%;padding:8px;margin-top:8px;border:none;border-radius:7px;font-family:inherit;font-size:.7rem;font-weight:700;cursor:pointer}
+.ab.e{background:linear-gradient(135deg,var(--ce),#007acc);color:#000}
+.ab.o{background:linear-gradient(135deg,var(--co),#cc2200);color:#fff}
+
+/* MAIN */
+.main{display:flex;flex-direction:column;background:var(--bg);overflow:hidden}
+.tbar{display:flex;align-items:center;gap:11px;padding:9px 16px;border-bottom:1px solid var(--bor);background:var(--sur);flex-shrink:0;flex-wrap:wrap}
+.li{display:flex;align-items:center;gap:5px;font-size:.63rem}
+.ld{width:20px;height:3px;border-radius:2px;flex-shrink:0}
+.xr{margin-left:auto;display:flex;align-items:center;gap:5px;font-size:.64rem;color:var(--mu)}
+.ri{width:50px;background:var(--sur2);border:1px solid var(--bor);color:var(--tx);font-family:inherit;font-size:.66rem;padding:4px 6px;border-radius:5px;outline:none}
+canvas{flex:1;display:block;cursor:crosshair}
+
+/* RIGHT PANEL */
+.rp{background:var(--sur);border-left:1px solid var(--bor);overflow-y:auto;padding:14px 12px}
+.fb{background:var(--sur2);border:1px solid var(--bor);border-radius:8px;padding:10px;margin-bottom:9px}
+.fl{font-size:.58rem;color:var(--mu);text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px}
+.fv{font-size:.76rem;font-weight:600;word-break:break-all;line-height:1.6}
+.fv.c{color:var(--ce)}.fv.g{color:var(--g)}.fv.a{color:var(--am)}.fv.r{color:var(--co)}
+
+/* EXPLANATION */
+.exbox{background:var(--sur2);border-radius:9px;padding:13px;margin-bottom:11px;border-left:3px solid var(--g)}
+.exbox h4{font-size:.7rem;color:var(--g);margin-bottom:7px}
+.exbox p{font-size:.63rem;color:var(--mu);line-height:1.75;margin-bottom:5px}
+.exbox .hi{color:var(--tx)}
+.exbox .mxh{color:var(--mx)}
+.exbox .mnh{color:var(--mn)}
+.exbox .note{color:var(--ce);font-size:.6rem;margin-top:4px}
+
+.ctab{width:100%;border-collapse:collapse;font-size:.67rem;margin-top:5px}
+.ctab th{background:var(--sur2);color:var(--mu);padding:5px 6px;text-align:left;border-bottom:1px solid var(--bor)}
+.ctab td{padding:5px 6px;border-bottom:1px solid var(--bor)}
+.bdg{display:inline-block;padding:2px 6px;border-radius:3px;font-size:.58rem;font-weight:700}
+.bdg.max{background:rgba(255,77,255,.1);color:var(--mx);border:1px solid var(--mx)}
+.bdg.min{background:rgba(77,255,221,.1);color:var(--mn);border:1px solid var(--mn)}
+.bdg.inf{background:rgba(121,134,203,.1);color:var(--mu);border:1px solid var(--mu)}
+
+.dpbox{background:var(--sur2);border-radius:8px;padding:11px;margin-bottom:9px}
+.dpbox h4{font-size:.7rem;margin-bottom:6px}
+.dpbox ul{padding-left:13px}
+.dpbox li{font-size:.62rem;color:var(--mu);line-height:1.8}
+
+.hbx{background:var(--sur2);border:1px solid var(--bor);border-radius:7px;padding:9px 11px;font-size:.67rem}
+.hr{display:flex;justify-content:space-between;margin-bottom:3px}
+.hr .k{color:var(--mu)}.hr .v{font-weight:600}
+
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--bor);border-radius:2px}
+@media(max-width:900px){.app{grid-template-columns:1fr;height:auto}.sb,.rp{max-height:260px}canvas{height:300px!important}}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">∫</div>
+  <div>
+    <h1>Polynomial Graph Explorer</h1>
+    <div style="font-size:.6rem;color:var(--mu);margin-top:1px">Even & Odd Degree · f(x) · f′(x) · f″(x) · Extrema</div>
+  </div>
+</header>
+
+<div class="cbar">
+  <label>✏️ Enter polynomial:</label>
+  <input type="text" id="eqInput" placeholder="e.g.  x^3 - 12x + 2  |  x^4 - 8x^2 + 7  |  -2x^5 + 10x^3 - 8x"/>
+  <button class="pbtn2" id="plotBtn" onclick="plotCustom()">▶ Plot</button>
+  <div class="hint">Use <code>x^n</code> for powers (or unicode ² ³) · examples: <code>x^6+x^2-9</code> &nbsp;|&nbsp; <code>2x^4 - 5x^2 + 1</code> &nbsp;|&nbsp; <code>0.5x^5 - 4x^3 + 3x</code></div>
+  <div class="err" id="errMsg"></div>
+</div>
+
+<div class="app">
+<div class="sb">
+  <div class="sec">Degree Type</div>
+  <div class="ttabs">
+    <button class="tt even on" onclick="setType('even')">⬡ Even</button>
+    <button class="tt odd" onclick="setType('odd')">◇ Odd</button>
+  </div>
+  <div class="sec">Wavy Presets</div>
+  <div class="plist" id="plist"></div>
+  <div class="sec" style="margin-top:16px">Manual Coefficients</div>
+  <div class="ced" id="ced"></div>
+</div>
+
+<div class="main">
+  <div class="tbar">
+    <div class="li"><div class="ld" id="fxd" style="background:var(--ce)"></div><span>f(x)</span></div>
+    <div class="li"><div class="ld" style="background:var(--g)"></div><span>f′(x) scaled</span></div>
+    <div class="li"><div class="ld" style="background:var(--am)"></div><span>f″(x) scaled</span></div>
+    <div class="li"><div class="ld" style="background:var(--mx)"></div><span>▲ Max</span></div>
+    <div class="li"><div class="ld" style="background:var(--mn)"></div><span>▼ Min</span></div>
+    <div class="xr">x: <input type="number" class="ri" id="xMin" value="-5" onchange="redraw()"> to <input type="number" class="ri" id="xMax" value="5" onchange="redraw()"></div>
+  </div>
+  <canvas id="gc"></canvas>
+</div>
+
+<div class="rp">
+  <div class="sec">Equations</div>
+  <div class="fb"><div class="fl">f(x) =</div><div class="fv c" id="ff">—</div></div>
+  <div class="fb"><div class="fl">f′(x) =</div><div class="fv g" id="f1">—</div></div>
+  <div class="fb"><div class="fl">f″(x) =</div><div class="fv a" id="f2">—</div></div>
+
+  <div class="sec" style="margin-top:13px">Why Maxima &amp; Minima</div>
+  <div class="exbox">
+    <h4>The Second Derivative Test</h4>
+    <p>A <span class="hi">critical point</span> is where <span class="hi">f′(x) = 0</span> — the tangent line is horizontal (slope = 0). The curve is momentarily flat there.</p>
+    <p><span class="mxh">▲ Local Maximum</span>: f′ changes <span class="hi">+ → 0 → −</span>, and <span class="hi">f″(x) &lt; 0</span> (concave down ∩ — hilltop shape).</p>
+    <p><span class="mnh">▼ Local Minimum</span>: f′ changes <span class="hi">− → 0 → +</span>, and <span class="hi">f″(x) &gt; 0</span> (concave up ∪ — valley shape).</p>
+    <p class="note">⚡ They appear at the ACTUAL peak/valley of f(x), not near x=0. The dots in the graph are placed at the exact (x, f(x)) of the extremum.</p>
+    <p class="note">📐 f′(x) and f″(x) are drawn scaled to fit same view — check hover panel for true values.</p>
+  </div>
+
+  <div class="sec">Critical Points Table</div>
+  <table class="ctab">
+    <thead><tr><th>x</th><th>f(x)</th><th>f″(x)</th><th>Type</th></tr></thead>
+    <tbody id="ctbody"></tbody>
+  </table>
+
+  <div class="sec" style="margin-top:13px">Degree Properties</div>
+  <div class="dpbox" id="dpbox"><h4>—</h4><ul></ul></div>
+
+  <div class="sec">Cursor Trace (true values)</div>
+  <div class="hbx">
+    <div class="hr"><span class="k">x =</span><span class="v" id="hx">—</span></div>
+    <div class="hr"><span class="k">f(x) =</span><span class="v" id="hfx">—</span></div>
+    <div class="hr"><span class="k">f′(x) =</span><span class="v" id="hf1">—</span></div>
+    <div class="hr"><span class="k">f″(x) =</span><span class="v" id="hf2">—</span></div>
+  </div>
+</div>
+</div>
+
+<script>
+// ────────── PRESETS ──────────
+const PRESETS = {
+  even:[
+    {name:'Parabola (deg 2)',coeffs:[1,0,-9],desc:'x² − 9',note:'1 minimum at (0, −9) — clear valley'},
+    {name:'W-Curve (deg 4)',coeffs:[1,0,-8,0,7],desc:'x⁴ − 8x² + 7',note:'2 minima (y=−9), 1 max (y=7)'},
+    {name:'Inverted W (deg 4)',coeffs:[-1,0,8,0,-7],desc:'−x⁴ + 8x² − 7',note:'2 maxima (y=9), 1 min (y=−7)'},
+    {name:'Deep Wave (deg 6)',coeffs:[1,0,-9,0,24,0,-16],desc:'x⁶ − 9x⁴ + 24x² − 16',note:'Rich wavy shape, 5 extrema'},
+  ],
+  odd:[
+    {name:'Classic S-Cubic (deg 3)',coeffs:[1,0,-12,2],desc:'x³ − 12x + 2',note:'Max≈(−2, 18), Min≈(2, −14)'},
+    {name:'Asymm Cubic (deg 3)',coeffs:[2,-3,-12,7],desc:'2x³ − 3x² − 12x + 7',note:'Shifted S, extrema far from zero'},
+    {name:'Quintic Wave (deg 5)',coeffs:[1,0,-10,0,9,0],desc:'x⁵ − 10x³ + 9x',note:'4 turning points, wide oscillation'},
+    {name:'Rich Quintic (deg 5)',coeffs:[1,-1,-8,6,12,-10],desc:'x⁵−x⁴−8x³+6x²+12x−10',note:'Complex wave — 4 extrema'},
+  ]
+};
+
+const DEG_INFO = {
+  even: n=>({title:`Even Degree ${n} Polynomial`,facts:[
+    'Both tails go same direction (↑↑ or ↓↓)',
+    'Positive lead coeff → both ends +∞',
+    'Negative lead coeff → both ends −∞',
+    `Can have 0 to ${n} real roots`,
+    `Up to ${n-1} turning points`,
+    'Symmetric if only even-power terms present'
+  ]}),
+  odd: n=>({title:`Odd Degree ${n} Polynomial`,facts:[
+    'Tails go opposite directions (↑↓ or ↓↑)',
+    'Positive lead coeff: left→−∞, right→+∞',
+    'Negative lead coeff: left→+∞, right→−∞',
+    'Always crosses x-axis at least once',
+    `Up to ${n-1} turning points`,
+    'No axis of symmetry in general'
+  ]})
+};
+
+// ────────── MATH ──────────
+function ep(c,x){let r=0,n=c.length-1;for(let i=0;i<c.length;i++)r+=c[i]*Math.pow(x,n-i);return r}
+function dp(c){const n=c.length-1;if(n===0)return[0];return c.slice(0,n).map((a,i)=>a*(n-i))}
+function ps(c){
+  const n=c.length-1;const parts=[];
+  for(let i=0;i<c.length;i++){
+    const p=n-i,v=c[i];if(v===0)continue;
+    const sign=v>0&&parts.length>0?' + ':v<0?(parts.length>0?' − ':'−'):'';
+    const av=Math.abs(v);
+    const cs=(av===1&&p>0)?'':(Number.isInteger(av)?av:av.toFixed(2));
+    const xs=p===0?'':(p===1?'x':`x^${p}`);
+    parts.push(sign+cs+xs);
+  }
+  return parts.join('')||'0';
+}
+function roots(c,lo,hi,steps=3000){
+  const r=[],dx=(hi-lo)/steps;let py=ep(c,lo);
+  for(let i=1;i<=steps;i++){
+    const x=lo+i*dx,y=ep(c,x);
+    if(py*y<=0&&isFinite(py)&&isFinite(y)){
+      let a=x-dx,b=x;
+      for(let k=0;k<55;k++){const m=(a+b)/2,ym=ep(c,m);if(ep(c,a)*ym<=0)b=m;else a=m}
+      const rr=(a+b)/2;if(!r.some(v=>Math.abs(v-rr)<1e-7))r.push(rr);
+    }
+    py=y;
+  }
+  return r;
+}
+function crits(c,lo,hi){
+  const d1=dp(c),d2=dp(d1);
+  return roots(d1,lo-1,hi+1).map(x=>{
+    const fx=ep(c,x),f2=ep(d2,x);
+    const type=Math.abs(f2)<1e-4?'inf':f2<0?'max':'min';
+    return{x:+x.toFixed(4),fx:+fx.toFixed(4),f2:+f2.toFixed(4),type};
+  });
+}
+
+// ────────── PARSER ──────────
+// Unicode superscript map: ⁰¹²³⁴⁵⁶⁷⁸⁹
+const SUP_MAP={'⁰':'0','¹':'1','²':'2','³':'3','⁴':'4','⁵':'5','⁶':'6','⁷':'7','⁸':'8','⁹':'9'};
+function normalizeSup(s){
+  // Replace unicode superscripts after x: x² → x^2, x³ → x^3, etc.
+  return s.replace(/x([⁰¹²³⁴⁵⁶⁷⁸⁹]+)/g,(_,sup)=>'x^'+[...sup].map(c=>SUP_MAP[c]||c).join(''));
+}
+
+function parsePoly(raw){
+  let s=raw.trim();
+  // Normalize unicode and special chars BEFORE lowercasing
+  s=normalizeSup(s);
+  s=s.replace(/−/g,'-').replace(/–/g,'-').replace(/⁻/g,'-')
+     .replace(/×/g,'*').replace(/·/g,'*')
+     .replace(/\s+/g,'').replace(/\*\*/g,'^').replace(/\*/g,'')
+     .toLowerCase();
+  if(!s)throw new Error('Empty input');
+
+  // Convert x2 → x^2 style (digit immediately after x without ^)
+  s=s.replace(/x(\d+)/g,(m,d)=>d.length===1&&d>='2'?`x^${d}`:m);
+
+  // insert '+' before '-' that starts a new term
+  s=s.replace(/([0-9x])-/g,'$1+-');
+
+  const terms=s.split('+').filter(t=>t);
+  const map={};
+  for(let t of terms){
+    t=t.trim();if(!t)continue;
+    // Patterns: ax^n | x^n | ax | x | constant
+    const m1=t.match(/^(-?\d*\.?\d*)[x]\^(\d+\.?\d*)$/);   // ax^n
+    const m2=t.match(/^(-?\d*\.?\d*)[x]$/);                 // ax
+    const m3=t.match(/^(-?\d+\.?\d*)$|^(-?\.\d+)$/);        // constant
+    let coeff=0,deg=0;
+    if(m1){
+      const cs=m1[1];
+      coeff=cs===''||cs==='+'?1:cs==='-'?-1:parseFloat(cs);
+      deg=parseFloat(m1[2]);
+    }else if(m2){
+      const cs=m2[1];
+      coeff=cs===''||cs==='+'?1:cs==='-'?-1:parseFloat(cs);
+      deg=1;
+    }else if(m3){
+      coeff=parseFloat(m3[1]||m3[2]);deg=0;
+    }else{
+      throw new Error(`Cannot parse term: "${t}" — try x^2 instead of x2`);
+    }
+    if(!isFinite(coeff)||!isFinite(deg))throw new Error(`Bad number in "${t}"`);
+    map[deg]=(map[deg]||0)+coeff;
+  }
+  const maxD=Math.max(...Object.keys(map).map(Number));
+  if(maxD>12)throw new Error('Degree > 12 not supported');
+  const coeffs=[];
+  for(let d=maxD;d>=0;d--)coeffs.push(map[d]||0);
+  if(coeffs.every(v=>v===0))throw new Error('All zero polynomial');
+  return coeffs;
+}
+
+// ────────── STATE ──────────
+let cType='even',cIdx=0,cCoeffs=PRESETS.even[0].coeffs.slice();
+
+// ────────── UI ──────────
+function setType(t){
+  cType=t;cIdx=0;
+  document.querySelectorAll('.tt').forEach(b=>b.classList.remove('on'));
+  document.querySelector('.tt.'+t).classList.add('on');
+  const eq=document.getElementById('eqInput');
+  const pb=document.getElementById('plotBtn');
+  eq.className=t==='odd'?'om':'';
+  pb.className='pbtn2'+(t==='odd'?' ob':'');
+  buildPL();loadP(0);
+}
+
+function buildPL(){
+  const l=document.getElementById('plist');l.innerHTML='';
+  PRESETS[cType].forEach((p,i)=>{
+    const b=document.createElement('button');
+    b.className='pb'+(i===cIdx?' '+(cType==='even'?'ae':'ao'):'');
+    b.innerHTML=`<div class="pn">${p.name}</div>
+      <div class="pe ${cType==='even'?'c':'r'}">f(x) = ${p.desc}</div>
+      <div class="pe" style="margin-top:2px;font-size:.58rem">${p.note}</div>`;
+    b.onclick=()=>loadP(i);
+    l.appendChild(b);
+  });
+}
+
+function loadP(i){
+  cIdx=i;cCoeffs=PRESETS[cType][i].coeffs.slice();
+  document.getElementById('eqInput').value=PRESETS[cType][i].desc;
+  buildPL();buildCE();redraw();
+}
+
+function buildCE(){
+  const ed=document.getElementById('ced');ed.innerHTML='';
+  const n=cCoeffs.length-1;
+  cCoeffs.forEach((v,i)=>{
+    const row=document.createElement('div');row.className='crow';
+    row.innerHTML=`<span class="clbl">a<sub>${n-i}</sub></span>
+      <input type="number" class="ci" id="c${i}" value="${v}" step="0.5">`;
+    ed.appendChild(row);
+  });
+  const db=document.createElement('div');db.className='dbtns';
+  db.innerHTML=`<button class="db" onclick="addD()">+ Degree</button><button class="db" onclick="remD()">− Degree</button>`;
+  ed.appendChild(db);
+  const ab=document.createElement('button');
+  ab.className=`ab ${cType==='odd'?'o':'e'}`;
+  ab.textContent='▶ Apply Coefficients';
+  ab.onclick=applyC;
+  ed.appendChild(ab);
+}
+
+function readC(){return cCoeffs.map((_,i)=>parseFloat(document.getElementById('c'+i)?.value)||0)}
+function applyC(){cCoeffs=readC();document.getElementById('eqInput').value=ps(cCoeffs);redraw()}
+function addD(){cCoeffs=readC();cCoeffs.unshift(1);buildCE();redraw()}
+function remD(){if(cCoeffs.length<=2)return;cCoeffs=readC();cCoeffs.shift();buildCE();redraw()}
+
+function plotCustom(){
+  const raw=document.getElementById('eqInput').value;
+  const el=document.getElementById('errMsg');
+  try{
+    cCoeffs=parsePoly(raw);
+    buildCE();el.style.display='none';redraw();
+  }catch(e){
+    el.textContent='⚠ '+e.message;el.style.display='block';
+    setTimeout(()=>el.style.display='none',5000);
+  }
+}
+document.getElementById('eqInput').addEventListener('keydown',e=>{if(e.key==='Enter')plotCustom()});
+
+// ────────── CANVAS ──────────
+const canvas=document.getElementById('gc');
+const ctx=canvas.getContext('2d');
+
+function nT(range,tgt){
+  if(range<=0)return 1;
+  const r=range/tgt,e=Math.floor(Math.log10(r));
+  const m=r/Math.pow(10,e);
+  return(m<1.5?1:m<3.5?2:m<7.5?5:10)*Math.pow(10,e);
+}
+const r2=v=>Math.abs(v)<1e-9?'0':parseFloat(v.toFixed(2)).toString();
+const r4=v=>parseFloat(v.toFixed(4)).toString();
+
+function redraw(){
+  if(!canvas.width)return;
+  const W=canvas.width,H=canvas.height;
+  const xMin=parseFloat(document.getElementById('xMin').value)||(-5);
+  const xMax=parseFloat(document.getElementById('xMax').value)||5;
+  const d1=dp(cCoeffs),d2=dp(d1);
+  const PTS=800;
+
+  // Y-range: ONLY from f(x), so extrema always properly visible
+  let yMn=Infinity,yMx=-Infinity;
+  for(let i=0;i<=PTS;i++){
+    const x=xMin+(xMax-xMin)*i/PTS,y=ep(cCoeffs,x);
+    if(isFinite(y)&&Math.abs(y)<1e8){yMn=Math.min(yMn,y);yMx=Math.max(yMx,y)}
+  }
+  if(!isFinite(yMn)){yMn=-10;yMx=10}
+  const fR=yMx-yMn||1;
+  const pad=fR*0.2;
+  const yMin=yMn-pad,yMax=yMx+pad,yR=yMax-yMin;
+
+  // Compute derivative ranges for normalization
+  let d1mn=Infinity,d1mx=-Infinity,d2mn=Infinity,d2mx=-Infinity;
+  for(let i=0;i<=PTS;i++){
+    const x=xMin+(xMax-xMin)*i/PTS;
+    const v1=ep(d1,x),v2=ep(d2,x);
+    if(isFinite(v1)&&Math.abs(v1)<1e9){d1mn=Math.min(d1mn,v1);d1mx=Math.max(d1mx,v1)}
+    if(isFinite(v2)&&Math.abs(v2)<1e9){d2mn=Math.min(d2mn,v2);d2mx=Math.max(d2mx,v2)}
+  }
+  const d1R=d1mx-d1mn||1,d2R=d2mx-d2mn||1;
+
+  // Normalize: map derivative values to y-canvas so shapes visible but don't overflow
+  function nd1(y){return((y-(d1mn+d1mx)/2)/d1R)*yR*0.65}
+  function nd2(y){return((y-(d2mn+d2mx)/2)/d2R)*yR*0.50}
+
+  const cx=x=>(x-xMin)/(xMax-xMin)*W;
+  const cy=y=>H-(y-yMin)/yR*H;
+
+  // BG
+  ctx.fillStyle='#0b0d18';ctx.fillRect(0,0,W,H);
+
+  // Grid
+  const xSt=nT(xMax-xMin,10),ySt=nT(yR,8);
+  ctx.strokeStyle='#15192b';ctx.lineWidth=1;
+  for(let x=Math.ceil(xMin/xSt)*xSt;x<=xMax;x+=xSt){
+    const px=cx(x);ctx.beginPath();ctx.moveTo(px,0);ctx.lineTo(px,H);ctx.stroke();
+    ctx.fillStyle='#2a3060';ctx.font='9px JetBrains Mono';
+    if(Math.abs(x)>0.001)ctx.fillText(r2(x),px+2,H-5);
+  }
+  for(let y=Math.ceil(yMin/ySt)*ySt;y<=yMax;y+=ySt){
+    const py=cy(y);ctx.beginPath();ctx.moveTo(0,py);ctx.lineTo(W,py);ctx.stroke();
+    ctx.fillStyle='#2a3060';
+    if(Math.abs(y)>0.001)ctx.fillText(r2(y),4,py-3);
+  }
+
+  // Axes
+  ctx.strokeStyle='#363d6a';ctx.lineWidth=1.5;
+  const ax0=cx(0),ay0=cy(0);
+  ctx.beginPath();ctx.moveTo(ax0,0);ctx.lineTo(ax0,H);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(0,ay0);ctx.lineTo(W,ay0);ctx.stroke();
+  ctx.fillStyle='#5060a0';ctx.font='bold 10px JetBrains Mono';
+  ctx.fillText('x',W-12,ay0-5);ctx.fillText('y',ax0+5,12);
+
+  // f''(x) — amber dashed, shape-normalized
+  function drawNorm(fn,col,lw,dash){
+    ctx.beginPath();ctx.strokeStyle=col;ctx.lineWidth=lw;ctx.setLineDash(dash);
+    let started=false;
+    for(let i=0;i<=PTS*2;i++){
+      const x=xMin+(xMax-xMin)*i/(PTS*2);
+      const raw=ep(fn,x);if(!isFinite(raw)){started=false;continue}
+      const disp=fn===d1?nd1(raw):nd2(raw);
+      const py=cy(disp),px=cx(x);
+      if(!started){ctx.moveTo(px,py);started=true}else ctx.lineTo(px,py);
+    }
+    ctx.stroke();ctx.setLineDash([]);
+  }
+  drawNorm(d2,'#ffb347',1.3,[5,4]);
+  drawNorm(d1,'#56e356',1.7,[3,3]);
+
+  // Gradient fill
+  const mc=cType==='even'?'rgba(0,229,255,':'rgba(255,107,107,';
+  const gr=ctx.createLinearGradient(0,0,0,H);
+  gr.addColorStop(0,mc+'0.05)');gr.addColorStop(1,mc+'0.00)');
+  ctx.beginPath();ctx.fillStyle=gr;
+  let st=false;
+  for(let i=0;i<=PTS;i++){
+    const x=xMin+(xMax-xMin)*i/PTS,y=ep(cCoeffs,x);
+    if(!isFinite(y)){st=false;continue}
+    if(!st){ctx.moveTo(cx(x),cy(0));ctx.lineTo(cx(x),cy(y));st=true}else ctx.lineTo(cx(x),cy(y));
+  }
+  ctx.lineTo(cx(xMax),cy(0));ctx.closePath();ctx.fill();
+
+  // f(x) — main
+  const mc2=cType==='even'?'#00e5ff':'#ff6b6b';
+  ctx.beginPath();ctx.strokeStyle=mc2;ctx.lineWidth=2.8;ctx.setLineDash([]);
+  st=false;
+  for(let i=0;i<=PTS*2;i++){
+    const x=xMin+(xMax-xMin)*i/(PTS*2),y=ep(cCoeffs,x);
+    if(!isFinite(y)){st=false;continue}
+    const py=cy(y),px=cx(x);
+    if(!st){ctx.moveTo(px,py);st=true}else ctx.lineTo(px,py);
+  }
+  ctx.stroke();
+
+  // ── CRITICAL POINTS ──
+  const cps=crits(cCoeffs,xMin,xMax);
+  cps.forEach(pt=>{
+    if(pt.x<xMin-0.05||pt.x>xMax+0.05)return;
+    const px=cx(pt.x),py=cy(pt.fx);
+    const col=pt.type==='max'?'#ff4dff':pt.type==='min'?'#4dffdd':'#7986cb';
+
+    // Crosshair leaders
+    ctx.setLineDash([3,5]);ctx.strokeStyle=col+'40';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(px,py);ctx.lineTo(px,cy(0));ctx.stroke();
+    ctx.beginPath();ctx.moveTo(px,py);ctx.lineTo(cx(xMin),py);ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Outer glow
+    const grd=ctx.createRadialGradient(px,py,0,px,py,18);
+    grd.addColorStop(0,col+'44');grd.addColorStop(1,col+'00');
+    ctx.beginPath();ctx.arc(px,py,18,0,Math.PI*2);
+    ctx.fillStyle=grd;ctx.fill();
+
+    // Inner dot
+    ctx.beginPath();ctx.arc(px,py,7,0,Math.PI*2);
+    ctx.fillStyle=col+'20';ctx.fill();
+    ctx.strokeStyle=col;ctx.lineWidth=2;ctx.stroke();
+    ctx.beginPath();ctx.arc(px,py,3,0,Math.PI*2);
+    ctx.fillStyle=col;ctx.fill();
+
+    // Label with bg
+    const sym=pt.type==='max'?'▲ MAX':pt.type==='min'?'▼ MIN':'◆ INF';
+    const coord=`(${pt.x}, ${pt.fx})`;
+    ctx.font='bold 9px JetBrains Mono';
+    const tw1=ctx.measureText(sym).width,tw2=ctx.measureText(coord).width;
+    const lw2=Math.max(tw1,tw2)+10;
+    const lx=px+12,ly=py+(pt.type==='max'?-18:8);
+    ctx.fillStyle='rgba(11,13,24,0.88)';
+    ctx.beginPath();
+    if(ctx.roundRect)ctx.roundRect(lx-3,ly-13,lw2,32,4);
+    else ctx.rect(lx-3,ly-13,lw2,32);
+    ctx.fill();
+    ctx.fillStyle=col;
+    ctx.fillText(sym,lx,ly);
+    ctx.fillStyle='#c0c8f0';
+    ctx.fillText(coord,lx,ly+13);
+  });
+
+  // Scale note
+  ctx.fillStyle='rgba(121,134,203,0.5)';ctx.font='9px JetBrains Mono';
+  ctx.fillText('f′(x) and f″(x) are shape-scaled to fit — cursor panel shows true values',8,16);
+
+  // ── UPDATE RIGHT PANEL ──
+  document.getElementById('ff').textContent=ps(cCoeffs);
+  document.getElementById('f1').textContent=ps(d1);
+  document.getElementById('f2').textContent=ps(d2);
+  document.getElementById('ff').className=`fv ${cType==='even'?'c':'r'}`;
+  document.getElementById('fxd').style.background=mc2;
+
+  const tb=document.getElementById('ctbody');tb.innerHTML='';
+  if(!cps.length){
+    tb.innerHTML=`<tr><td colspan="4" style="color:var(--mu);text-align:center;padding:10px">No critical points in range</td></tr>`;
+  }else{
+    cps.forEach(p=>{
+      const tr=document.createElement('tr');
+      tr.innerHTML=`<td>${p.x}</td><td><b style="color:${p.type==='max'?'var(--mx)':p.type==='min'?'var(--mn)':'var(--mu)'}">${p.fx}</b></td>
+        <td style="color:${p.f2<0?'var(--mx)':'var(--mn)'}">${p.f2}</td>
+        <td><span class="bdg ${p.type}">${p.type==='max'?'▲ Max':p.type==='min'?'▼ Min':'◆ Infl'}</span></td>`;
+      tb.appendChild(tr);
+    });
+  }
+
+  const deg=cCoeffs.length-1;
+  const info=DEG_INFO[cType](deg);
+  const dp2=document.getElementById('dpbox');
+  dp2.style.borderLeft=`3px solid ${cType==='even'?'var(--ce)':'var(--co)'}`;
+  dp2.innerHTML=`<h4 style="color:${cType==='even'?'var(--ce)':'var(--co)'}">${info.title}</h4>
+    <ul>${info.facts.map(f=>`<li>${f}</li>`).join('')}</ul>`;
+
+  canvas._s={d1,d2,xMin,xMax,yMin,yMax};
+}
+
+canvas.addEventListener('mousemove',e=>{
+  const s=canvas._s;if(!s)return;
+  const rect=canvas.getBoundingClientRect();
+  const x=s.xMin+(s.xMax-s.xMin)*(e.clientX-rect.left)/canvas.width;
+  document.getElementById('hx').textContent=x.toFixed(3);
+  document.getElementById('hfx').textContent=r4(ep(cCoeffs,x));
+  document.getElementById('hf1').textContent=r4(ep(s.d1,x));
+  document.getElementById('hf2').textContent=r4(ep(s.d2,x));
+});
+
+function resz(){
+  const r=canvas.parentElement.getBoundingClientRect();
+  canvas.width=r.width;canvas.height=r.height;redraw();
+}
+window.addEventListener('resize',resz);
+buildPL();loadP(0);setTimeout(resz,80);
+</script>
+</body>
+</html>
