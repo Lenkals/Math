@@ -115,12 +115,23 @@ header h1{font-family:'Playfair Display',serif;font-size:1.15rem;
 .r2b{padding:1px 6px;border-radius:8px;background:rgba(86,227,86,.1);
   border:1px solid var(--g);color:var(--g);font-size:.58rem;font-weight:700;display:none}
 
-/* ─── GRAPHS SECTION ─── */
-.graphs{display:flex;flex-direction:column;flex-shrink:0}
+/* ─── TRACE BAR (full width, above graphs) ─── */
+.trace-bar{display:flex;align-items:center;gap:8px;padding:5px 14px;
+  border-top:1px solid var(--bor);border-bottom:1px solid var(--bor);
+  background:var(--sur2);flex-shrink:0}
+.trace-bar span{font-size:.6rem;color:var(--mu);white-space:nowrap}
+#traceSlider{flex:1;accent-color:var(--ce);cursor:pointer}
+.tval{font-size:.62rem;font-weight:700;color:var(--ce);width:150px;text-align:right;white-space:nowrap}
+.tslope{font-size:.58rem;color:var(--g);margin-left:5px;white-space:nowrap}
 
-/* Graph wrapper — fixed tall height so both graphs are big */
-.gwrap{position:relative;height:420px;flex-shrink:0;display:flex;flex-direction:column}
-.gwrap canvas{width:100%;height:100%;display:block;flex:1}
+/* ─── GRAPHS SECTION: side-by-side ─── */
+.graphs{display:flex;flex-direction:row;flex-shrink:0;border-top:1px solid var(--bor)}
+
+/* Each graph wrapper takes exactly half the width */
+.gwrap{position:relative;flex:1;height:500px;flex-shrink:0;display:flex;flex-direction:column;
+  border-right:1px solid var(--bor)}
+.gwrap:last-child{border-right:none}
+.gwrap canvas{width:100%;height:100%;display:block}
 
 /* Overlay toggle buttons — bottom-left of canvas */
 .graph-toggles{position:absolute;bottom:8px;left:8px;display:flex;gap:5px;z-index:10}
@@ -143,14 +154,6 @@ header h1{font-family:'Playfair Display',serif;font-size:1.15rem;
 .glabel{position:absolute;top:6px;left:8px;font-size:.6rem;color:var(--mu);
   background:rgba(11,13,24,.75);padding:2px 7px;border-radius:4px;pointer-events:none;z-index:5}
 
-/* Trace slider bar */
-.trace-bar{display:flex;align-items:center;gap:8px;padding:5px 14px;
-  border-top:1px solid var(--bor);border-bottom:1px solid var(--bor);
-  background:var(--sur2);flex-shrink:0}
-.trace-bar span{font-size:.6rem;color:var(--mu);white-space:nowrap}
-#traceSlider{flex:1;accent-color:var(--ce);cursor:pointer}
-.tval{font-size:.62rem;font-weight:700;color:var(--ce);width:130px;text-align:right;white-space:nowrap}
-.tslope{font-size:.58rem;color:var(--g);margin-left:5px;white-space:nowrap}
 
 /* Divider between graphs */
 .gdivider{height:1px;background:var(--bor);flex-shrink:0}
@@ -262,12 +265,20 @@ header h1{font-family:'Playfair Display',serif;font-size:1.15rem;
   </div>
 </div>
 
-<!-- ════ GRAPHS SECTION ════ -->
+<!-- ════ TRACE BAR (full width, above both graphs) ════ -->
+<div class="trace-bar">
+  <span>🔍 Trace x:</span>
+  <input type="range" id="traceSlider" min="0" max="1000" value="0" oninput="onTrace(this.value)">
+  <span class="tval" id="traceVal">← drag to trace</span>
+  <span class="tslope" id="tslope"></span>
+</div>
+
+<!-- ════ GRAPHS SECTION (side-by-side) ════ -->
 <div class="graphs">
 
-  <!-- TOP GRAPH: f(x) with optional derivative overlays -->
+  <!-- LEFT: f(x) -->
   <div class="gwrap" id="gwrap1">
-    <div class="glabel" id="glabel1">f(x) — polynomial graph</div>
+    <div class="glabel" id="glabel1">f(x) — drag to pan · scroll to zoom</div>
     <canvas id="gc1"></canvas>
 
     <!-- Overlay toggles -->
@@ -279,29 +290,21 @@ header h1{font-family:'Playfair Display',serif;font-size:1.15rem;
 
     <!-- Zoom controls -->
     <div class="zoom-btns">
-      <button class="zbtn" onclick="doZoom(0.75)" title="Zoom In">+</button>
-      <button class="zbtn" onclick="doZoom(1.35)" title="Zoom Out">−</button>
-      <button class="zbtn" onclick="resetZoom()" title="Reset">⌂</button>
+      <button class="zbtn" onclick="doZoom(gc1,0.75)" title="Zoom In">+</button>
+      <button class="zbtn" onclick="doZoom(gc1,1.35)" title="Zoom Out">−</button>
+      <button class="zbtn" onclick="resetView(gc1)" title="Reset view">⌂</button>
     </div>
   </div>
 
-  <!-- TRACE SLIDER -->
-  <div class="trace-bar">
-    <span>🔍 Trace:</span>
-    <input type="range" id="traceSlider" min="0" max="1000" value="0" oninput="onTrace(this.value)">
-    <span class="tval" id="traceVal">← drag to trace</span>
-    <span class="tslope" id="tslope"></span>
-  </div>
-
-  <!-- BOTTOM GRAPH: derivatives, true scale, identical size -->
+  <!-- RIGHT: derivatives -->
   <div class="gwrap" id="gwrap2">
-    <div class="glabel" id="glabel2">Derivative Graph — f′(x) &amp; f″(x) true scale</div>
+    <div class="glabel" id="glabel2">f′(x) &amp; f″(x) — true scale · drag to pan</div>
     <canvas id="gc2"></canvas>
 
     <div class="zoom-btns">
-      <button class="zbtn" onclick="doZoom(0.75)" title="Zoom In">+</button>
-      <button class="zbtn" onclick="doZoom(1.35)" title="Zoom Out">−</button>
-      <button class="zbtn" onclick="resetZoom()" title="Reset">⌂</button>
+      <button class="zbtn" onclick="doZoom(gc2,0.75)" title="Zoom In">+</button>
+      <button class="zbtn" onclick="doZoom(gc2,1.35)" title="Zoom Out">−</button>
+      <button class="zbtn" onclick="resetView(gc2)" title="Reset view">⌂</button>
     </div>
   </div>
 
@@ -515,7 +518,18 @@ let showF=true, showD1=true, showD2=true;
 let drawMode=false, isDrawing=false;
 let drawnXs=[], drawnYs=[];
 let tracePos=0;
-let xRange={min:-5,max:5};   // shared x range for both graphs
+
+// Each canvas has its own independent view (xRange + yRange)
+// gc1 = f(x) graph,  gc2 = derivative graph
+const VIEW = {
+  gc1: { xMin:-5, xMax:5, yMin:null, yMax:null },  // yMin/yMax null = auto
+  gc2: { xMin:-5, xMax:5, yMin:null, yMax:null }
+};
+// Pan state
+const PAN = { active:false, canvas:null, startX:0, startY:0, startView:null };
+
+// Reset y auto-scale when a new function is loaded
+function resetYAuto(){ VIEW.gc1.yMin=null; VIEW.gc1.yMax=null; VIEW.gc2.yMin=null; VIEW.gc2.yMax=null; }
 
 // ══ UI BUILDERS ══
 function setType(t){
@@ -534,6 +548,7 @@ function setType(t){
     document.getElementById('eqInput').value=PRESETS[t][0].desc;
   }
   clearDraw(false);
+  resetYAuto();
   redrawAll();
 }
 
@@ -548,7 +563,7 @@ function buildPresets(){
       <div class="pe" style="font-size:.54rem">${p.note}</div>`;
     b.onclick=()=>{cIdx=i;cCoeffs=PRESETS[cType][i].coeffs.slice();
       document.getElementById('eqInput').value=PRESETS[cType][i].desc;
-      buildPresets();clearDraw(false);redrawAll();};
+      buildPresets();clearDraw(false);resetYAuto();redrawAll();};
     c.appendChild(b);
   });
 }
@@ -571,7 +586,7 @@ function readCustom(){return cCoeffs.map((_,i)=>parseFloat(document.getElementBy
 function applyC(){
   cCoeffs=readCustom();
   document.getElementById('eqInput').value=ps(cCoeffs);
-  clearDraw(false);redrawAll();
+  clearDraw(false);resetYAuto();redrawAll();
 }
 function addD(){
   if(cType==='custom'){cCoeffs=readCustom();cCoeffs.unshift(1);}
@@ -593,7 +608,7 @@ function plotCustom(){
     const c=parsePoly(raw);
     cCoeffs=c;
     if(cType==='custom')buildCustomEditor();
-    clearDraw(false);el.style.display='none';redrawAll();
+    clearDraw(false);resetYAuto();el.style.display='none';redrawAll();
   }catch(e){
     el.textContent='⚠ '+e.message;el.style.display='block';
     setTimeout(()=>el.style.display='none',5000);
@@ -611,25 +626,95 @@ function toggle(which){
 }
 
 // ══ ZOOM ══
-function doZoom(factor, centerFrac=0.5){
-  const cx=xRange.min+(xRange.max-xRange.min)*centerFrac;
-  const hw=(xRange.max-xRange.min)*factor/2;
-  xRange={min:cx-hw,max:cx+hw};
+function doZoom(canvas, factor, centerFracX=0.5, centerFracY=0.5){
+  const id = canvas.id;
+  const v = VIEW[id];
+  const xSpan = v.xMax - v.xMin;
+  const cx = v.xMin + xSpan * centerFracX;
+  const hw = xSpan * factor / 2;
+  v.xMin = cx - hw; v.xMax = cx + hw;
+  // Also zoom y if it has been set (not auto)
+  if(v.yMin !== null){
+    const ySpan = v.yMax - v.yMin;
+    const cy2 = v.yMin + ySpan * centerFracY;
+    const hy = ySpan * factor / 2;
+    v.yMin = cy2 - hy; v.yMax = cy2 + hy;
+  }
   redrawAll();
 }
-function resetZoom(){xRange={min:-5,max:5};redrawAll();}
 
-// Wheel zoom on both canvases
-[document.getElementById('gc1'),document.getElementById('gc2')].forEach(canvas=>{
-  canvas.addEventListener('wheel',e=>{
+function resetView(canvas){
+  const id = canvas.id;
+  VIEW[id] = { xMin:-5, xMax:5, yMin:null, yMax:null };
+  redrawAll();
+}
+
+// Wheel zoom — centered at mouse position on that canvas
+[document.getElementById('gc1'), document.getElementById('gc2')].forEach(canvas=>{
+  canvas.addEventListener('wheel', e=>{
     e.preventDefault();
-    const rect=canvas.getBoundingClientRect();
-    const frac=(e.clientX-rect.left)/canvas.width;
-    doZoom(e.deltaY>0?1.14:0.88, frac);
-  },{passive:false});
+    const rect = canvas.getBoundingClientRect();
+    const fx = (e.clientX - rect.left) / rect.width;
+    const fy = (e.clientY - rect.top)  / rect.height;
+    const factor = e.deltaY > 0 ? 1.13 : 0.88;
+    doZoom(canvas, factor, fx, fy);
+  }, {passive:false});
 });
 
-// ══ DRAW MODE ══
+// ══ PAN (drag to move origin on both canvases) ══
+function canvasMathCoords(canvas, clientX, clientY){
+  const id = canvas.id;
+  const v = VIEW[id];
+  const rect = canvas.getBoundingClientRect();
+  const fx = (clientX - rect.left) / rect.width;
+  const fy = (clientY - rect.top)  / rect.height;
+  // need current yRange — get from stored state
+  const state = canvas._state || {};
+  const yMin = state.yMin || 0, yMax = state.yMax || 1;
+  return {
+    x: v.xMin + (v.xMax - v.xMin) * fx,
+    y: yMax - (yMax - yMin) * fy
+  };
+}
+
+[document.getElementById('gc1'), document.getElementById('gc2')].forEach(canvas=>{
+  canvas.style.cursor='grab';
+  canvas.addEventListener('mousedown', e=>{
+    if(canvas===gc1 && drawMode) return; // draw mode owns gc1 mouse
+    PAN.active = true;
+    PAN.canvas = canvas;
+    PAN.startX = e.clientX;
+    PAN.startY = e.clientY;
+    const id = canvas.id;
+    PAN.startView = {...VIEW[id]};
+    canvas.style.cursor = 'grabbing';
+    e.preventDefault();
+  });
+});
+
+window.addEventListener('mousemove', e=>{
+  if(!PAN.active || !PAN.canvas) return;
+  const canvas = PAN.canvas;
+  const id = canvas.id;
+  const sv = PAN.startView;
+  const rect = canvas.getBoundingClientRect();
+  // Delta in pixels → delta in math units
+  const dx = (e.clientX - PAN.startX) / rect.width  * (sv.xMax - sv.xMin);
+  const dy = (e.clientY - PAN.startY) / rect.height * (sv.yMax - sv.yMin);
+  VIEW[id].xMin = sv.xMin - dx;
+  VIEW[id].xMax = sv.xMax - dx;
+  if(sv.yMin !== null){
+    VIEW[id].yMin = sv.yMin + dy;  // y is flipped (canvas y down = math y up)
+    VIEW[id].yMax = sv.yMax + dy;
+  }
+  redrawAll();
+});
+
+window.addEventListener('mouseup', ()=>{
+  if(!PAN.active) return;
+  if(PAN.canvas) PAN.canvas.style.cursor = PAN.canvas===gc1&&drawMode ? 'crosshair' : 'grab';
+  PAN.active = false; PAN.canvas = null;
+});
 function toggleDraw(){
   drawMode=!drawMode;
   const btn=document.getElementById('modeBtn');
@@ -641,7 +726,7 @@ function toggleDraw(){
   } else {
     btn.className='ib';btn.style.cssText='border:1px solid var(--bor);background:var(--sur2);color:var(--mu)';
     btn.textContent='✏ Draw';hint.style.display='none';
-    document.getElementById('gc1').style.cursor='crosshair';
+    document.getElementById('gc1').style.cursor='grab';
   }
 }
 function clearDraw(redraw=true){
@@ -669,7 +754,8 @@ function refitDrawn(){
 // ══ TRACE SLIDER ══
 function onTrace(val){
   tracePos=parseInt(val);
-  const tx=xRange.min+(xRange.max-xRange.min)*tracePos/1000;
+  const v1=VIEW.gc1;
+  const tx=v1.xMin+(v1.xMax-v1.xMin)*tracePos/1000;
   const d1=dp(cCoeffs);
   const slope=ep(d1,tx), fx=ep(cCoeffs,tx);
   document.getElementById('traceVal').textContent=`x=${tx.toFixed(3)}  f=${fx.toFixed(3)}`;
@@ -725,19 +811,27 @@ const ctx1=gc1.getContext('2d');
 function redrawMain(){
   const W=gc1.width, H=gc1.height;
   if(!W||!H)return;
-  const xMin=xRange.min, xMax=xRange.max;
+  const v1 = VIEW.gc1;
+  const xMin=v1.xMin, xMax=v1.xMax;
   const d1=dp(cCoeffs), d2=dp(d1);
   const PTS=700;
 
-  // Y range from f(x)
-  let yMn=Infinity,yMx=-Infinity;
-  for(let i=0;i<=PTS;i++){
-    const x=xMin+(xMax-xMin)*i/PTS,y=ep(cCoeffs,x);
-    if(isFinite(y)&&Math.abs(y)<1e9){yMn=Math.min(yMn,y);yMx=Math.max(yMx,y);}
+  // Y range: auto-compute if null (first load or reset), else use stored pan value
+  let yMin, yMax, yR;
+  if(v1.yMin === null){
+    let yMn=Infinity,yMx=-Infinity;
+    for(let i=0;i<=PTS;i++){
+      const x=xMin+(xMax-xMin)*i/PTS,y=ep(cCoeffs,x);
+      if(isFinite(y)&&Math.abs(y)<1e9){yMn=Math.min(yMn,y);yMx=Math.max(yMx,y);}
+    }
+    if(!isFinite(yMn)){yMn=-10;yMx=10;}
+    const fR=yMx-yMn||1, pad=fR*.20;
+    yMin=yMn-pad; yMax=yMx+pad;
+    v1.yMin=yMin; v1.yMax=yMax; // store so pan works immediately
+  } else {
+    yMin=v1.yMin; yMax=v1.yMax;
   }
-  if(!isFinite(yMn)){yMn=-10;yMx=10;}
-  const fR=yMx-yMn||1, pad=fR*.20;
-  const yMin=yMn-pad, yMax=yMx+pad, yR=yMax-yMin;
+  yR=yMax-yMin||1;
 
   // Derivative normalization for overlay
   let d1mn=Infinity,d1mx=-Infinity,d2mn=Infinity,d2mx=-Infinity;
@@ -759,7 +853,7 @@ function redrawMain(){
 
   // Trace vertical bar
   if(tracePos>0){
-    const tx=xRange.min+(xRange.max-xRange.min)*tracePos/1000;
+    const tx=VIEW.gc1.xMin+(VIEW.gc1.xMax-VIEW.gc1.xMin)*tracePos/1000;
     const px=cx(tx);
     ctx1.strokeStyle='rgba(255,255,255,0.12)';ctx1.lineWidth=1;ctx1.setLineDash([4,4]);
     ctx1.beginPath();ctx1.moveTo(px,0);ctx1.lineTo(px,H);ctx1.stroke();ctx1.setLineDash([]);
@@ -901,33 +995,42 @@ const ctx2=gc2.getContext('2d');
 function redrawDeriv(){
   const W=gc2.width,H=gc2.height;
   if(!W||!H)return;
-  const xMin=xRange.min,xMax=xRange.max;
+  const v2 = VIEW.gc2;
+  const xMin=v2.xMin,xMax=v2.xMax;
   const d1=dp(cCoeffs),d2=dp(d1);
   const PTS=600;
-  const traceX=xMin+(xMax-xMin)*tracePos/1000;
+  const traceX=VIEW.gc1.xMin+(VIEW.gc1.xMax-VIEW.gc1.xMin)*tracePos/1000;
 
-  // Y range from derivatives only (true scale)
-  let yMn=Infinity,yMx=-Infinity;
-  const fns=[];
-  if(showD1)fns.push(d1);
-  if(showD2)fns.push(d2);
-  if(!fns.length){fns.push(d1);}
-  fns.forEach(fn=>{
-    for(let i=0;i<=PTS;i++){
-      const x=xMin+(xMax-xMin)*i/PTS,v=ep(fn,x);
-      if(isFinite(v)&&Math.abs(v)<1e9){yMn=Math.min(yMn,v);yMx=Math.max(yMx,v);}
-    }
-  });
-  if(!isFinite(yMn)){yMn=-5;yMx=5;}
-  yMn=Math.min(yMn,0);yMx=Math.max(yMx,0);
-  const pad=(yMx-yMn||1)*.18;
-  const yMin=yMn-pad,yMax=yMx+pad,yR=yMax-yMin;
+  // Y range: auto-compute if null, else use stored pan value
+  let yMin, yMax, yR;
+  if(v2.yMin === null){
+    let yMn=Infinity,yMx=-Infinity;
+    const fns=[];
+    if(showD1)fns.push(d1);
+    if(showD2)fns.push(d2);
+    if(!fns.length)fns.push(d1);
+    fns.forEach(fn=>{
+      for(let i=0;i<=PTS;i++){
+        const x=xMin+(xMax-xMin)*i/PTS,v=ep(fn,x);
+        if(isFinite(v)&&Math.abs(v)<1e9){yMn=Math.min(yMn,v);yMx=Math.max(yMx,v);}
+      }
+    });
+    if(!isFinite(yMn)){yMn=-5;yMx=5;}
+    yMn=Math.min(yMn,0);yMx=Math.max(yMx,0);
+    const pad=(yMx-yMn||1)*.18;
+    yMin=yMn-pad; yMax=yMx+pad;
+    v2.yMin=yMin; v2.yMax=yMax;
+  } else {
+    yMin=v2.yMin; yMax=v2.yMax;
+  }
+  yR=yMax-yMin||1;
 
   const cx=x=>(x-xMin)/(xMax-xMin)*W;
   const cy=y=>H-(y-yMin)/yR*H;
 
   ctx2.fillStyle='#090b15';ctx2.fillRect(0,0,W,H);
   drawGrid(ctx2,W,H,xMin,xMax,yMin,yMax);
+  gc2._state={yMin,yMax,xMin,xMax};
 
   // Zero line
   ctx2.strokeStyle='#3a4272';ctx2.lineWidth=1;
@@ -1034,15 +1137,18 @@ gc1.addEventListener('mousemove',e=>{
 });
 
 gc1.addEventListener('mousedown',e=>{
-  if(!drawMode)return;
-  isDrawing=true;drawnXs=[];drawnYs=[];
-  document.getElementById('drawFit').style.display='none';
-  document.getElementById('r2b').style.display='none';
-  const s=gc1._state;if(!s)return;
-  const rect=gc1.getBoundingClientRect();
-  const x=s.xMin+(s.xMax-s.xMin)*(e.clientX-rect.left)/gc1.width;
-  const y=s.yMin+(s.yMax-s.yMin)*(1-(e.clientY-rect.top)/gc1.height);
-  drawnXs.push(x);drawnYs.push(y);
+  if(drawMode){
+    // Draw mode: capture strokes
+    isDrawing=true; drawnXs=[]; drawnYs=[];
+    document.getElementById('drawFit').style.display='none';
+    document.getElementById('r2b').style.display='none';
+    const s=gc1._state; if(!s)return;
+    const rect=gc1.getBoundingClientRect();
+    const x=s.xMin+(s.xMax-s.xMin)*(e.clientX-rect.left)/gc1.width;
+    const y=s.yMin+(s.yMax-s.yMin)*(1-(e.clientY-rect.top)/gc1.height);
+    drawnXs.push(x); drawnYs.push(y);
+  }
+  // Pan is handled by the shared window listener below — don't block it here
 });
 
 gc1.addEventListener('mouseup',()=>{
@@ -1059,15 +1165,16 @@ gc1.addEventListener('mouseleave',()=>{
 });
 
 // ══ RESIZE ══
-const GRAPH_H = 420; // fixed height per graph
+const GRAPH_H = 500;
 function resz(){
-  const fullW = document.body.clientWidth;
-  [document.getElementById('gwrap1'),document.getElementById('gwrap2')].forEach(w=>{
-    w.style.height = GRAPH_H + 'px';
-  });
-  gc1.width  = document.getElementById('gwrap1').clientWidth || fullW;
+  const wrap1 = document.getElementById('gwrap1');
+  const wrap2 = document.getElementById('gwrap2');
+  wrap1.style.height = GRAPH_H + 'px';
+  wrap2.style.height = GRAPH_H + 'px';
+  // Each graph is half page width
+  gc1.width  = wrap1.clientWidth  || Math.floor(document.body.clientWidth / 2);
   gc1.height = GRAPH_H;
-  gc2.width  = document.getElementById('gwrap2').clientWidth || fullW;
+  gc2.width  = wrap2.clientWidth  || Math.floor(document.body.clientWidth / 2);
   gc2.height = GRAPH_H;
   redrawAll();
 }
