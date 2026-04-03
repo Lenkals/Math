@@ -3,235 +3,415 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Polynomial Graph Explorer — Even & Odd Degree</title>
+<title>Polynomial Graph Explorer</title>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&family=Playfair+Display:ital,wght@0,700;1,400&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#0b0d18;--sur:#111425;--sur2:#181c30;--bor:#242840;--ce:#00e5ff;--co:#ff6b6b;--g:#56e356;--am:#ffb347;--mx:#ff4dff;--mn:#4dffdd;--tx:#e8eaf6;--mu:#7986cb}
+:root{
+  --bg:#0b0d18;--sur:#111425;--sur2:#181c30;--bor:#242840;
+  --ce:#00e5ff;--co:#ff6b6b;--g:#56e356;--am:#ffb347;
+  --mx:#ff4dff;--mn:#4dffdd;--tx:#e8eaf6;--mu:#7986cb;--draw:#ffcc44;
+  --cu:#b48aff;
+}
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg);color:var(--tx);font-family:'JetBrains Mono',monospace;min-height:100vh;overflow-x:hidden}
+html{overflow-y:auto;overflow-x:hidden}
+body{background:var(--bg);color:var(--tx);font-family:'JetBrains Mono',monospace;
+  display:flex;flex-direction:column;min-height:100vh}
 
-header{background:linear-gradient(135deg,#080a14,#111425);border-bottom:1px solid var(--bor);padding:13px 22px;display:flex;align-items:center;gap:13px;position:sticky;top:0;z-index:100}
-.logo{width:36px;height:36px;background:linear-gradient(135deg,var(--ce),var(--co));border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#000;flex-shrink:0}
-header h1{font-family:'Playfair Display',serif;font-size:1.25rem;background:linear-gradient(90deg,var(--ce),#a990ff,var(--co));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+/* ─── HEADER ─── */
+header{background:linear-gradient(135deg,#070910,#111425);border-bottom:1px solid var(--bor);
+  padding:10px 20px;display:flex;align-items:center;gap:12px;flex-shrink:0;z-index:50}
+.logo{width:32px;height:32px;background:linear-gradient(135deg,var(--ce),var(--co));
+  border-radius:8px;display:flex;align-items:center;justify-content:center;
+  font-size:15px;font-weight:700;color:#000;flex-shrink:0}
+header h1{font-family:'Playfair Display',serif;font-size:1.15rem;
+  background:linear-gradient(90deg,var(--ce),#a990ff,var(--co));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hdr-sub{font-size:.58rem;color:var(--mu);margin-left:auto}
 
-/* CUSTOM INPUT */
-.cbar{background:var(--sur);border-bottom:1px solid var(--bor);padding:9px 22px;display:flex;align-items:center;gap:9px;flex-wrap:wrap}
-.cbar label{font-size:.7rem;color:var(--mu);white-space:nowrap}
-#eqInput{flex:1;min-width:200px;background:var(--sur2);border:1.5px solid var(--bor);color:var(--ce);font-family:'JetBrains Mono',monospace;font-size:.85rem;padding:7px 13px;border-radius:8px;outline:none;transition:border-color .2s}
+/* ─── INPUT BAR ─── */
+.ibar{background:var(--sur);border-bottom:1px solid var(--bor);
+  padding:7px 18px;display:flex;align-items:center;gap:8px;flex-shrink:0;flex-wrap:wrap}
+.ibar label{font-size:.68rem;color:var(--mu);white-space:nowrap}
+#eqInput{flex:1;min-width:200px;background:var(--sur2);border:1.5px solid var(--bor);
+  color:var(--ce);font-family:'JetBrains Mono',monospace;font-size:.82rem;
+  padding:6px 12px;border-radius:7px;outline:none;transition:border-color .2s}
 #eqInput:focus{border-color:var(--ce)}
 #eqInput.om{color:var(--co)}
-#eqInput.om:focus{border-color:var(--co)}
-.pbtn2{padding:7px 18px;background:linear-gradient(135deg,var(--ce),#007acc);border:none;border-radius:8px;color:#000;font-family:inherit;font-size:.75rem;font-weight:700;cursor:pointer;white-space:nowrap}
-.pbtn2:hover{opacity:.85}
-.pbtn2.ob{background:linear-gradient(135deg,var(--co),#cc3300);color:#fff}
-.hint{font-size:.63rem;color:var(--mu);flex-basis:100%}
-.err{font-size:.68rem;color:var(--co);flex-basis:100%;display:none;padding:4px 0}
+#eqInput.cm{color:var(--cu)}
+.ib{padding:6px 14px;border:none;border-radius:7px;font-family:inherit;
+  font-size:.7rem;font-weight:700;cursor:pointer;white-space:nowrap;transition:opacity .2s}
+.ib:hover{opacity:.82}
+.ib.pl{background:linear-gradient(135deg,var(--ce),#007acc);color:#000}
+.ib.ob{background:linear-gradient(135deg,var(--co),#cc3300);color:#fff}
+.ib.cb{background:linear-gradient(135deg,var(--cu),#6644cc);color:#fff}
+.ib.draw-on{background:linear-gradient(135deg,var(--draw),#cc9900);color:#000}
+.err{font-size:.62rem;color:var(--co);flex-basis:100%;display:none;padding:2px 0}
+.hint{font-size:.58rem;color:var(--mu);display:none}
 
-/* LAYOUT */
-.app{display:grid;grid-template-columns:255px 1fr 248px;height:calc(100vh - 112px)}
+/* ─── TOP CONTROL STRIP ─── */
+.top-strip{background:var(--sur);border-bottom:1px solid var(--bor);
+  display:flex;align-items:stretch;gap:0;flex-shrink:0;overflow:hidden}
 
-/* SIDEBAR */
-.sb{background:var(--sur);border-right:1px solid var(--bor);overflow-y:auto;padding:14px 12px}
-.sec{font-size:.6rem;text-transform:uppercase;letter-spacing:.14em;color:var(--mu);margin-bottom:9px;padding-bottom:4px;border-bottom:1px solid var(--bor);margin-top:14px}
-.sec:first-child{margin-top:0}
-.ttabs{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:12px}
-.tt{padding:6px;border:1px solid var(--bor);background:var(--sur2);color:var(--mu);border-radius:7px;cursor:pointer;font-family:inherit;font-size:.68rem;text-align:center;transition:all .2s}
+/* Type tabs */
+.type-col{display:flex;flex-direction:column;gap:4px;padding:8px 10px;
+  border-right:1px solid var(--bor);flex-shrink:0;justify-content:center}
+.type-col-label{font-size:.55rem;color:var(--mu);text-transform:uppercase;
+  letter-spacing:.12em;margin-bottom:2px;text-align:center}
+.tt-row{display:flex;gap:4px}
+.tt{padding:5px 10px;border:1px solid var(--bor);background:var(--sur2);
+  color:var(--mu);border-radius:6px;cursor:pointer;font-family:inherit;
+  font-size:.65rem;transition:all .2s;white-space:nowrap}
 .tt.even.on{border-color:var(--ce);color:var(--ce);background:rgba(0,229,255,.07)}
 .tt.odd.on{border-color:var(--co);color:var(--co);background:rgba(255,107,107,.07)}
-.plist{display:flex;flex-direction:column;gap:6px}
-.pb{background:var(--sur2);border:1px solid var(--bor);border-radius:8px;padding:9px 11px;cursor:pointer;text-align:left;transition:all .2s;color:var(--tx);font-family:inherit}
-.pb:hover{border-color:var(--mu);transform:translateX(2px)}
-.pb.ae{border-color:var(--ce);background:rgba(0,229,255,.04)}
-.pb.ao{border-color:var(--co);background:rgba(255,107,107,.04)}
-.pn{font-size:.7rem;font-weight:600;margin-bottom:2px}
-.pe{font-size:.6rem;color:var(--mu)}
-.pe.c{color:var(--ce)}.pe.r{color:var(--co)}
-.ced{margin-top:4px}
-.crow{display:flex;align-items:center;gap:6px;margin-bottom:6px}
-.clbl{font-size:.66rem;color:var(--mu);width:24px;flex-shrink:0}
-.ci{flex:1;background:var(--sur2);border:1px solid var(--bor);color:var(--tx);font-family:inherit;font-size:.7rem;padding:5px 8px;border-radius:6px;outline:none;transition:border-color .2s}
-.ci:focus{border-color:var(--ce)}
-.dbtns{display:flex;gap:5px;margin-top:5px}
-.db{flex:1;padding:5px;background:var(--sur2);border:1px solid var(--bor);color:var(--mu);border-radius:5px;cursor:pointer;font-family:inherit;font-size:.65rem}
-.ab{width:100%;padding:8px;margin-top:8px;border:none;border-radius:7px;font-family:inherit;font-size:.7rem;font-weight:700;cursor:pointer}
+.tt.custom.on{border-color:var(--cu);color:var(--cu);background:rgba(180,138,255,.07)}
+
+/* Presets strip */
+.preset-col{flex:1;display:flex;align-items:center;gap:6px;padding:8px 12px;
+  overflow-x:auto;overflow-y:hidden;min-width:0}
+.preset-col::-webkit-scrollbar{height:3px}
+.preset-col::-webkit-scrollbar-track{background:var(--bg)}
+.preset-col::-webkit-scrollbar-thumb{background:var(--bor);border-radius:2px}
+.pb{background:var(--sur2);border:1px solid var(--bor);border-radius:8px;
+  padding:7px 11px;cursor:pointer;text-align:left;transition:all .2s;
+  color:var(--tx);font-family:inherit;white-space:nowrap;flex-shrink:0}
+.pb:hover{border-color:var(--mu)}
+.pb.ae{border-color:var(--ce);background:rgba(0,229,255,.05)}
+.pb.ao{border-color:var(--co);background:rgba(255,107,107,.05)}
+.pb.ac{border-color:var(--cu);background:rgba(180,138,255,.05)}
+.pn{font-size:.68rem;font-weight:600}
+.pe{font-size:.57rem;color:var(--mu);margin-top:1px}
+.pe.c{color:var(--ce)}.pe.r{color:var(--co)}.pe.v{color:var(--cu)}
+
+/* Custom tab panel */
+.custom-panel{flex:1;display:none;align-items:center;gap:10px;padding:8px 14px;overflow-x:auto}
+.custom-panel .deg-row{display:flex;align-items:center;gap:6px;font-size:.65rem;color:var(--mu);flex-shrink:0}
+.custom-panel .dbtns{display:flex;gap:4px;flex-shrink:0}
+.custom-panel .db{padding:5px 9px;background:var(--sur2);border:1px solid var(--bor);
+  color:var(--mu);border-radius:5px;cursor:pointer;font-family:inherit;font-size:.63rem}
+.custom-panel .db:hover{border-color:var(--mu)}
+.coeff-list{display:flex;align-items:center;gap:5px;flex-wrap:nowrap}
+.ci-group{display:flex;align-items:center;gap:3px;flex-shrink:0}
+.ci-lbl{font-size:.6rem;color:var(--mu);white-space:nowrap}
+.ci{width:52px;background:var(--sur2);border:1px solid var(--bor);color:var(--tx);
+  font-family:inherit;font-size:.68rem;padding:4px 6px;border-radius:5px;outline:none}
+.ci:focus{border-color:var(--cu)}
+.ab{padding:6px 14px;border:none;border-radius:6px;font-family:inherit;
+  font-size:.68rem;font-weight:700;cursor:pointer;flex-shrink:0}
 .ab.e{background:linear-gradient(135deg,var(--ce),#007acc);color:#000}
 .ab.o{background:linear-gradient(135deg,var(--co),#cc2200);color:#fff}
+.ab.cu{background:linear-gradient(135deg,var(--cu),#5522cc);color:#fff}
 
-/* MAIN */
-.main{display:flex;flex-direction:column;background:var(--bg);overflow:hidden}
-.tbar{display:flex;align-items:center;gap:11px;padding:9px 16px;border-bottom:1px solid var(--bor);background:var(--sur);flex-shrink:0;flex-wrap:wrap}
-.li{display:flex;align-items:center;gap:5px;font-size:.63rem}
-.ld{width:20px;height:3px;border-radius:2px;flex-shrink:0}
-.xr{margin-left:auto;display:flex;align-items:center;gap:5px;font-size:.64rem;color:var(--mu)}
-.ri{width:50px;background:var(--sur2);border:1px solid var(--bor);color:var(--tx);font-family:inherit;font-size:.66rem;padding:4px 6px;border-radius:5px;outline:none}
-canvas{flex:1;display:block;cursor:crosshair}
+/* Mode row */
+.mode-col{display:flex;align-items:center;gap:6px;padding:8px 10px;
+  border-left:1px solid var(--bor);flex-shrink:0}
+.mbtn{padding:5px 10px;border:1px solid var(--bor);border-radius:6px;
+  background:var(--sur2);color:var(--mu);font-family:inherit;font-size:.64rem;
+  cursor:pointer;transition:all .2s;white-space:nowrap}
+.mbtn:hover{border-color:var(--mu)}
+.mbtn.draw-on{border-color:var(--draw);color:var(--draw);background:rgba(255,204,68,.08)}
+.draw-fit{display:none;align-items:center;gap:5px;font-size:.62rem;color:var(--mu)}
+.draw-fit select{background:var(--sur);border:1px solid var(--bor);color:var(--tx);
+  font-family:inherit;font-size:.6rem;padding:3px;border-radius:4px;outline:none}
+.r2b{padding:1px 6px;border-radius:8px;background:rgba(86,227,86,.1);
+  border:1px solid var(--g);color:var(--g);font-size:.58rem;font-weight:700;display:none}
 
-/* RIGHT PANEL */
-.rp{background:var(--sur);border-left:1px solid var(--bor);overflow-y:auto;padding:14px 12px}
-.fb{background:var(--sur2);border:1px solid var(--bor);border-radius:8px;padding:10px;margin-bottom:9px}
-.fl{font-size:.58rem;color:var(--mu);text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px}
-.fv{font-size:.76rem;font-weight:600;word-break:break-all;line-height:1.6}
-.fv.c{color:var(--ce)}.fv.g{color:var(--g)}.fv.a{color:var(--am)}.fv.r{color:var(--co)}
+/* ─── GRAPHS SECTION ─── */
+.graphs{display:flex;flex-direction:column;flex-shrink:0}
 
-/* EXPLANATION */
-.exbox{background:var(--sur2);border-radius:9px;padding:13px;margin-bottom:11px;border-left:3px solid var(--g)}
-.exbox h4{font-size:.7rem;color:var(--g);margin-bottom:7px}
-.exbox p{font-size:.63rem;color:var(--mu);line-height:1.75;margin-bottom:5px}
-.exbox .hi{color:var(--tx)}
-.exbox .mxh{color:var(--mx)}
-.exbox .mnh{color:var(--mn)}
-.exbox .note{color:var(--ce);font-size:.6rem;margin-top:4px}
+/* Graph wrapper — fixed tall height so both graphs are big */
+.gwrap{position:relative;height:420px;flex-shrink:0;display:flex;flex-direction:column}
+.gwrap canvas{width:100%;height:100%;display:block;flex:1}
 
-.ctab{width:100%;border-collapse:collapse;font-size:.67rem;margin-top:5px}
-.ctab th{background:var(--sur2);color:var(--mu);padding:5px 6px;text-align:left;border-bottom:1px solid var(--bor)}
-.ctab td{padding:5px 6px;border-bottom:1px solid var(--bor)}
-.bdg{display:inline-block;padding:2px 6px;border-radius:3px;font-size:.58rem;font-weight:700}
+/* Overlay toggle buttons — bottom-left of canvas */
+.graph-toggles{position:absolute;bottom:8px;left:8px;display:flex;gap:5px;z-index:10}
+.gtog{padding:4px 10px;border-radius:5px;border:1px solid;font-family:inherit;
+  font-size:.62rem;font-weight:700;cursor:pointer;transition:all .2s;backdrop-filter:blur(4px)}
+.gtog.fx  {border-color:var(--ce);color:var(--ce);background:rgba(0,229,255,.12)}
+.gtog.d1  {border-color:var(--g) ;color:var(--g) ;background:rgba(86,227,86,.12)}
+.gtog.d2  {border-color:var(--am);color:var(--am);background:rgba(255,179,71,.12)}
+.gtog.off {opacity:.35;filter:grayscale(.7)}
+
+/* Zoom buttons — bottom-right */
+.zoom-btns{position:absolute;bottom:8px;right:8px;display:flex;gap:4px;z-index:10}
+.zbtn{width:26px;height:26px;border-radius:5px;border:1px solid var(--bor);
+  background:rgba(17,20,37,.85);color:var(--mu);font-family:inherit;font-size:.8rem;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  backdrop-filter:blur(4px);transition:all .2s}
+.zbtn:hover{border-color:var(--mu);color:var(--tx)}
+
+/* Graph label */
+.glabel{position:absolute;top:6px;left:8px;font-size:.6rem;color:var(--mu);
+  background:rgba(11,13,24,.75);padding:2px 7px;border-radius:4px;pointer-events:none;z-index:5}
+
+/* Trace slider bar */
+.trace-bar{display:flex;align-items:center;gap:8px;padding:5px 14px;
+  border-top:1px solid var(--bor);border-bottom:1px solid var(--bor);
+  background:var(--sur2);flex-shrink:0}
+.trace-bar span{font-size:.6rem;color:var(--mu);white-space:nowrap}
+#traceSlider{flex:1;accent-color:var(--ce);cursor:pointer}
+.tval{font-size:.62rem;font-weight:700;color:var(--ce);width:130px;text-align:right;white-space:nowrap}
+.tslope{font-size:.58rem;color:var(--g);margin-left:5px;white-space:nowrap}
+
+/* Divider between graphs */
+.gdivider{height:1px;background:var(--bor);flex-shrink:0}
+
+/* ─── BOTTOM INFO STRIP ─── */
+.info-strip{background:var(--sur);border-top:1px solid var(--bor);
+  display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:0;flex-shrink:0;
+  max-height:none;overflow:visible}
+.info-col{padding:10px 13px;border-right:1px solid var(--bor);overflow-y:auto;font-size:.65rem}
+.info-col:last-child{border-right:none}
+.info-col::-webkit-scrollbar{width:3px}
+.info-col::-webkit-scrollbar-thumb{background:var(--bor)}
+.ic-title{font-size:.56rem;text-transform:uppercase;letter-spacing:.13em;color:var(--mu);
+  margin-bottom:7px;padding-bottom:4px;border-bottom:1px solid var(--bor)}
+/* Equation boxes */
+.fbox{margin-bottom:6px}
+.fl{font-size:.54rem;color:var(--mu);margin-bottom:2px;text-transform:uppercase;letter-spacing:.08em}
+.fv{font-size:.72rem;font-weight:600;word-break:break-all;line-height:1.5}
+.fv.c{color:var(--ce)}.fv.g{color:var(--g)}.fv.a{color:var(--am)}
+.fv.r{color:var(--co)}.fv.v{color:var(--cu)}
+/* Critical points table */
+.ctab{width:100%;border-collapse:collapse;font-size:.62rem}
+.ctab th{background:var(--sur2);color:var(--mu);padding:4px 5px;text-align:left;border-bottom:1px solid var(--bor)}
+.ctab td{padding:4px 5px;border-bottom:1px solid var(--bor)}
+.bdg{display:inline-block;padding:1px 5px;border-radius:3px;font-size:.55rem;font-weight:700}
 .bdg.max{background:rgba(255,77,255,.1);color:var(--mx);border:1px solid var(--mx)}
 .bdg.min{background:rgba(77,255,221,.1);color:var(--mn);border:1px solid var(--mn)}
 .bdg.inf{background:rgba(121,134,203,.1);color:var(--mu);border:1px solid var(--mu)}
-
-.dpbox{background:var(--sur2);border-radius:8px;padding:11px;margin-bottom:9px}
-.dpbox h4{font-size:.7rem;margin-bottom:6px}
-.dpbox ul{padding-left:13px}
-.dpbox li{font-size:.62rem;color:var(--mu);line-height:1.8}
-
-.hbx{background:var(--sur2);border:1px solid var(--bor);border-radius:7px;padding:9px 11px;font-size:.67rem}
+/* Cursor hover */
+.hbx{background:var(--sur2);border-radius:6px;padding:8px 9px}
 .hr{display:flex;justify-content:space-between;margin-bottom:3px}
-.hr .k{color:var(--mu)}.hr .v{font-weight:600}
+.hr .k{color:var(--mu);font-size:.6rem}.hr .v{font-weight:700;font-size:.62rem}
+/* Degree props */
+.dpbox h4{font-size:.66rem;margin-bottom:5px}
+.dpbox ul{padding-left:12px}
+.dpbox li{font-size:.58rem;color:var(--mu);line-height:1.75}
+/* Explain box */
+.exbox p{font-size:.6rem;color:var(--mu);line-height:1.7;margin-bottom:4px}
+.exbox .hi{color:var(--tx)}.exbox .mxh{color:var(--mx)}.exbox .mnh{color:var(--mn)}
+.exbox .note{color:var(--ce);font-size:.57rem}
 
-::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--bor);border-radius:2px}
-@media(max-width:900px){.app{grid-template-columns:1fr;height:auto}.sb,.rp{max-height:260px}canvas{height:300px!important}}
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--bor);border-radius:2px}
 </style>
 </head>
 <body>
+
+<!-- ════ HEADER ════ -->
 <header>
   <div class="logo">∫</div>
   <div>
     <h1>Polynomial Graph Explorer</h1>
-    <div style="font-size:.6rem;color:var(--mu);margin-top:1px">Even & Odd Degree · f(x) · f′(x) · f″(x) · Extrema</div>
+    <div style="font-size:.56rem;color:var(--mu);margin-top:1px">Even · Odd · Custom · Draw · Zoom · Trace Derivatives</div>
   </div>
+  <div class="hdr-sub">f(x) · f′(x) · f″(x)</div>
 </header>
 
-<div class="cbar">
-  <label>✏️ Enter polynomial:</label>
-  <input type="text" id="eqInput" placeholder="e.g.  x^3 - 12x + 2  |  x^4 - 8x^2 + 7  |  -2x^5 + 10x^3 - 8x"/>
-  <button class="pbtn2" id="plotBtn" onclick="plotCustom()">▶ Plot</button>
-  <div class="hint">Use <code>x^n</code> for powers (or unicode ² ³) · examples: <code>x^6+x^2-9</code> &nbsp;|&nbsp; <code>2x^4 - 5x^2 + 1</code> &nbsp;|&nbsp; <code>0.5x^5 - 4x^3 + 3x</code></div>
+<!-- ════ INPUT BAR ════ -->
+<div class="ibar">
+  <label>f(x) =</label>
+  <input type="text" id="eqInput" placeholder="x^3 - 12x + 2  |  x^4 - 8x^2 + 7  |  or click ✏ Draw Mode and sketch"/>
+  <button class="ib pl" id="plotBtn" onclick="plotCustom()">▶ Plot</button>
+  <button class="ib" id="modeBtn" onclick="toggleDraw()" style="border:1px solid var(--bor);background:var(--sur2);color:var(--mu)">✏ Draw</button>
+  <div class="draw-fit" id="drawFit">
+    Fit deg: <select id="fitDeg" onchange="refitDrawn()">
+      <option value="2">2</option><option value="3">3</option>
+      <option value="4" selected>4</option><option value="5">5</option>
+      <option value="6">6</option><option value="7">7</option>
+    </select>
+    <span class="r2b" id="r2b">R²—</span>
+    <button onclick="clearDraw()" style="padding:3px 8px;background:var(--sur2);border:1px solid var(--bor);color:var(--mu);border-radius:4px;cursor:pointer;font-family:inherit;font-size:.6rem">✕</button>
+  </div>
   <div class="err" id="errMsg"></div>
+  <div class="hint" id="drawHint">🖊 Click and drag on graph to sketch a polynomial curve</div>
 </div>
 
-<div class="app">
-<div class="sb">
-  <div class="sec">Degree Type</div>
-  <div class="ttabs">
-    <button class="tt even on" onclick="setType('even')">⬡ Even</button>
-    <button class="tt odd" onclick="setType('odd')">◇ Odd</button>
-  </div>
-  <div class="sec">Wavy Presets</div>
-  <div class="plist" id="plist"></div>
-  <div class="sec" style="margin-top:16px">Manual Coefficients</div>
-  <div class="ced" id="ced"></div>
-</div>
-
-<div class="main">
-  <div class="tbar">
-    <div class="li"><div class="ld" id="fxd" style="background:var(--ce)"></div><span>f(x)</span></div>
-    <div class="li"><div class="ld" style="background:var(--g)"></div><span>f′(x) scaled</span></div>
-    <div class="li"><div class="ld" style="background:var(--am)"></div><span>f″(x) scaled</span></div>
-    <div class="li"><div class="ld" style="background:var(--mx)"></div><span>▲ Max</span></div>
-    <div class="li"><div class="ld" style="background:var(--mn)"></div><span>▼ Min</span></div>
-    <div class="xr">x: <input type="number" class="ri" id="xMin" value="-5" onchange="redraw()"> to <input type="number" class="ri" id="xMax" value="5" onchange="redraw()"></div>
-  </div>
-  <canvas id="gc"></canvas>
-</div>
-
-<div class="rp">
-  <div class="sec">Equations</div>
-  <div class="fb"><div class="fl">f(x) =</div><div class="fv c" id="ff">—</div></div>
-  <div class="fb"><div class="fl">f′(x) =</div><div class="fv g" id="f1">—</div></div>
-  <div class="fb"><div class="fl">f″(x) =</div><div class="fv a" id="f2">—</div></div>
-
-  <div class="sec" style="margin-top:13px">Why Maxima &amp; Minima</div>
-  <div class="exbox">
-    <h4>The Second Derivative Test</h4>
-    <p>A <span class="hi">critical point</span> is where <span class="hi">f′(x) = 0</span> — the tangent line is horizontal (slope = 0). The curve is momentarily flat there.</p>
-    <p><span class="mxh">▲ Local Maximum</span>: f′ changes <span class="hi">+ → 0 → −</span>, and <span class="hi">f″(x) &lt; 0</span> (concave down ∩ — hilltop shape).</p>
-    <p><span class="mnh">▼ Local Minimum</span>: f′ changes <span class="hi">− → 0 → +</span>, and <span class="hi">f″(x) &gt; 0</span> (concave up ∪ — valley shape).</p>
-    <p class="note">⚡ They appear at the ACTUAL peak/valley of f(x), not near x=0. The dots in the graph are placed at the exact (x, f(x)) of the extremum.</p>
-    <p class="note">📐 f′(x) and f″(x) are drawn scaled to fit same view — check hover panel for true values.</p>
+<!-- ════ TOP CONTROL STRIP ════ -->
+<div class="top-strip">
+  <!-- TYPE TABS -->
+  <div class="type-col">
+    <div class="type-col-label">Type</div>
+    <div class="tt-row">
+      <button class="tt even on"   onclick="setType('even')">⬡ Even</button>
+      <button class="tt odd"        onclick="setType('odd')">◇ Odd</button>
+      <button class="tt custom"     onclick="setType('custom')">⊞ Custom</button>
+    </div>
   </div>
 
-  <div class="sec">Critical Points Table</div>
-  <table class="ctab">
-    <thead><tr><th>x</th><th>f(x)</th><th>f″(x)</th><th>Type</th></tr></thead>
-    <tbody id="ctbody"></tbody>
-  </table>
+  <!-- PRESET STRIP (even/odd) -->
+  <div class="preset-col" id="presetCol">
+    <div class="plist-h" id="plist" style="display:flex;gap:6px;align-items:center"></div>
+  </div>
 
-  <div class="sec" style="margin-top:13px">Degree Properties</div>
-  <div class="dpbox" id="dpbox"><h4>—</h4><ul></ul></div>
+  <!-- CUSTOM EDITOR PANEL -->
+  <div class="custom-panel" id="customPanel">
+    <div class="deg-row">Degree: <strong id="degDisplay">4</strong></div>
+    <div class="dbtns">
+      <button class="db" onclick="addD()">+</button>
+      <button class="db" onclick="remD()">−</button>
+    </div>
+    <div class="coeff-list" id="coeffList"></div>
+    <button class="ab cu" onclick="applyC()">▶ Apply</button>
+  </div>
 
-  <div class="sec">Cursor Trace (true values)</div>
-  <div class="hbx">
-    <div class="hr"><span class="k">x =</span><span class="v" id="hx">—</span></div>
-    <div class="hr"><span class="k">f(x) =</span><span class="v" id="hfx">—</span></div>
-    <div class="hr"><span class="k">f′(x) =</span><span class="v" id="hf1">—</span></div>
-    <div class="hr"><span class="k">f″(x) =</span><span class="v" id="hf2">—</span></div>
+  <!-- RIGHT: mode helpers -->
+  <div class="mode-col" id="modeCol">
+    <span style="font-size:.58rem;color:var(--mu)">Toggle curves on graph ↓</span>
   </div>
 </div>
+
+<!-- ════ GRAPHS SECTION ════ -->
+<div class="graphs">
+
+  <!-- TOP GRAPH: f(x) with optional derivative overlays -->
+  <div class="gwrap" id="gwrap1">
+    <div class="glabel" id="glabel1">f(x) — polynomial graph</div>
+    <canvas id="gc1"></canvas>
+
+    <!-- Overlay toggles -->
+    <div class="graph-toggles">
+      <button class="gtog fx"  id="togF"  onclick="toggle('F')">f(x)</button>
+      <button class="gtog d1"  id="togD1" onclick="toggle('D1')">f′(x)</button>
+      <button class="gtog d2"  id="togD2" onclick="toggle('D2')">f″(x)</button>
+    </div>
+
+    <!-- Zoom controls -->
+    <div class="zoom-btns">
+      <button class="zbtn" onclick="doZoom(0.75)" title="Zoom In">+</button>
+      <button class="zbtn" onclick="doZoom(1.35)" title="Zoom Out">−</button>
+      <button class="zbtn" onclick="resetZoom()" title="Reset">⌂</button>
+    </div>
+  </div>
+
+  <!-- TRACE SLIDER -->
+  <div class="trace-bar">
+    <span>🔍 Trace:</span>
+    <input type="range" id="traceSlider" min="0" max="1000" value="0" oninput="onTrace(this.value)">
+    <span class="tval" id="traceVal">← drag to trace</span>
+    <span class="tslope" id="tslope"></span>
+  </div>
+
+  <!-- BOTTOM GRAPH: derivatives, true scale, identical size -->
+  <div class="gwrap" id="gwrap2">
+    <div class="glabel" id="glabel2">Derivative Graph — f′(x) &amp; f″(x) true scale</div>
+    <canvas id="gc2"></canvas>
+
+    <div class="zoom-btns">
+      <button class="zbtn" onclick="doZoom(0.75)" title="Zoom In">+</button>
+      <button class="zbtn" onclick="doZoom(1.35)" title="Zoom Out">−</button>
+      <button class="zbtn" onclick="resetZoom()" title="Reset">⌂</button>
+    </div>
+  </div>
+
 </div>
 
+<!-- ════ BOTTOM INFO STRIP ════ -->
+<div class="info-strip">
+
+  <!-- Col 1: Equations -->
+  <div class="info-col">
+    <div class="ic-title">Equations</div>
+    <div class="fbox"><div class="fl">f(x) =</div><div class="fv c" id="ff">—</div></div>
+    <div class="fbox"><div class="fl">f′(x) =</div><div class="fv g" id="f1">—</div></div>
+    <div class="fbox"><div class="fl">f″(x) =</div><div class="fv a" id="f2">—</div></div>
+  </div>
+
+  <!-- Col 2: Critical Points -->
+  <div class="info-col">
+    <div class="ic-title">Critical Points</div>
+    <table class="ctab">
+      <thead><tr><th>x</th><th>f(x)</th><th>f″</th><th>Type</th></tr></thead>
+      <tbody id="ctbody"></tbody>
+    </table>
+  </div>
+
+  <!-- Col 3: Cursor + Degree Info -->
+  <div class="info-col">
+    <div class="ic-title">Cursor Values</div>
+    <div class="hbx">
+      <div class="hr"><span class="k">x =</span><span class="v" id="hx">—</span></div>
+      <div class="hr"><span class="k">f(x) =</span><span class="v" id="hfx">—</span></div>
+      <div class="hr"><span class="k">f′(x) =</span><span class="v" id="hf1">—</span></div>
+      <div class="hr"><span class="k">f″(x) =</span><span class="v" id="hf2">—</span></div>
+    </div>
+    <div class="dpbox" id="dpbox" style="margin-top:7px"><h4>—</h4><ul></ul></div>
+  </div>
+
+  <!-- Col 4: Explanation -->
+  <div class="info-col">
+    <div class="ic-title">Maxima &amp; Minima</div>
+    <div class="exbox">
+      <p>Critical point where <span class="hi">f′(x) = 0</span> (slope = 0, tangent horizontal).</p>
+      <p><span class="mxh">▲ Max</span>: f′ goes <span class="hi">+ → 0 → −</span>, <span class="hi">f″ &lt; 0</span> (concave ∩).</p>
+      <p><span class="mnh">▼ Min</span>: f′ goes <span class="hi">− → 0 → +</span>, <span class="hi">f″ &gt; 0</span> (concave ∪).</p>
+      <p class="note">▸ Drag trace slider to watch f′(x) reveal in derivative graph and tangent sweep main curve.</p>
+      <p class="note">▸ Click f(x) f′(x) f″(x) buttons on graph to toggle each curve on/off.</p>
+    </div>
+  </div>
+
+</div>
+
+<!-- ════════════════════════════════════════════════
+     JAVASCRIPT
+════════════════════════════════════════════════ -->
 <script>
-// ────────── PRESETS ──────────
+// ══ PRESETS ══
 const PRESETS = {
   even:[
-    {name:'Parabola (deg 2)',coeffs:[1,0,-9],desc:'x² − 9',note:'1 minimum at (0, −9) — clear valley'},
-    {name:'W-Curve (deg 4)',coeffs:[1,0,-8,0,7],desc:'x⁴ − 8x² + 7',note:'2 minima (y=−9), 1 max (y=7)'},
-    {name:'Inverted W (deg 4)',coeffs:[-1,0,8,0,-7],desc:'−x⁴ + 8x² − 7',note:'2 maxima (y=9), 1 min (y=−7)'},
-    {name:'Deep Wave (deg 6)',coeffs:[1,0,-9,0,24,0,-16],desc:'x⁶ − 9x⁴ + 24x² − 16',note:'Rich wavy shape, 5 extrema'},
+    {name:'Parabola',coeffs:[1,0,-9],      desc:'x²−9',       note:'1 min at (0,−9)'},
+    {name:'W-Curve',  coeffs:[1,0,-8,0,7], desc:'x⁴−8x²+7',  note:'2 min, 1 max'},
+    {name:'Inv-W',    coeffs:[-1,0,8,0,-7],desc:'−x⁴+8x²−7', note:'2 max, 1 min'},
+    {name:'Wave6',    coeffs:[1,0,-9,0,24,0,-16],desc:'x⁶−9x⁴+24x²−16',note:'5 extrema'},
   ],
   odd:[
-    {name:'Classic S-Cubic (deg 3)',coeffs:[1,0,-12,2],desc:'x³ − 12x + 2',note:'Max≈(−2, 18), Min≈(2, −14)'},
-    {name:'Asymm Cubic (deg 3)',coeffs:[2,-3,-12,7],desc:'2x³ − 3x² − 12x + 7',note:'Shifted S, extrema far from zero'},
-    {name:'Quintic Wave (deg 5)',coeffs:[1,0,-10,0,9,0],desc:'x⁵ − 10x³ + 9x',note:'4 turning points, wide oscillation'},
-    {name:'Rich Quintic (deg 5)',coeffs:[1,-1,-8,6,12,-10],desc:'x⁵−x⁴−8x³+6x²+12x−10',note:'Complex wave — 4 extrema'},
+    {name:'S-Cubic',  coeffs:[1,0,-12,2],       desc:'x³−12x+2',           note:'Max≈(−2,18)'},
+    {name:'Cubic2',   coeffs:[2,-3,-12,7],       desc:'2x³−3x²−12x+7',     note:'Asymm S'},
+    {name:'Quintic',  coeffs:[1,0,-10,0,9,0],   desc:'x⁵−10x³+9x',        note:'4 extrema'},
+    {name:'Quintic2', coeffs:[1,-1,-8,6,12,-10],desc:'x⁵−x⁴−8x³+6x²+12x−10',note:'Rich wave'},
   ]
 };
-
 const DEG_INFO = {
-  even: n=>({title:`Even Degree ${n} Polynomial`,facts:[
-    'Both tails go same direction (↑↑ or ↓↓)',
-    'Positive lead coeff → both ends +∞',
-    'Negative lead coeff → both ends −∞',
-    `Can have 0 to ${n} real roots`,
+  even: n=>({title:`Even Degree ${n}`,facts:[
+    'Both tails same direction (↑↑ or ↓↓)',
+    'Pos. lead coeff → both +∞',
+    'Neg. lead coeff → both −∞',
     `Up to ${n-1} turning points`,
-    'Symmetric if only even-power terms present'
+    `0 to ${n} real roots`
   ]}),
-  odd: n=>({title:`Odd Degree ${n} Polynomial`,facts:[
-    'Tails go opposite directions (↑↓ or ↓↑)',
-    'Positive lead coeff: left→−∞, right→+∞',
-    'Negative lead coeff: left→+∞, right→−∞',
-    'Always crosses x-axis at least once',
+  odd: n=>({title:`Odd Degree ${n}`,facts:[
+    'Tails opposite directions (↑↓)',
+    'Pos. lead: left−∞, right+∞',
+    'Neg. lead: left+∞, right−∞',
+    'Always ≥1 real root',
+    `Up to ${n-1} turning points`
+  ]}),
+  custom: n=>({title:`Custom Degree ${n}`,facts:[
+    'User-defined polynomial',
+    `Degree ${n}`,
     `Up to ${n-1} turning points`,
-    'No axis of symmetry in general'
+    'Edit coefficients in top strip',
+    'Or type equation in input bar'
   ]})
 };
 
-// ────────── MATH ──────────
-function ep(c,x){let r=0,n=c.length-1;for(let i=0;i<c.length;i++)r+=c[i]*Math.pow(x,n-i);return r}
-function dp(c){const n=c.length-1;if(n===0)return[0];return c.slice(0,n).map((a,i)=>a*(n-i))}
+// ══ MATH ══
+const ep=(c,x)=>{let r=0,n=c.length-1;for(let i=0;i<c.length;i++)r+=c[i]*Math.pow(x,n-i);return r};
+const dp=c=>{const n=c.length-1;if(n===0)return[0];return c.slice(0,n).map((a,i)=>a*(n-i))};
 function ps(c){
-  const n=c.length-1;const parts=[];
+  const n=c.length-1,parts=[];
   for(let i=0;i<c.length;i++){
     const p=n-i,v=c[i];if(v===0)continue;
     const sign=v>0&&parts.length>0?' + ':v<0?(parts.length>0?' − ':'−'):'';
     const av=Math.abs(v);
-    const cs=(av===1&&p>0)?'':(Number.isInteger(av)?av:av.toFixed(2));
+    const cs=(av===1&&p>0)?'':(Number.isInteger(av)?av:parseFloat(av.toFixed(3)));
     const xs=p===0?'':(p===1?'x':`x^${p}`);
     parts.push(sign+cs+xs);
   }
   return parts.join('')||'0';
 }
-function roots(c,lo,hi,steps=3000){
+function findRoots(c,lo,hi,steps=3000){
   const r=[],dx=(hi-lo)/steps;let py=ep(c,lo);
   for(let i=1;i<=steps;i++){
     const x=lo+i*dx,y=ep(c,x);
@@ -244,136 +424,176 @@ function roots(c,lo,hi,steps=3000){
   }
   return r;
 }
-function crits(c,lo,hi){
+function getCrits(c,lo,hi){
   const d1=dp(c),d2=dp(d1);
-  return roots(d1,lo-1,hi+1).map(x=>{
+  return findRoots(d1,lo-1,hi+1).map(x=>{
     const fx=ep(c,x),f2=ep(d2,x);
     const type=Math.abs(f2)<1e-4?'inf':f2<0?'max':'min';
     return{x:+x.toFixed(4),fx:+fx.toFixed(4),f2:+f2.toFixed(4),type};
   });
 }
+const nT=(range,tgt)=>{if(range<=0)return 1;const r=range/tgt,e=Math.floor(Math.log10(r));const m=r/Math.pow(10,e);return(m<1.5?1:m<3.5?2:m<7.5?5:10)*Math.pow(10,e)};
+const r2=v=>Math.abs(v)<1e-9?'0':parseFloat(v.toFixed(2)).toString();
+const r4=v=>parseFloat(v.toFixed(4)).toString();
 
-// ────────── PARSER ──────────
-// Unicode superscript map: ⁰¹²³⁴⁵⁶⁷⁸⁹
-const SUP_MAP={'⁰':'0','¹':'1','²':'2','³':'3','⁴':'4','⁵':'5','⁶':'6','⁷':'7','⁸':'8','⁹':'9'};
-function normalizeSup(s){
-  // Replace unicode superscripts after x: x² → x^2, x³ → x^3, etc.
-  return s.replace(/x([⁰¹²³⁴⁵⁶⁷⁸⁹]+)/g,(_,sup)=>'x^'+[...sup].map(c=>SUP_MAP[c]||c).join(''));
+// ══ GAUSSIAN ELIMINATION + POLY REGRESSION ══
+function gaussSolve(A,b){
+  const n=b.length,M=A.map((row,i)=>[...row,b[i]]);
+  for(let col=0;col<n;col++){
+    let mx=col;
+    for(let r=col+1;r<n;r++)if(Math.abs(M[r][col])>Math.abs(M[mx][col]))mx=r;
+    [M[col],M[mx]]=[M[mx],M[col]];
+    const piv=M[col][col];if(Math.abs(piv)<1e-14)continue;
+    for(let k=col;k<=n;k++)M[col][k]/=piv;
+    for(let r=0;r<n;r++){if(r===col)continue;const f=M[r][col];for(let k=col;k<=n;k++)M[r][k]-=f*M[col][k];}
+  }
+  return M.map(row=>row[n]);
+}
+function polyFit(rxs,rys,deg){
+  const n=rxs.length;deg=Math.min(deg,n-1,7);
+  const xlo=Math.min(...rxs),xhi=Math.max(...rxs),xrng=xhi-xlo||1;
+  const xs=rxs.map(x=>2*(x-xlo)/xrng-1);
+  const d=deg+1,XTX=Array.from({length:d},()=>Array(d).fill(0)),XTy=Array(d).fill(0);
+  for(let i=0;i<n;i++){
+    const pw=Array.from({length:d},(_,j)=>Math.pow(xs[i],j));
+    for(let j=0;j<d;j++){XTy[j]+=pw[j]*rys[i];for(let k=0;k<d;k++)XTX[j][k]+=pw[j]*pw[k];}
+  }
+  const cN=gaussSolve(XTX,XTy);
+  const a=2/xrng,bv=-2*xlo/xrng-1;
+  let result=Array(d).fill(0),tPow=[1];
+  for(let j=0;j<d;j++){
+    for(let k=0;k<tPow.length;k++)result[k]+=cN[j]*tPow[k];
+    const np=Array(tPow.length+1).fill(0);
+    for(let k=0;k<tPow.length;k++){np[k]+=bv*tPow[k];np[k+1]+=a*tPow[k];}
+    tPow=np;
+  }
+  return result.reverse();
+}
+function rSq(xs,ys,co){
+  const m=ys.reduce((a,b)=>a+b)/ys.length;
+  const st=ys.reduce((a,y)=>a+(y-m)**2,0);
+  const sr=xs.reduce((a,x,i)=>a+(ys[i]-ep(co,x))**2,0);
+  return st<1e-12?1:Math.max(0,1-sr/st);
 }
 
+// ══ PARSER ══
+const SUP={'⁰':'0','¹':'1','²':'2','³':'3','⁴':'4','⁵':'5','⁶':'6','⁷':'7','⁸':'8','⁹':'9'};
+function normSup(s){return s.replace(/x([⁰¹²³⁴⁵⁶⁷⁸⁹]+)/g,(_,sup)=>'x^'+[...sup].map(c=>SUP[c]||c).join(''))}
 function parsePoly(raw){
-  let s=raw.trim();
-  // Normalize unicode and special chars BEFORE lowercasing
-  s=normalizeSup(s);
+  let s=normSup(raw.trim());
   s=s.replace(/−/g,'-').replace(/–/g,'-').replace(/⁻/g,'-')
      .replace(/×/g,'*').replace(/·/g,'*')
-     .replace(/\s+/g,'').replace(/\*\*/g,'^').replace(/\*/g,'')
-     .toLowerCase();
-  if(!s)throw new Error('Empty input');
-
-  // Convert x2 → x^2 style (digit immediately after x without ^)
+     .replace(/\s+/g,'').replace(/\*\*/g,'^').replace(/\*/g,'').toLowerCase();
+  if(!s)throw new Error('Empty');
   s=s.replace(/x(\d+)/g,(m,d)=>d.length===1&&d>='2'?`x^${d}`:m);
-
-  // insert '+' before '-' that starts a new term
   s=s.replace(/([0-9x])-/g,'$1+-');
-
-  const terms=s.split('+').filter(t=>t);
-  const map={};
+  const terms=s.split('+').filter(t=>t),map={};
   for(let t of terms){
     t=t.trim();if(!t)continue;
-    // Patterns: ax^n | x^n | ax | x | constant
-    const m1=t.match(/^(-?\d*\.?\d*)[x]\^(\d+\.?\d*)$/);   // ax^n
-    const m2=t.match(/^(-?\d*\.?\d*)[x]$/);                 // ax
-    const m3=t.match(/^(-?\d+\.?\d*)$|^(-?\.\d+)$/);        // constant
+    const m1=t.match(/^(-?\d*\.?\d*)[x]\^(\d+\.?\d*)$/);
+    const m2=t.match(/^(-?\d*\.?\d*)[x]$/);
+    const m3=t.match(/^(-?\d+\.?\d*)$|^(-?\.\d+)$/);
     let coeff=0,deg=0;
-    if(m1){
-      const cs=m1[1];
-      coeff=cs===''||cs==='+'?1:cs==='-'?-1:parseFloat(cs);
-      deg=parseFloat(m1[2]);
-    }else if(m2){
-      const cs=m2[1];
-      coeff=cs===''||cs==='+'?1:cs==='-'?-1:parseFloat(cs);
-      deg=1;
-    }else if(m3){
-      coeff=parseFloat(m3[1]||m3[2]);deg=0;
-    }else{
-      throw new Error(`Cannot parse term: "${t}" — try x^2 instead of x2`);
-    }
+    if(m1){const cs=m1[1];coeff=cs===''||cs==='+'?1:cs==='-'?-1:parseFloat(cs);deg=parseFloat(m1[2]);}
+    else if(m2){const cs=m2[1];coeff=cs===''||cs==='+'?1:cs==='-'?-1:parseFloat(cs);deg=1;}
+    else if(m3){coeff=parseFloat(m3[1]||m3[2]);deg=0;}
+    else throw new Error(`Cannot parse: "${t}"`);
     if(!isFinite(coeff)||!isFinite(deg))throw new Error(`Bad number in "${t}"`);
     map[deg]=(map[deg]||0)+coeff;
   }
   const maxD=Math.max(...Object.keys(map).map(Number));
-  if(maxD>12)throw new Error('Degree > 12 not supported');
-  const coeffs=[];
-  for(let d=maxD;d>=0;d--)coeffs.push(map[d]||0);
-  if(coeffs.every(v=>v===0))throw new Error('All zero polynomial');
+  if(maxD>12)throw new Error('Degree > 12');
+  const coeffs=[];for(let d=maxD;d>=0;d--)coeffs.push(map[d]||0);
+  if(coeffs.every(v=>v===0))throw new Error('All-zero');
   return coeffs;
 }
 
-// ────────── STATE ──────────
-let cType='even',cIdx=0,cCoeffs=PRESETS.even[0].coeffs.slice();
+// ══ STATE ══
+let cType='even', cIdx=0;
+let cCoeffs=PRESETS.even[0].coeffs.slice();
+let showF=true, showD1=true, showD2=true;
+let drawMode=false, isDrawing=false;
+let drawnXs=[], drawnYs=[];
+let tracePos=0;
+let xRange={min:-5,max:5};   // shared x range for both graphs
 
-// ────────── UI ──────────
+// ══ UI BUILDERS ══
 function setType(t){
-  cType=t;cIdx=0;
+  cType=t; cIdx=0;
   document.querySelectorAll('.tt').forEach(b=>b.classList.remove('on'));
   document.querySelector('.tt.'+t).classList.add('on');
-  const eq=document.getElementById('eqInput');
-  const pb=document.getElementById('plotBtn');
-  eq.className=t==='odd'?'om':'';
-  pb.className='pbtn2'+(t==='odd'?' ob':'');
-  buildPL();loadP(0);
+  document.getElementById('eqInput').className=t==='odd'?'om':t==='custom'?'cm':'';
+  document.getElementById('plotBtn').className='ib '+(t==='odd'?'ob':t==='custom'?'cb':'pl');
+  document.getElementById('presetCol').style.display=t==='custom'?'none':'flex';
+  document.getElementById('customPanel').style.display=t==='custom'?'flex':'none';
+  if(t==='custom'){
+    buildCustomEditor();
+  } else {
+    cCoeffs=PRESETS[t][0].coeffs.slice();
+    buildPresets();
+    document.getElementById('eqInput').value=PRESETS[t][0].desc;
+  }
+  clearDraw(false);
+  redrawAll();
 }
 
-function buildPL(){
-  const l=document.getElementById('plist');l.innerHTML='';
+function buildPresets(){
+  const c=document.getElementById('plist');c.innerHTML='';
+  const colorKey=cType==='even'?'c':'r';
   PRESETS[cType].forEach((p,i)=>{
     const b=document.createElement('button');
     b.className='pb'+(i===cIdx?' '+(cType==='even'?'ae':'ao'):'');
     b.innerHTML=`<div class="pn">${p.name}</div>
-      <div class="pe ${cType==='even'?'c':'r'}">f(x) = ${p.desc}</div>
-      <div class="pe" style="margin-top:2px;font-size:.58rem">${p.note}</div>`;
-    b.onclick=()=>loadP(i);
-    l.appendChild(b);
+      <div class="pe ${colorKey}">f(x)=${p.desc}</div>
+      <div class="pe" style="font-size:.54rem">${p.note}</div>`;
+    b.onclick=()=>{cIdx=i;cCoeffs=PRESETS[cType][i].coeffs.slice();
+      document.getElementById('eqInput').value=PRESETS[cType][i].desc;
+      buildPresets();clearDraw(false);redrawAll();};
+    c.appendChild(b);
   });
 }
 
-function loadP(i){
-  cIdx=i;cCoeffs=PRESETS[cType][i].coeffs.slice();
-  document.getElementById('eqInput').value=PRESETS[cType][i].desc;
-  buildPL();buildCE();redraw();
-}
-
-function buildCE(){
-  const ed=document.getElementById('ced');ed.innerHTML='';
+function buildCustomEditor(){
+  const list=document.getElementById('coeffList');list.innerHTML='';
   const n=cCoeffs.length-1;
+  document.getElementById('degDisplay').textContent=n;
   cCoeffs.forEach((v,i)=>{
-    const row=document.createElement('div');row.className='crow';
-    row.innerHTML=`<span class="clbl">a<sub>${n-i}</sub></span>
-      <input type="number" class="ci" id="c${i}" value="${v}" step="0.5">`;
-    ed.appendChild(row);
+    const p=n-i;
+    const g=document.createElement('div');g.className='ci-group';
+    const xStr=p===0?'':p===1?'x':`x^${p}`;
+    g.innerHTML=`<span class="ci-lbl">${(i>0?'+':'')} a${p}${xStr}=</span>
+      <input type="number" class="ci" id="cc${i}" value="${parseFloat(v.toFixed(4))}" step="0.5">`;
+    list.appendChild(g);
   });
-  const db=document.createElement('div');db.className='dbtns';
-  db.innerHTML=`<button class="db" onclick="addD()">+ Degree</button><button class="db" onclick="remD()">− Degree</button>`;
-  ed.appendChild(db);
-  const ab=document.createElement('button');
-  ab.className=`ab ${cType==='odd'?'o':'e'}`;
-  ab.textContent='▶ Apply Coefficients';
-  ab.onclick=applyC;
-  ed.appendChild(ab);
 }
 
-function readC(){return cCoeffs.map((_,i)=>parseFloat(document.getElementById('c'+i)?.value)||0)}
-function applyC(){cCoeffs=readC();document.getElementById('eqInput').value=ps(cCoeffs);redraw()}
-function addD(){cCoeffs=readC();cCoeffs.unshift(1);buildCE();redraw()}
-function remD(){if(cCoeffs.length<=2)return;cCoeffs=readC();cCoeffs.shift();buildCE();redraw()}
+function readCustom(){return cCoeffs.map((_,i)=>parseFloat(document.getElementById('cc'+i)?.value)||0)}
+function applyC(){
+  cCoeffs=readCustom();
+  document.getElementById('eqInput').value=ps(cCoeffs);
+  clearDraw(false);redrawAll();
+}
+function addD(){
+  if(cType==='custom'){cCoeffs=readCustom();cCoeffs.unshift(1);}
+  else{cCoeffs=[1,...cCoeffs];}
+  buildCustomEditor();redrawAll();
+}
+function remD(){
+  if(cCoeffs.length<=2)return;
+  if(cType==='custom')cCoeffs=readCustom();
+  cCoeffs.shift();
+  if(cType==='custom')buildCustomEditor();
+  redrawAll();
+}
 
 function plotCustom(){
   const raw=document.getElementById('eqInput').value;
   const el=document.getElementById('errMsg');
   try{
-    cCoeffs=parsePoly(raw);
-    buildCE();el.style.display='none';redraw();
+    const c=parsePoly(raw);
+    cCoeffs=c;
+    if(cType==='custom')buildCustomEditor();
+    clearDraw(false);el.style.display='none';redrawAll();
   }catch(e){
     el.textContent='⚠ '+e.message;el.style.display='block';
     setTimeout(()=>el.style.display='none',5000);
@@ -381,215 +601,483 @@ function plotCustom(){
 }
 document.getElementById('eqInput').addEventListener('keydown',e=>{if(e.key==='Enter')plotCustom()});
 
-// ────────── CANVAS ──────────
-const canvas=document.getElementById('gc');
-const ctx=canvas.getContext('2d');
-
-function nT(range,tgt){
-  if(range<=0)return 1;
-  const r=range/tgt,e=Math.floor(Math.log10(r));
-  const m=r/Math.pow(10,e);
-  return(m<1.5?1:m<3.5?2:m<7.5?5:10)*Math.pow(10,e);
+function toggle(which){
+  if(which==='F') showF=!showF;
+  else if(which==='D1') showD1=!showD1;
+  else if(which==='D2') showD2=!showD2;
+  const el=document.getElementById('tog'+which);
+  el.classList.toggle('off', which==='F'?!showF:which==='D1'?!showD1:!showD2);
+  redrawAll();
 }
-const r2=v=>Math.abs(v)<1e-9?'0':parseFloat(v.toFixed(2)).toString();
-const r4=v=>parseFloat(v.toFixed(4)).toString();
 
-function redraw(){
-  if(!canvas.width)return;
-  const W=canvas.width,H=canvas.height;
-  const xMin=parseFloat(document.getElementById('xMin').value)||(-5);
-  const xMax=parseFloat(document.getElementById('xMax').value)||5;
-  const d1=dp(cCoeffs),d2=dp(d1);
-  const PTS=800;
+// ══ ZOOM ══
+function doZoom(factor, centerFrac=0.5){
+  const cx=xRange.min+(xRange.max-xRange.min)*centerFrac;
+  const hw=(xRange.max-xRange.min)*factor/2;
+  xRange={min:cx-hw,max:cx+hw};
+  redrawAll();
+}
+function resetZoom(){xRange={min:-5,max:5};redrawAll();}
 
-  // Y-range: ONLY from f(x), so extrema always properly visible
+// Wheel zoom on both canvases
+[document.getElementById('gc1'),document.getElementById('gc2')].forEach(canvas=>{
+  canvas.addEventListener('wheel',e=>{
+    e.preventDefault();
+    const rect=canvas.getBoundingClientRect();
+    const frac=(e.clientX-rect.left)/canvas.width;
+    doZoom(e.deltaY>0?1.14:0.88, frac);
+  },{passive:false});
+});
+
+// ══ DRAW MODE ══
+function toggleDraw(){
+  drawMode=!drawMode;
+  const btn=document.getElementById('modeBtn');
+  const hint=document.getElementById('drawHint');
+  if(drawMode){
+    btn.className='ib draw-on';btn.textContent='📊 Plot Mode';
+    hint.style.display='block';
+    document.getElementById('gc1').style.cursor='crosshair';
+  } else {
+    btn.className='ib';btn.style.cssText='border:1px solid var(--bor);background:var(--sur2);color:var(--mu)';
+    btn.textContent='✏ Draw';hint.style.display='none';
+    document.getElementById('gc1').style.cursor='crosshair';
+  }
+}
+function clearDraw(redraw=true){
+  drawnXs=[];drawnYs=[];
+  document.getElementById('drawFit').style.display='none';
+  document.getElementById('r2b').style.display='none';
+  if(redraw)redrawAll();
+}
+function refitDrawn(){
+  if(drawnXs.length<4)return;
+  const deg=parseInt(document.getElementById('fitDeg').value);
+  const maxP=150,step=Math.max(1,Math.floor(drawnXs.length/maxP));
+  const txs=[],tys=[];
+  for(let i=0;i<drawnXs.length;i+=step){txs.push(drawnXs[i]);tys.push(drawnYs[i]);}
+  const fitted=polyFit(txs,tys,deg);
+  const r2=rSq(txs,tys,fitted);
+  cCoeffs=fitted;
+  document.getElementById('eqInput').value=ps(cCoeffs);
+  document.getElementById('r2b').textContent=`R²=${r2.toFixed(3)}`;
+  document.getElementById('r2b').style.display='inline';
+  if(cType==='custom')buildCustomEditor();
+  redrawAll();
+}
+
+// ══ TRACE SLIDER ══
+function onTrace(val){
+  tracePos=parseInt(val);
+  const tx=xRange.min+(xRange.max-xRange.min)*tracePos/1000;
+  const d1=dp(cCoeffs);
+  const slope=ep(d1,tx), fx=ep(cCoeffs,tx);
+  document.getElementById('traceVal').textContent=`x=${tx.toFixed(3)}  f=${fx.toFixed(3)}`;
+  document.getElementById('tslope').textContent=`f′=${slope.toFixed(3)}`;
+  redrawAll();
+}
+
+// ══ DRAW CANVAS HELPERS ══
+function drawGrid(ctx,W,H,xMin,xMax,yMin,yMax,label){
+  const yR=yMax-yMin;
+  const cx=x=>(x-xMin)/(xMax-xMin)*W;
+  const cy=y=>H-(y-yMin)/yR*H;
+  const xSt=nT(xMax-xMin,10),ySt=nT(yR,7);
+
+  // Grid lines
+  ctx.strokeStyle='#1e2440';ctx.lineWidth=1;
+  for(let x=Math.ceil(xMin/xSt)*xSt;x<=xMax+0.001;x+=xSt){
+    const px=cx(x);ctx.beginPath();ctx.moveTo(px,0);ctx.lineTo(px,H);ctx.stroke();
+    if(Math.abs(x)>0.001){ctx.fillStyle='#4a5590';ctx.font='9px JetBrains Mono';ctx.fillText(r2(x),px+2,H-4);}
+  }
+  for(let y=Math.ceil(yMin/ySt)*ySt;y<=yMax+0.001;y+=ySt){
+    const py=cy(y);ctx.beginPath();ctx.moveTo(0,py);ctx.lineTo(W,py);ctx.stroke();
+    if(Math.abs(y)>0.001){ctx.fillStyle='#4a5590';ctx.font='9px JetBrains Mono';ctx.fillText(r2(y),4,py-3);}
+  }
+
+  // Axes — bright white
+  const ax0=Math.max(2,Math.min(W-2,cx(0))), ay0=Math.max(2,Math.min(H-2,cy(0)));
+  ctx.strokeStyle='rgba(255,255,255,0.85)';ctx.lineWidth=1.5;
+  // Y axis
+  ctx.beginPath();ctx.moveTo(ax0,H);ctx.lineTo(ax0,4);ctx.stroke();
+  // X axis
+  ctx.beginPath();ctx.moveTo(0,ay0);ctx.lineTo(W-4,ay0);ctx.stroke();
+
+  // Arrowhead on Y axis (pointing up)
+  ctx.fillStyle='rgba(255,255,255,0.85)';
+  ctx.beginPath();ctx.moveTo(ax0,2);ctx.lineTo(ax0-5,12);ctx.lineTo(ax0+5,12);ctx.closePath();ctx.fill();
+  // Arrowhead on X axis (pointing right)
+  ctx.beginPath();ctx.moveTo(W-2,ay0);ctx.lineTo(W-12,ay0-5);ctx.lineTo(W-12,ay0+5);ctx.closePath();ctx.fill();
+
+  // Axis labels — white
+  ctx.fillStyle='rgba(255,255,255,0.9)';ctx.font='bold 11px JetBrains Mono';
+  ctx.fillText('x',W-10,ay0-8);
+  ctx.fillText('y',ax0+7,14);
+
+  return {cx,cy};
+}
+
+// ══ MAIN CANVAS: gc1 ══
+const gc1=document.getElementById('gc1');
+const ctx1=gc1.getContext('2d');
+
+
+function redrawMain(){
+  const W=gc1.width, H=gc1.height;
+  if(!W||!H)return;
+  const xMin=xRange.min, xMax=xRange.max;
+  const d1=dp(cCoeffs), d2=dp(d1);
+  const PTS=700;
+
+  // Y range from f(x)
   let yMn=Infinity,yMx=-Infinity;
   for(let i=0;i<=PTS;i++){
     const x=xMin+(xMax-xMin)*i/PTS,y=ep(cCoeffs,x);
-    if(isFinite(y)&&Math.abs(y)<1e8){yMn=Math.min(yMn,y);yMx=Math.max(yMx,y)}
+    if(isFinite(y)&&Math.abs(y)<1e9){yMn=Math.min(yMn,y);yMx=Math.max(yMx,y);}
   }
-  if(!isFinite(yMn)){yMn=-10;yMx=10}
-  const fR=yMx-yMn||1;
-  const pad=fR*0.2;
-  const yMin=yMn-pad,yMax=yMx+pad,yR=yMax-yMin;
+  if(!isFinite(yMn)){yMn=-10;yMx=10;}
+  const fR=yMx-yMn||1, pad=fR*.20;
+  const yMin=yMn-pad, yMax=yMx+pad, yR=yMax-yMin;
 
-  // Compute derivative ranges for normalization
+  // Derivative normalization for overlay
   let d1mn=Infinity,d1mx=-Infinity,d2mn=Infinity,d2mx=-Infinity;
   for(let i=0;i<=PTS;i++){
     const x=xMin+(xMax-xMin)*i/PTS;
     const v1=ep(d1,x),v2=ep(d2,x);
-    if(isFinite(v1)&&Math.abs(v1)<1e9){d1mn=Math.min(d1mn,v1);d1mx=Math.max(d1mx,v1)}
-    if(isFinite(v2)&&Math.abs(v2)<1e9){d2mn=Math.min(d2mn,v2);d2mx=Math.max(d2mx,v2)}
+    if(isFinite(v1)&&Math.abs(v1)<1e9){d1mn=Math.min(d1mn,v1);d1mx=Math.max(d1mx,v1);}
+    if(isFinite(v2)&&Math.abs(v2)<1e9){d2mn=Math.min(d2mn,v2);d2mx=Math.max(d2mx,v2);}
   }
-  const d1R=d1mx-d1mn||1,d2R=d2mx-d2mn||1;
-
-  // Normalize: map derivative values to y-canvas so shapes visible but don't overflow
-  function nd1(y){return((y-(d1mn+d1mx)/2)/d1R)*yR*0.65}
-  function nd2(y){return((y-(d2mn+d2mx)/2)/d2R)*yR*0.50}
+  const d1R=d1mx-d1mn||1, d2R=d2mx-d2mn||1;
+  const nd1=v=>((v-(d1mn+d1mx)/2)/d1R)*yR*.62;
+  const nd2=v=>((v-(d2mn+d2mx)/2)/d2R)*yR*.48;
 
   const cx=x=>(x-xMin)/(xMax-xMin)*W;
   const cy=y=>H-(y-yMin)/yR*H;
 
-  // BG
-  ctx.fillStyle='#0b0d18';ctx.fillRect(0,0,W,H);
+  ctx1.fillStyle='#0b0d18'; ctx1.fillRect(0,0,W,H);
+  drawGrid(ctx1,W,H,xMin,xMax,yMin,yMax);
 
-  // Grid
-  const xSt=nT(xMax-xMin,10),ySt=nT(yR,8);
-  ctx.strokeStyle='#15192b';ctx.lineWidth=1;
-  for(let x=Math.ceil(xMin/xSt)*xSt;x<=xMax;x+=xSt){
-    const px=cx(x);ctx.beginPath();ctx.moveTo(px,0);ctx.lineTo(px,H);ctx.stroke();
-    ctx.fillStyle='#2a3060';ctx.font='9px JetBrains Mono';
-    if(Math.abs(x)>0.001)ctx.fillText(r2(x),px+2,H-5);
+  // Trace vertical bar
+  if(tracePos>0){
+    const tx=xRange.min+(xRange.max-xRange.min)*tracePos/1000;
+    const px=cx(tx);
+    ctx1.strokeStyle='rgba(255,255,255,0.12)';ctx1.lineWidth=1;ctx1.setLineDash([4,4]);
+    ctx1.beginPath();ctx1.moveTo(px,0);ctx1.lineTo(px,H);ctx1.stroke();ctx1.setLineDash([]);
+    // tangent
+    const slope=ep(d1,tx),fy=ep(cCoeffs,tx);
+    const ext=(xMax-xMin)*.12;
+    ctx1.beginPath();ctx1.strokeStyle='rgba(86,227,86,0.55)';ctx1.lineWidth=1.8;
+    ctx1.moveTo(cx(tx-ext),cy(fy+slope*(tx-ext-tx)));
+    ctx1.lineTo(cx(tx+ext),cy(fy+slope*(tx+ext-tx)));
+    ctx1.stroke();
+    // dot on curve
+    if(isFinite(fy)){
+      const grd=ctx1.createRadialGradient(px,cy(fy),0,px,cy(fy),13);
+      grd.addColorStop(0,'rgba(86,227,86,.6)');grd.addColorStop(1,'rgba(86,227,86,0)');
+      ctx1.beginPath();ctx1.arc(px,cy(fy),13,0,Math.PI*2);ctx1.fillStyle=grd;ctx1.fill();
+      ctx1.beginPath();ctx1.arc(px,cy(fy),4,0,Math.PI*2);ctx1.fillStyle='#56e356';ctx1.fill();
+    }
   }
-  for(let y=Math.ceil(yMin/ySt)*ySt;y<=yMax;y+=ySt){
-    const py=cy(y);ctx.beginPath();ctx.moveTo(0,py);ctx.lineTo(W,py);ctx.stroke();
-    ctx.fillStyle='#2a3060';
-    if(Math.abs(y)>0.001)ctx.fillText(r2(y),4,py-3);
-  }
 
-  // Axes
-  ctx.strokeStyle='#363d6a';ctx.lineWidth=1.5;
-  const ax0=cx(0),ay0=cy(0);
-  ctx.beginPath();ctx.moveTo(ax0,0);ctx.lineTo(ax0,H);ctx.stroke();
-  ctx.beginPath();ctx.moveTo(0,ay0);ctx.lineTo(W,ay0);ctx.stroke();
-  ctx.fillStyle='#5060a0';ctx.font='bold 10px JetBrains Mono';
-  ctx.fillText('x',W-12,ay0-5);ctx.fillText('y',ax0+5,12);
-
-  // f''(x) — amber dashed, shape-normalized
-  function drawNorm(fn,col,lw,dash){
-    ctx.beginPath();ctx.strokeStyle=col;ctx.lineWidth=lw;ctx.setLineDash(dash);
-    let started=false;
+  // Derivative overlays (normalized, dashed)
+  function drawNorm(fn,norm,col,lw,dash){
+    ctx1.beginPath();ctx1.strokeStyle=col;ctx1.lineWidth=lw;ctx1.setLineDash(dash);
+    let st=false;
     for(let i=0;i<=PTS*2;i++){
       const x=xMin+(xMax-xMin)*i/(PTS*2);
-      const raw=ep(fn,x);if(!isFinite(raw)){started=false;continue}
-      const disp=fn===d1?nd1(raw):nd2(raw);
-      const py=cy(disp),px=cx(x);
-      if(!started){ctx.moveTo(px,py);started=true}else ctx.lineTo(px,py);
+      const raw=ep(fn,x);if(!isFinite(raw)){st=false;continue;}
+      const py=cy(norm(raw)),px=cx(x);
+      if(!st){ctx1.moveTo(px,py);st=true;}else ctx1.lineTo(px,py);
     }
-    ctx.stroke();ctx.setLineDash([]);
+    ctx1.stroke();ctx1.setLineDash([]);
   }
-  drawNorm(d2,'#ffb347',1.3,[5,4]);
-  drawNorm(d1,'#56e356',1.7,[3,3]);
+  if(showD2) drawNorm(d2,nd2,'#ffb347',1.4,[6,4]);
+  if(showD1) drawNorm(d1,nd1,'#56e356',1.8,[3,3]);
 
-  // Gradient fill
-  const mc=cType==='even'?'rgba(0,229,255,':'rgba(255,107,107,';
-  const gr=ctx.createLinearGradient(0,0,0,H);
-  gr.addColorStop(0,mc+'0.05)');gr.addColorStop(1,mc+'0.00)');
-  ctx.beginPath();ctx.fillStyle=gr;
-  let st=false;
-  for(let i=0;i<=PTS;i++){
-    const x=xMin+(xMax-xMin)*i/PTS,y=ep(cCoeffs,x);
-    if(!isFinite(y)){st=false;continue}
-    if(!st){ctx.moveTo(cx(x),cy(0));ctx.lineTo(cx(x),cy(y));st=true}else ctx.lineTo(cx(x),cy(y));
+  // f(x) gradient fill + main curve
+  if(showF){
+    const t=cType==='even'?'even':cType==='odd'?'odd':'custom';
+    const mc=t==='even'?'rgba(0,229,255,':t==='odd'?'rgba(255,107,107,':'rgba(180,138,255,';
+    const mc2=t==='even'?'#00e5ff':t==='odd'?'#ff6b6b':'#b48aff';
+    const gr=ctx1.createLinearGradient(0,0,0,H);
+    gr.addColorStop(0,mc+'0.07)');gr.addColorStop(1,mc+'0.00)');
+    ctx1.beginPath();ctx1.fillStyle=gr;let st=false;
+    for(let i=0;i<=PTS;i++){
+      const x=xMin+(xMax-xMin)*i/PTS,y=ep(cCoeffs,x);
+      if(!isFinite(y)){st=false;continue;}
+      if(!st){ctx1.moveTo(cx(x),cy(0));ctx1.lineTo(cx(x),cy(y));st=true;}else ctx1.lineTo(cx(x),cy(y));
+    }
+    ctx1.lineTo(cx(xMax),cy(0));ctx1.closePath();ctx1.fill();
+    ctx1.beginPath();ctx1.strokeStyle=mc2;ctx1.lineWidth=2.8;
+    let st2=false;
+    for(let i=0;i<=PTS*2;i++){
+      const x=xMin+(xMax-xMin)*i/(PTS*2),y=ep(cCoeffs,x);
+      if(!isFinite(y)){st2=false;continue;}
+      if(!st2){ctx1.moveTo(cx(x),cy(y));st2=true;}else ctx1.lineTo(cx(x),cy(y));
+    }
+    ctx1.stroke();
+    gc1._mainColor = mc2;
   }
-  ctx.lineTo(cx(xMax),cy(0));ctx.closePath();ctx.fill();
 
-  // f(x) — main
-  const mc2=cType==='even'?'#00e5ff':'#ff6b6b';
-  ctx.beginPath();ctx.strokeStyle=mc2;ctx.lineWidth=2.8;ctx.setLineDash([]);
-  st=false;
-  for(let i=0;i<=PTS*2;i++){
-    const x=xMin+(xMax-xMin)*i/(PTS*2),y=ep(cCoeffs,x);
-    if(!isFinite(y)){st=false;continue}
-    const py=cy(y),px=cx(x);
-    if(!st){ctx.moveTo(px,py);st=true}else ctx.lineTo(px,py);
+  // Drawn path preview
+  if(drawnXs.length>1){
+    ctx1.beginPath();ctx1.strokeStyle='rgba(255,204,68,0.55)';ctx1.lineWidth=1.5;
+    ctx1.moveTo(cx(drawnXs[0]),cy(drawnYs[0]));
+    for(let i=1;i<drawnXs.length;i++)ctx1.lineTo(cx(drawnXs[i]),cy(drawnYs[i]));
+    ctx1.stroke();
   }
-  ctx.stroke();
 
-  // ── CRITICAL POINTS ──
-  const cps=crits(cCoeffs,xMin,xMax);
-  cps.forEach(pt=>{
-    if(pt.x<xMin-0.05||pt.x>xMax+0.05)return;
-    const px=cx(pt.x),py=cy(pt.fx);
-    const col=pt.type==='max'?'#ff4dff':pt.type==='min'?'#4dffdd':'#7986cb';
-
-    // Crosshair leaders
-    ctx.setLineDash([3,5]);ctx.strokeStyle=col+'40';ctx.lineWidth=1;
-    ctx.beginPath();ctx.moveTo(px,py);ctx.lineTo(px,cy(0));ctx.stroke();
-    ctx.beginPath();ctx.moveTo(px,py);ctx.lineTo(cx(xMin),py);ctx.stroke();
-    ctx.setLineDash([]);
-
-    // Outer glow
-    const grd=ctx.createRadialGradient(px,py,0,px,py,18);
-    grd.addColorStop(0,col+'44');grd.addColorStop(1,col+'00');
-    ctx.beginPath();ctx.arc(px,py,18,0,Math.PI*2);
-    ctx.fillStyle=grd;ctx.fill();
-
-    // Inner dot
-    ctx.beginPath();ctx.arc(px,py,7,0,Math.PI*2);
-    ctx.fillStyle=col+'20';ctx.fill();
-    ctx.strokeStyle=col;ctx.lineWidth=2;ctx.stroke();
-    ctx.beginPath();ctx.arc(px,py,3,0,Math.PI*2);
-    ctx.fillStyle=col;ctx.fill();
-
-    // Label with bg
-    const sym=pt.type==='max'?'▲ MAX':pt.type==='min'?'▼ MIN':'◆ INF';
-    const coord=`(${pt.x}, ${pt.fx})`;
-    ctx.font='bold 9px JetBrains Mono';
-    const tw1=ctx.measureText(sym).width,tw2=ctx.measureText(coord).width;
-    const lw2=Math.max(tw1,tw2)+10;
-    const lx=px+12,ly=py+(pt.type==='max'?-18:8);
-    ctx.fillStyle='rgba(11,13,24,0.88)';
-    ctx.beginPath();
-    if(ctx.roundRect)ctx.roundRect(lx-3,ly-13,lw2,32,4);
-    else ctx.rect(lx-3,ly-13,lw2,32);
-    ctx.fill();
-    ctx.fillStyle=col;
-    ctx.fillText(sym,lx,ly);
-    ctx.fillStyle='#c0c8f0';
-    ctx.fillText(coord,lx,ly+13);
-  });
-
-  // Scale note
-  ctx.fillStyle='rgba(121,134,203,0.5)';ctx.font='9px JetBrains Mono';
-  ctx.fillText('f′(x) and f″(x) are shape-scaled to fit — cursor panel shows true values',8,16);
-
-  // ── UPDATE RIGHT PANEL ──
-  document.getElementById('ff').textContent=ps(cCoeffs);
-  document.getElementById('f1').textContent=ps(d1);
-  document.getElementById('f2').textContent=ps(d2);
-  document.getElementById('ff').className=`fv ${cType==='even'?'c':'r'}`;
-  document.getElementById('fxd').style.background=mc2;
-
-  const tb=document.getElementById('ctbody');tb.innerHTML='';
-  if(!cps.length){
-    tb.innerHTML=`<tr><td colspan="4" style="color:var(--mu);text-align:center;padding:10px">No critical points in range</td></tr>`;
-  }else{
-    cps.forEach(p=>{
-      const tr=document.createElement('tr');
-      tr.innerHTML=`<td>${p.x}</td><td><b style="color:${p.type==='max'?'var(--mx)':p.type==='min'?'var(--mn)':'var(--mu)'}">${p.fx}</b></td>
-        <td style="color:${p.f2<0?'var(--mx)':'var(--mn)'}">${p.f2}</td>
-        <td><span class="bdg ${p.type}">${p.type==='max'?'▲ Max':p.type==='min'?'▼ Min':'◆ Infl'}</span></td>`;
-      tb.appendChild(tr);
+  // Critical points
+  if(showF){
+    getCrits(cCoeffs,xMin,xMax).forEach(pt=>{
+      if(pt.x<xMin-0.05||pt.x>xMax+0.05)return;
+      const px=cx(pt.x),py=cy(pt.fx);
+      const col=pt.type==='max'?'#ff4dff':pt.type==='min'?'#4dffdd':'#7986cb';
+      ctx1.setLineDash([3,5]);ctx1.strokeStyle=col+'40';ctx1.lineWidth=1;
+      ctx1.beginPath();ctx1.moveTo(px,py);ctx1.lineTo(px,cy(0));ctx1.stroke();
+      ctx1.beginPath();ctx1.moveTo(px,py);ctx1.lineTo(cx(xMin),py);ctx1.stroke();
+      ctx1.setLineDash([]);
+      const grd=ctx1.createRadialGradient(px,py,0,px,py,15);
+      grd.addColorStop(0,col+'50');grd.addColorStop(1,col+'00');
+      ctx1.beginPath();ctx1.arc(px,py,15,0,Math.PI*2);ctx1.fillStyle=grd;ctx1.fill();
+      ctx1.beginPath();ctx1.arc(px,py,6,0,Math.PI*2);ctx1.fillStyle=col+'25';ctx1.fill();
+      ctx1.strokeStyle=col;ctx1.lineWidth=2;ctx1.stroke();
+      ctx1.beginPath();ctx1.arc(px,py,3,0,Math.PI*2);ctx1.fillStyle=col;ctx1.fill();
+      const sym=pt.type==='max'?'▲ MAX':pt.type==='min'?'▼ MIN':'◆ INF';
+      const coord=`(${pt.x}, ${pt.fx})`;
+      ctx1.font='bold 9px JetBrains Mono';
+      const lw2=Math.max(ctx1.measureText(sym).width,ctx1.measureText(coord).width)+10;
+      const lx=px+11,ly=py+(pt.type==='max'?-17:7);
+      ctx1.fillStyle='rgba(11,13,24,0.9)';
+      ctx1.beginPath();if(ctx1.roundRect)ctx1.roundRect(lx-3,ly-13,lw2,30,3);else ctx1.rect(lx-3,ly-13,lw2,30);
+      ctx1.fill();ctx1.fillStyle=col;ctx1.fillText(sym,lx,ly);
+      ctx1.fillStyle='#c0c8f0';ctx1.fillText(coord,lx,ly+12);
     });
   }
 
+  // Scale note
+  if(showD1||showD2){
+    ctx1.fillStyle='rgba(121,134,203,0.4)';ctx1.font='8px JetBrains Mono';
+    ctx1.fillText('f′/f″ shape-scaled on this graph — true values below',8,H-6);
+  }
+
+  // Update right panel
+  const d1c=dp(cCoeffs),d2c=dp(d1c);
+  document.getElementById('ff').textContent=ps(cCoeffs);
+  document.getElementById('f1').textContent=ps(d1c);
+  document.getElementById('f2').textContent=ps(d2c);
+  const t2=cType==='even'?'c':cType==='odd'?'r':'v';
+  document.getElementById('ff').className=`fv ${t2}`;
+
+  const cps=getCrits(cCoeffs,xMin,xMax);
+  const tb=document.getElementById('ctbody');tb.innerHTML='';
+  if(!cps.length){
+    tb.innerHTML=`<tr><td colspan="4" style="color:var(--mu);text-align:center;padding:8px">None in range</td></tr>`;
+  }else{
+    cps.forEach(p=>{
+      const tr=document.createElement('tr');
+      const tc=p.type==='max'?'var(--mx)':p.type==='min'?'var(--mn)':'var(--mu)';
+      tr.innerHTML=`<td>${p.x}</td><td><b style="color:${tc}">${p.fx}</b></td>
+        <td style="color:${p.f2<0?'var(--mx)':'var(--mn)'}">${p.f2}</td>
+        <td><span class="bdg ${p.type}">${p.type==='max'?'▲':p.type==='min'?'▼':'◆'}</span></td>`;
+      tb.appendChild(tr);
+    });
+  }
   const deg=cCoeffs.length-1;
-  const info=DEG_INFO[cType](deg);
+  const info=DEG_INFO[cType]?DEG_INFO[cType](deg):DEG_INFO.custom(deg);
   const dp2=document.getElementById('dpbox');
-  dp2.style.borderLeft=`3px solid ${cType==='even'?'var(--ce)':'var(--co)'}`;
-  dp2.innerHTML=`<h4 style="color:${cType==='even'?'var(--ce)':'var(--co)'}">${info.title}</h4>
+  const bcol=cType==='even'?'var(--ce)':cType==='odd'?'var(--co)':'var(--cu)';
+  dp2.style.borderLeft=`3px solid ${bcol}`;
+  dp2.innerHTML=`<h4 style="color:${bcol}">${info.title}</h4>
     <ul>${info.facts.map(f=>`<li>${f}</li>`).join('')}</ul>`;
 
-  canvas._s={d1,d2,xMin,xMax,yMin,yMax};
+  gc1._state={d1c,d2c,xMin,xMax,yMin,yMax,yR};
 }
 
-canvas.addEventListener('mousemove',e=>{
-  const s=canvas._s;if(!s)return;
-  const rect=canvas.getBoundingClientRect();
-  const x=s.xMin+(s.xMax-s.xMin)*(e.clientX-rect.left)/canvas.width;
+// ══ DERIVATIVE CANVAS: gc2 ══
+const gc2=document.getElementById('gc2');
+const ctx2=gc2.getContext('2d');
+
+function redrawDeriv(){
+  const W=gc2.width,H=gc2.height;
+  if(!W||!H)return;
+  const xMin=xRange.min,xMax=xRange.max;
+  const d1=dp(cCoeffs),d2=dp(d1);
+  const PTS=600;
+  const traceX=xMin+(xMax-xMin)*tracePos/1000;
+
+  // Y range from derivatives only (true scale)
+  let yMn=Infinity,yMx=-Infinity;
+  const fns=[];
+  if(showD1)fns.push(d1);
+  if(showD2)fns.push(d2);
+  if(!fns.length){fns.push(d1);}
+  fns.forEach(fn=>{
+    for(let i=0;i<=PTS;i++){
+      const x=xMin+(xMax-xMin)*i/PTS,v=ep(fn,x);
+      if(isFinite(v)&&Math.abs(v)<1e9){yMn=Math.min(yMn,v);yMx=Math.max(yMx,v);}
+    }
+  });
+  if(!isFinite(yMn)){yMn=-5;yMx=5;}
+  yMn=Math.min(yMn,0);yMx=Math.max(yMx,0);
+  const pad=(yMx-yMn||1)*.18;
+  const yMin=yMn-pad,yMax=yMx+pad,yR=yMax-yMin;
+
+  const cx=x=>(x-xMin)/(xMax-xMin)*W;
+  const cy=y=>H-(y-yMin)/yR*H;
+
+  ctx2.fillStyle='#090b15';ctx2.fillRect(0,0,W,H);
+  drawGrid(ctx2,W,H,xMin,xMax,yMin,yMax);
+
+  // Zero line
+  ctx2.strokeStyle='#3a4272';ctx2.lineWidth=1;
+  ctx2.beginPath();ctx2.moveTo(0,cy(0));ctx2.lineTo(W,cy(0));ctx2.stroke();
+
+  function drawReveal(fn,col,lw){
+    // dim full curve
+    ctx2.beginPath();ctx2.strokeStyle=col+'28';ctx2.lineWidth=lw;ctx2.setLineDash([3,3]);
+    let st=false;
+    for(let i=0;i<=PTS*2;i++){
+      const x=xMin+(xMax-xMin)*i/(PTS*2),y=ep(fn,x);
+      if(!isFinite(y)){st=false;continue;}
+      const px=cx(x),py=cy(y);
+      if(!st){ctx2.moveTo(px,py);st=true;}else ctx2.lineTo(px,py);
+    }
+    ctx2.stroke();ctx2.setLineDash([]);
+
+    // bright revealed portion
+    if(tracePos>0){
+      ctx2.beginPath();ctx2.strokeStyle=col;ctx2.lineWidth=lw+0.4;
+      st=false;
+      for(let i=0;i<=PTS*2;i++){
+        const x=xMin+(xMax-xMin)*i/(PTS*2);
+        if(x>traceX)break;
+        const y=ep(fn,x);if(!isFinite(y)){st=false;continue;}
+        const px=cx(x),py=cy(y);
+        if(!st){ctx2.moveTo(px,py);st=true;}else ctx2.lineTo(px,py);
+      }
+      ctx2.stroke();
+      // glow dot
+      const ty=ep(fn,traceX);
+      if(isFinite(ty)){
+        const px=cx(traceX),py=cy(ty);
+        const grd=ctx2.createRadialGradient(px,py,0,px,py,11);
+        grd.addColorStop(0,col+'70');grd.addColorStop(1,col+'00');
+        ctx2.beginPath();ctx2.arc(px,py,11,0,Math.PI*2);ctx2.fillStyle=grd;ctx2.fill();
+        ctx2.beginPath();ctx2.arc(px,py,4,0,Math.PI*2);ctx2.fillStyle=col;ctx2.fill();
+        ctx2.fillStyle='rgba(9,11,21,.88)';ctx2.font='bold 9px JetBrains Mono';
+        const lbl=r4(ty),tw=ctx2.measureText(lbl).width+8;
+        ctx2.beginPath();if(ctx2.roundRect)ctx2.roundRect(px+8,py-12,tw,16,3);else ctx2.rect(px+8,py-12,tw,16);
+        ctx2.fill();ctx2.fillStyle=col;ctx2.fillText(lbl,px+12,py);
+      }
+    }
+  }
+
+  if(showD2) drawReveal(d2,'#ffb347',1.5);
+  if(showD1) drawReveal(d1,'#56e356',2.1);
+
+  // Trace vertical
+  if(tracePos>0){
+    const tx=cx(traceX);
+    ctx2.strokeStyle='rgba(255,255,255,.18)';ctx2.lineWidth=1;ctx2.setLineDash([4,4]);
+    ctx2.beginPath();ctx2.moveTo(tx,0);ctx2.lineTo(tx,H);ctx2.stroke();ctx2.setLineDash([]);
+    // highlight near-zero f'
+    const d1v=ep(d1,traceX);
+    if(Math.abs(d1v)<0.4){
+      ctx2.fillStyle='rgba(255,77,255,.12)';ctx2.fillRect(tx-3,0,6,H);
+    }
+  }
+
+  // Critical vertical lines
+  getCrits(cCoeffs,xMin,xMax).forEach(pt=>{
+    if(pt.x<xMin||pt.x>xMax)return;
+    const col=pt.type==='max'?'#ff4dff':pt.type==='min'?'#4dffdd':'#7986cb';
+    const px=cx(pt.x);
+    ctx2.strokeStyle=col+'45';ctx2.lineWidth=1;ctx2.setLineDash([3,4]);
+    ctx2.beginPath();ctx2.moveTo(px,0);ctx2.lineTo(px,H);ctx2.stroke();ctx2.setLineDash([]);
+    ctx2.fillStyle=col;ctx2.font='bold 8px JetBrains Mono';
+    ctx2.fillText(pt.type==='max'?'▲':'▼',px+2,H-4);
+  });
+
+  // Legend
+  ctx2.font='8px JetBrains Mono';
+  let lx=W-7;
+  if(showD2){ctx2.fillStyle='#ffb347';const lbl='f″(x)';lx-=ctx2.measureText(lbl).width+6;ctx2.fillText(lbl,lx,H-5);}
+  if(showD1){ctx2.fillStyle='#56e356';const lbl='f′(x)';lx-=ctx2.measureText(lbl).width+14;ctx2.fillText(lbl,lx,H-5);}
+  if(tracePos===0){
+    ctx2.fillStyle='rgba(121,134,203,.4)';ctx2.font='9px JetBrains Mono';
+    ctx2.fillText('← drag trace slider to reveal derivatives progressively',8,H-5);
+  }
+}
+
+function redrawAll(){redrawMain();redrawDeriv();}
+
+// ══ CANVAS MOUSE EVENTS ══
+gc1.addEventListener('mousemove',e=>{
+  const s=gc1._state;if(!s)return;
+  const rect=gc1.getBoundingClientRect();
+  const x=s.xMin+(s.xMax-s.xMin)*(e.clientX-rect.left)/gc1.width;
+  const y=s.yMin+(s.yMax-s.yMin)*(1-(e.clientY-rect.top)/gc1.height);
   document.getElementById('hx').textContent=x.toFixed(3);
   document.getElementById('hfx').textContent=r4(ep(cCoeffs,x));
-  document.getElementById('hf1').textContent=r4(ep(s.d1,x));
-  document.getElementById('hf2').textContent=r4(ep(s.d2,x));
+  document.getElementById('hf1').textContent=r4(ep(s.d1c,x));
+  document.getElementById('hf2').textContent=r4(ep(s.d2c,x));
+
+  if(isDrawing&&drawMode){
+    drawnXs.push(x);drawnYs.push(y);
+    // draw dot
+    const px=(e.clientX-rect.left)*(gc1.width/gc1.getBoundingClientRect().width||1);
+    const py=(e.clientY-rect.top)*(gc1.height/gc1.getBoundingClientRect().height||1);
+    ctx1.beginPath();ctx1.arc(px,py,2,0,Math.PI*2);
+    ctx1.fillStyle='rgba(255,204,68,.9)';ctx1.fill();
+  }
 });
 
+gc1.addEventListener('mousedown',e=>{
+  if(!drawMode)return;
+  isDrawing=true;drawnXs=[];drawnYs=[];
+  document.getElementById('drawFit').style.display='none';
+  document.getElementById('r2b').style.display='none';
+  const s=gc1._state;if(!s)return;
+  const rect=gc1.getBoundingClientRect();
+  const x=s.xMin+(s.xMax-s.xMin)*(e.clientX-rect.left)/gc1.width;
+  const y=s.yMin+(s.yMax-s.yMin)*(1-(e.clientY-rect.top)/gc1.height);
+  drawnXs.push(x);drawnYs.push(y);
+});
+
+gc1.addEventListener('mouseup',()=>{
+  if(!drawMode||!isDrawing)return;
+  isDrawing=false;
+  if(drawnXs.length<4){clearDraw();return;}
+  document.getElementById('drawFit').style.display='flex';
+  document.getElementById('drawHint').style.display='none';
+  refitDrawn();
+});
+
+gc1.addEventListener('mouseleave',()=>{
+  if(isDrawing){isDrawing=false;if(drawnXs.length>=4){document.getElementById('drawFit').style.display='flex';refitDrawn();}}
+});
+
+// ══ RESIZE ══
+const GRAPH_H = 420; // fixed height per graph
 function resz(){
-  const r=canvas.parentElement.getBoundingClientRect();
-  canvas.width=r.width;canvas.height=r.height;redraw();
+  const fullW = document.body.clientWidth;
+  [document.getElementById('gwrap1'),document.getElementById('gwrap2')].forEach(w=>{
+    w.style.height = GRAPH_H + 'px';
+  });
+  gc1.width  = document.getElementById('gwrap1').clientWidth || fullW;
+  gc1.height = GRAPH_H;
+  gc2.width  = document.getElementById('gwrap2').clientWidth || fullW;
+  gc2.height = GRAPH_H;
+  redrawAll();
 }
-window.addEventListener('resize',resz);
-buildPL();loadP(0);setTimeout(resz,80);
+
+const ro = new ResizeObserver(()=>resz());
+ro.observe(document.body);
+
+// ══ INIT ══
+setType('even');
+setTimeout(()=>{resz();},100);
 </script>
 </body>
 </html>
