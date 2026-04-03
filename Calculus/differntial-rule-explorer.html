@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Differentiation Rules Explorer</title>
+<link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&family=JetBrains+Mono:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#07080f;--sur:#0e1020;--sur2:#141828;--bor:#1e2238;
+  --tx:#dde3f8;--mu:#5a6490;--mu2:#8892c8;
+  --fx:#38bdf8;    /* f(x) — sky blue */
+  --dx:#4ade80;    /* f'(x) — green */
+  --d2:#fb923c;    /* f''(x) — amber */
+  --acc:#e879f9;   /* accent magenta */
+  --gold:#f0c060;
+  --r:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;overflow-x:hidden}
+body{background:var(--bg);color:var(--tx);
+  font-family:'JetBrains Mono',monospace;min-height:100vh;
+  background-image:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(56,189,248,.07),transparent)}
+
+/* ── HEADER ── */
+header{
+  padding:32px 40px 24px;
+  border-bottom:1px solid var(--bor);
+  background:linear-gradient(180deg,rgba(14,16,32,.98),transparent);
+  position:sticky;top:0;z-index:100;backdrop-filter:blur(12px);
+}
+.h-inner{max-width:1400px;margin:0 auto;display:flex;align-items:center;gap:18px}
+.h-badge{
+  width:44px;height:44px;flex-shrink:0;border-radius:12px;
+  background:linear-gradient(135deg,var(--fx),var(--acc));
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;font-weight:700;color:#000;
+  box-shadow:0 0 20px rgba(56,189,248,.3);
+}
+.h-title{
+  font-family:'Crimson Pro',serif;font-size:1.7rem;font-weight:600;
+  background:linear-gradient(90deg,var(--fx),var(--acc),var(--dx));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  letter-spacing:-.01em;
+}
+.h-sub{font-size:.62rem;color:var(--mu2);margin-top:2px}
+.h-pills{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap}
+.h-pill{
+  padding:4px 12px;border-radius:20px;border:1px solid var(--bor);
+  font-size:.62rem;color:var(--mu2);cursor:pointer;transition:all .2s;
+  background:rgba(255,255,255,.02);text-decoration:none;
+}
+.h-pill:hover{border-color:var(--fx);color:var(--fx)}
+
+/* ── RULE GRID ── */
+.page{max-width:1400px;margin:0 auto;padding:32px 24px 60px}
+.section-label{
+  font-size:.6rem;text-transform:uppercase;letter-spacing:.18em;
+  color:var(--mu);margin-bottom:20px;padding-bottom:8px;
+  border-bottom:1px solid var(--bor);
+}
+
+/* Two-column grid: rule card + canvas */
+.rule-block{
+  display:grid;grid-template-columns:320px 1fr;
+  gap:0;border:1px solid var(--bor);border-radius:12px;
+  overflow:hidden;margin-bottom:24px;
+  transition:border-color .3s;
+  animation:fadeUp .5s ease both;
+}
+.rule-block:hover{border-color:rgba(56,189,248,.25)}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.rule-block:nth-child(1){animation-delay:.05s}
+.rule-block:nth-child(2){animation-delay:.10s}
+.rule-block:nth-child(3){animation-delay:.15s}
+.rule-block:nth-child(4){animation-delay:.20s}
+.rule-block:nth-child(5){animation-delay:.25s}
+.rule-block:nth-child(6){animation-delay:.30s}
+.rule-block:nth-child(7){animation-delay:.35s}
+
+/* ── LEFT: rule card ── */
+.rule-card{
+  background:var(--sur);padding:24px 22px;
+  border-right:1px solid var(--bor);
+  display:flex;flex-direction:column;gap:14px;
+}
+.rule-tag{
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:.58rem;text-transform:uppercase;letter-spacing:.14em;
+  color:var(--mu2);margin-bottom:2px;
+}
+.rule-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.rule-name{
+  font-family:'Crimson Pro',serif;font-size:1.6rem;font-weight:600;
+  color:var(--tx);line-height:1.1;
+}
+.rule-subtitle{font-size:.65rem;color:var(--mu2);margin-top:2px}
+
+/* Formula display */
+.formula-row{
+  background:var(--sur2);border:1px solid var(--bor);border-radius:8px;
+  padding:12px 14px;display:flex;flex-direction:column;gap:8px;
+}
+.frow{display:flex;align-items:center;gap:10px}
+.frow-label{font-size:.6rem;color:var(--mu);width:40px;flex-shrink:0}
+.frow-val{font-size:1.05rem;font-weight:600;font-family:'Crimson Pro',serif;letter-spacing:.01em}
+.frow-val.fx{color:var(--fx)}
+.frow-val.dx{color:var(--dx)}
+.frow-val.d2{color:var(--d2)}
+.frow-sep{height:1px;background:var(--bor);margin:2px 0}
+
+/* Insight box */
+.insight{
+  background:rgba(232,121,249,.05);border:1px solid rgba(232,121,249,.15);
+  border-radius:7px;padding:10px 12px;font-size:.63rem;
+  color:var(--mu2);line-height:1.7;
+}
+.insight strong{color:var(--acc);font-weight:600}
+
+/* Interactive controls */
+.controls{display:flex;flex-direction:column;gap:8px}
+.ctrl-row{display:flex;align-items:center;gap:10px;font-size:.65rem}
+.ctrl-label{color:var(--mu);white-space:nowrap;width:90px;flex-shrink:0}
+.slider{flex:1;accent-color:var(--fx)}
+.ctrl-val{color:var(--fx);font-weight:700;width:40px;text-align:right}
+
+/* Toggle buttons */
+.tog-row{display:flex;gap:6px;margin-top:4px}
+.tog{
+  padding:4px 11px;border-radius:5px;border:1px solid;
+  font-family:inherit;font-size:.62rem;font-weight:700;cursor:pointer;
+  transition:all .2s;
+}
+.tog.fx {border-color:var(--fx);color:var(--fx);background:rgba(56,189,248,.1)}
+.tog.dx {border-color:var(--dx);color:var(--dx);background:rgba(74,222,128,.1)}
+.tog.d2 {border-color:var(--d2);color:var(--d2);background:rgba(251,146,60,.1)}
+.tog.off{opacity:.3;filter:grayscale(.8)}
+
+/* ── RIGHT: canvas area ── */
+.rule-canvas{
+  position:relative;background:var(--bg);
+  display:flex;flex-direction:column;
+}
+.canvas-toolbar{
+  display:flex;align-items:center;gap:10px;padding:7px 14px;
+  border-bottom:1px solid var(--bor);background:rgba(14,16,32,.9);
+  font-size:.6rem;flex-shrink:0;flex-wrap:wrap;
+}
+.ct-item{display:flex;align-items:center;gap:5px;color:var(--mu2)}
+.ct-dot{width:16px;height:2px;border-radius:1px}
+.hover-readout{
+  margin-left:auto;color:var(--mu2);
+  font-size:.6rem;font-family:'JetBrains Mono',monospace;
+}
+canvas.gc{
+  width:100%;flex:1;min-height:280px;display:block;cursor:crosshair;
+}
+.canvas-zoom{
+  position:absolute;bottom:8px;right:8px;display:flex;gap:4px;z-index:5;
+}
+.zbtn{
+  width:24px;height:24px;border-radius:4px;
+  border:1px solid var(--bor);background:rgba(14,16,32,.85);
+  color:var(--mu2);font-size:.75rem;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  backdrop-filter:blur(4px);transition:all .2s;font-family:inherit;
+}
+.zbtn:hover{border-color:var(--mu2);color:var(--tx)}
+
+/* ── REFERENCE TABLE (bottom) ── */
+.ref-table-wrap{
+  margin-top:40px;background:var(--sur);border:1px solid var(--bor);
+  border-radius:12px;overflow:hidden;
+}
+.ref-table-head{
+  padding:16px 20px;border-bottom:1px solid var(--bor);
+  font-family:'Crimson Pro',serif;font-size:1.1rem;
+  display:flex;align-items:center;gap:10px;
+}
+.ref-table-head span{font-size:.6rem;color:var(--mu);font-family:'JetBrains Mono',monospace}
+table.ref{width:100%;border-collapse:collapse}
+table.ref th{
+  background:var(--sur2);color:var(--mu2);font-size:.6rem;
+  text-transform:uppercase;letter-spacing:.12em;
+  padding:9px 16px;text-align:left;border-bottom:1px solid var(--bor);
+  font-weight:600;
+}
+table.ref td{
+  padding:11px 16px;border-bottom:1px solid rgba(30,34,56,.6);
+  font-size:.78rem;vertical-align:middle;
+}
+table.ref tr:last-child td{border-bottom:none}
+table.ref tr:hover td{background:rgba(56,189,248,.03)}
+.td-cat{color:var(--mu2);font-size:.6rem}
+.td-fn{color:var(--fx);font-family:'Crimson Pro',serif;font-size:1rem}
+.td-deriv{color:var(--dx);font-family:'Crimson Pro',serif;font-size:1rem}
+.td-note{font-size:.62rem;color:var(--mu);line-height:1.6}
+.badge-rule{
+  display:inline-block;padding:1px 7px;border-radius:3px;font-size:.55rem;
+  font-family:'JetBrains Mono',monospace;font-weight:700;letter-spacing:.06em;
+}
+
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--bor);border-radius:3px}
+
+/* Responsive */
+@media(max-width:900px){
+  .rule-block{grid-template-columns:1fr}
+  .rule-card{border-right:none;border-bottom:1px solid var(--bor)}
+  canvas.gc{min-height:220px}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="h-inner">
+    <div class="h-badge">d/dx</div>
+    <div>
+      <div class="h-title">Differentiation Rules Explorer</div>
+      <div class="h-sub">Power · Exponential · Logarithmic · Trigonometric · Inverse Trig · Hyperbolic</div>
+    </div>
+    <div class="h-pills">
+      <a class="h-pill" href="#power">Power</a>
+      <a class="h-pill" href="#exponential">Exponential</a>
+      <a class="h-pill" href="#log">Logarithmic</a>
+      <a class="h-pill" href="#trig">Trig</a>
+      <a class="h-pill" href="#invtrig">Inv. Trig</a>
+      <a class="h-pill" href="#hyp">Hyperbolic</a>
+      <a class="h-pill" href="#ref">Reference</a>
+    </div>
+  </div>
+</header>
+
+<div class="page">
+
+<!-- ══════════ 1. POWER RULE ══════════ -->
+<div id="power" class="section-label">01 — Power Rule</div>
+<div class="rule-block" data-rule="power">
+  <div class="rule-card">
+    <div>
+      <div class="rule-tag"><div class="rule-dot" style="background:#38bdf8"></div>Power Rule</div>
+      <div class="rule-name">xⁿ</div>
+      <div class="rule-subtitle">The fundamental rule of polynomial differentiation</div>
+    </div>
+    <div class="formula-row">
+      <div class="frow"><span class="frow-label">f(x) =</span><span class="frow-val fx">xⁿ</span></div>
+      <div class="frow-sep"></div>
+      <div class="frow"><span class="frow-label">f′(x) =</span><span class="frow-val dx">n · x<sup>n−1</sup></span></div>
+      <div class="frow"><span class="frow-label">f″(x) =</span><span class="frow-val d2">n(n−1) · x<sup>n−2</sup></span></div>
+    </div>
+    <div class="insight">
+      Bring the <strong>exponent n down</strong> as a coefficient, then <strong>reduce the power by 1</strong>.<br>
+      Works for any real n — including fractions (√x = x^½) and negatives (1/x = x⁻¹).
+    </div>
+    <div class="controls">
+      <div class="ctrl-row">
+        <span class="ctrl-label">Exponent n =</span>
+        <input class="slider" type="range" id="power-n" min="-4" max="6" step="0.5" value="3">
+        <span class="ctrl-val" id="power-n-val">3</span>
+      </div>
+      <div class="tog-row">
+        <button class="tog fx" id="power-togF" onclick="toggleCurve('power','F')">f(x)</button>
+        <button class="tog dx" id="power-togD1" onclick="toggleCurve('power','D1')">f′(x)</button>
+        <button class="tog d2" id="power-togD2" onclick="toggleCurve('power','D2')">f″(x)</button>
+      </div>
+    </div>
+  </div>
+  <div class="rule-canvas">
+    <div class="canvas-toolbar">
+      <div class="ct-item"><div class="ct-dot" style="background:#38bdf8"></div>f(x)=xⁿ</div>
+      <div class="ct-item"><div class="ct-dot" style="background:#4ade80;border-top:2px dashed #4ade80"></div>f′(x)</div>
+      <div class="ct-item"><div class="ct-dot" style="background:#fb923c;border-top:2px dashed #fb923c"></div>f″(x)</div>
+      <div class="hover-readout" id="power-readout">hover to read values</div>
+    </div>
+    <canvas class="gc" id="power-canvas"></canvas>
+    <div class="canvas-zoom">
+      <button class="zbtn" onclick="zoom('power',.75)">+</button>
+      <button class="zbtn" onclick="zoom('power',1.4)">−</button>
+      <button class="zbtn" onclick="resetZoom('power')">⌂</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ 2. EXPONENTIAL ══════════ -->
+<div id="exponential" class="section-label" style="margin-top:16px">02 — Exponential</div>
+<div class="rule-block" data-rule="exp">
+  <div class="rule-card">
+    <div>
+      <div class="rule-tag"><div class="rule-dot" style="background:#4ade80"></div>Exponential</div>
+      <div class="rule-name">eˣ</div>
+      <div class="rule-subtitle">The only function that is its own derivative</div>
+    </div>
+    <div class="formula-row">
+      <div class="frow"><span class="frow-label">f(x) =</span><span class="frow-val fx">eˣ</span></div>
+      <div class="frow-sep"></div>
+      <div class="frow"><span class="frow-label">f′(x) =</span><span class="frow-val dx">eˣ</span></div>
+      <div class="frow"><span class="frow-label">f″(x) =</span><span class="frow-val d2">eˣ</span></div>
+    </div>
+    <div class="formula-row" style="margin-top:6px">
+      <div class="frow"><span class="frow-label">f(x) =</span><span class="frow-val fx">aˣ</span></div>
+      <div class="frow-sep"></div>
+      <div class="frow"><span class="frow-label">f′(x) =</span><span class="frow-val dx">aˣ · ln(a)</span></div>
+    </div>
+    <div class="insight">
+      <strong>eˣ is self-replicating</strong> — differentiating it gives back exactly eˣ.<br>
+      For general base a, a factor of <strong>ln(a)</strong> appears because eˣ is the "natural" base.
+    </div>
+    <div class="controls">
+      <div class="ctrl-row">
+        <span class="ctrl-label">Base a =</span>
+        <input class="slider" type="range" id="exp-a" min="1.1" max="5" step="0.1" value="2.718">
+        <span class="ctrl-val" id="exp-a-val">e</span>
+      </div>
+      <div class="tog-row">
+        <button class="tog fx" id="exp-togF" onclick="toggleCurve('exp','F')">f(x)</button>
+        <button class="tog dx" id="exp-togD1" onclick="toggleCurve('exp','D1')">f′(x)</button>
+        <button class="tog d2" id="exp-togD2" onclick="toggleCurve('exp','D2')">f″(x)</button>
+      </div>
+    </div>
+  </div>
+  <div class="rule-canvas">
+    <div class="canvas-toolbar">
+      <div class="ct-item"><div class="ct-dot" style="background:#38bdf8"></div>f(x)=aˣ</div>
+      <div class="ct-item"><div class="ct-dot" style="background:#4ade80"></div>f′(x)=aˣln(a)</div>
+      <div class="ct-item"><div class="ct-dot" style="background:#fb923c"></div>f″(x)</div>
+      <div class="hover-readout" id="exp-readout">hover to read values</div>
+    </div>
+    <canvas class="gc" id="exp-canvas"></canvas>
+    <div class="canvas-zoom">
+      <button class="zbtn" onclick="zoom('exp',.75)">+</button>
+      <button class="zbtn" onclick="zoom('exp',1.4)">−</button>
+      <button class="zbtn" onclick="resetZoom('exp')">⌂</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ 3. LOGARITHMIC ══════════ -->
+<div id="log" class="section-label" style="margin-top:16px">03 — Logarithmic</div>
+<div class="rule-block" data-rule="log">
+  <div class="rule-card">
+    <div>
+      <div class="rule-tag"><div class="rule-dot" style="background:#fb923c"></div>Logarithmic</div>
+      <div class="rule-name">ln(x)</div>
+      <div class="rule-subtitle">The inverse of the exponential function</div>
+    </div>
+    <div class="formula-row">
+      <div class="frow"><span class="frow-label">f(x) =</span><span class="frow-val fx">ln(x)</span></div>
+      <div class="frow-sep"></div>
+      <div class="frow"><span class="frow-label">f′(x) =</span><span class="frow-val dx">1 / x</span></div>
+      <div class="frow"><span class="frow-label">f″(x) =</span><span class="frow-val d2">−1 / x²</span></div>
+    </div>
+    <div class="formula-row" style="margin-top:6px">
+      <div class="frow"><span class="frow-label">f(x) =</span><span class="frow-val fx">logₐ(x)</span></div>
+      <div class="frow-sep"></div>
+      <div class="frow"><span class="frow-label">f′(x) =</span><span class="frow-val dx">1 / (x · ln a)</span></div>
+    </div>
+    <div class="insight">
+      The slope of <strong>ln(x) at any point is exactly 1/x</strong>. At x=1 slope=1, at x=2 slope=½, at x=10 slope=0.1 — the curve gets flatter as x grows.
+    </div>
+    <div class="controls">
+      <div class="ctrl-row">
+        <span class="ctrl-label">Base a =</span>
+        <input class="slider" type="range" id="log-a" min="1.5" max="10" step="0.5" value="2.718">
+        <span class="ctrl-val" id="log-a-val">e</span>
+      </div>
+      <div class="tog-row">
+        <button class="tog fx" id="log-togF" onclick="toggleCurve('log','F')">f(x)</button>
+        <button class="tog dx" id="log-togD1" onclick="toggleCurve('log','D1')">f′(x)</button>
+        <button class="tog d2" id="log-togD2" onclick="toggleCurve('log','D2')">f″(x)</button>
+      </div>
+    </div>
+  </div>
+  <div class="rule-canvas">
+    <div class="canvas-toolbar">
+      <div class="ct-item"><div class="ct-dot" style="background:#38bdf8"></div>f(x)=logₐ(x)</div>
+      <div class="ct-item"><div class="ct-dot" style="background:#4ade80"></div>f′(x)=1/(x·ln a)</div>
+      <div class="ct-item"><div class="ct-dot" style="background:#fb923c"></div>f″(x)</div>
+      <div class="hover-readout" id="log-readout">hover to read values</div>
+    </div>
+    <canvas class="gc" id="log-canvas"></canvas>
+    <div class="canvas-zoom">
+      <button class="zbtn" onclick="zoom('log',.75)">+</button>
+      <button class="zbtn" onclick="zoom('log',1.4)">−</button>
+      <button class="zbtn" onclick="resetZoom('log')">⌂</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ 4. TRIG ══════════ -->
+<div id="trig" class="section-label" style="margin-top:16px">04 — Trigonometric</div>
+<div class="rule-block" data-rule="trig">
+  <div class="rule-card">
+    <div>
+      <div class="rule-tag"><div class="rule-dot" style="background:#e879f9"></div>Trigonometric</div>
+      <div class="rule-name">sin · cos · tan</div>
+      <div class="rule-subtitle">Cyclic derivatives — they loop every 4 steps</div>
+    </div>
+    <div class="formula-row">
+      <div class="frow"><span class="frow-label">d/dx</span><span class="frow-val fx">sin(x)</span>&nbsp;<span style="color:var(--mu2);font-size:.7rem">=</span>&nbsp;<span class="frow-val dx">cos(x)</span></div>
+      <div class="frow"><span class="frow-label">d/dx</span><span class="frow-val fx">cos(x)</span>&nbsp;<span style="color:var(--mu2);font-size:.7rem">=</span>&nbsp;<span class="frow-val dx">−sin(x)</span></div>
+      <div class="frow-sep"></div>
+      <div class="frow"><span class="frow-label">d/dx</span><span class="frow-val fx">tan(x)</span>&nbsp;<span style="color:var(--mu2);font-size:.7rem">=</span>&nbsp;<span class="frow-val dx">sec²(x)</span></div>
+    </div>
+    <div class="insight">
+      Differentiate <strong>sin</strong> 4 times: sin → cos → −sin → −cos → <strong>sin</strong> again.<br>
+      The derivative is always a <strong>phase shift of π/2</strong> (90°).
+    </div>
+    <div class="controls">
+      <div class="ctrl-row">
+        <span class="ctrl-label">Function:</span>
+        <select id="trig-fn" onchange="updateRule('trig')"
+          style="flex:1;background:var(--sur2);border:1px solid var(--bor);color:var(--tx);
+          font-family:inherit;font-size:.68rem;padding:4px 8px;border-radius:5px;outline:none">
+          <option value="sin">sin(x)</option>
+          <option value="cos">cos(x)</option>
+          <option value="tan">tan(x)</option>
+        </select>
+      </div>
+      <div class="tog-row">
+        <button class="tog fx" id="trig-togF" onclick="toggleCurve('trig','F')">f(x)</button>
+        <button class="tog dx" id="trig-togD1" onclick="toggleCurve('trig','D1')">f′(x)</button>
+        <button class="tog d2" id="trig-togD2" onclick="toggleCurve('trig','D2')">f″(x)</button>
+      </div>
+    </div>
+  </div>
+  <div class="rule-canvas">
+    <div class="canvas-toolbar">
+      <div class="ct-item"><div class="ct-dot" style="background:#38bdf8"></div><span id="trig-f-lbl">sin(x)</span></div>
+      <div class="ct-item"><div class="ct-dot" style="background:#4ade80"></div><span id="trig-d1-lbl">cos(x)</span></div>
+      <div class="ct-item"><div class="ct-dot" style="background:#fb923c"></div><span id="trig-d2-lbl">−sin(x)</span></div>
+      <div class="hover-readout" id="trig-readout">hover to read values</div>
+    </div>
+    <canvas class="gc" id="trig-canvas"></canvas>
+    <div class="canvas-zoom">
+      <button class="zbtn" onclick="zoom('trig',.75)">+</button>
+      <button class="zbtn" onclick="zoom('trig',1.4)">−</button>
+      <button class="zbtn" onclick="resetZoom('trig')">⌂</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ 5. INVERSE TRIG ══════════ -->
+<div id="invtrig" class="section-label" style="margin-top:16px">05 — Inverse Trigonometric</div>
+<div class="rule-block" data-rule="invtrig">
+  <div class="rule-card">
+    <div>
+      <div class="rule-tag"><div class="rule-dot" style="background:#f0c060"></div>Inverse Trig</div>
+      <div class="rule-name">arcsin · arccos · arctan</div>
+      <div class="rule-subtitle">Algebraic derivatives from transcendental inverses</div>
+    </div>
+    <div class="formula-row">
+      <div class="frow"><span class="frow-label">d/dx</span><span class="frow-val fx">arcsin(x)</span>&nbsp;=&nbsp;<span class="frow-val dx">1/√(1−x²)</span></div>
+      <div class="frow"><span class="frow-label">d/dx</span><span class="frow-val fx">arccos(x)</span>&nbsp;=&nbsp;<span class="frow-val dx">−1/√(1−x²)</span></div>
+      <div class="frow-sep"></div>
+      <div class="frow"><span class="frow-label">d/dx</span><span class="frow-val fx">arctan(x)</span>&nbsp;=&nbsp;<span class="frow-val dx">1/(1+x²)</span></div>
+    </div>
+    <div class="insight">
+      arctan's derivative <strong>1/(1+x²)</strong> is defined everywhere — no domain issues.<br>
+      arcsin/arccos derivatives have <strong>√(1−x²)</strong> in denominator, so domain is (−1, 1).
+    </div>
+    <div class="controls">
+      <div class="ctrl-row">
+        <span class="ctrl-label">Function:</span>
+        <select id="invtrig-fn" onchange="updateRule('invtrig')"
+          style="flex:1;background:var(--sur2);border:1px solid var(--bor);color:var(--tx);
+          font-family:inherit;font-size:.68rem;padding:4px 8px;border-radius:5px;outline:none">
+          <option value="arctan">arctan(x)</option>
+          <option value="arcsin">arcsin(x)</option>
+          <option value="arccos">arccos(x)</option>
+        </select>
+      </div>
+      <div class="tog-row">
+        <button class="tog fx" id="invtrig-togF" onclick="toggleCurve('invtrig','F')">f(x)</button>
+        <button class="tog dx" id="invtrig-togD1" onclick="toggleCurve('invtrig','D1')">f′(x)</button>
+        <button class="tog d2" id="invtrig-togD2" onclick="toggleCurve('invtrig','D2')">f″(x)</button>
+      </div>
+    </div>
+  </div>
+  <div class="rule-canvas">
+    <div class="canvas-toolbar">
+      <div class="ct-item"><div class="ct-dot" style="background:#38bdf8"></div><span id="invtrig-f-lbl">arctan(x)</span></div>
+      <div class="ct-item"><div class="ct-dot" style="background:#4ade80"></div><span id="invtrig-d1-lbl">1/(1+x²)</span></div>
+      <div class="ct-item"><div class="ct-dot" style="background:#fb923c"></div><span id="invtrig-d2-lbl">f″(x)</span></div>
+      <div class="hover-readout" id="invtrig-readout">hover to read values</div>
+    </div>
+    <canvas class="gc" id="invtrig-canvas"></canvas>
+    <div class="canvas-zoom">
+      <button class="zbtn" onclick="zoom('invtrig',.75)">+</button>
+      <button class="zbtn" onclick="zoom('invtrig',1.4)">−</button>
+      <button class="zbtn" onclick="resetZoom('invtrig')">⌂</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ 6. HYPERBOLIC ══════════ -->
+<div id="hyp" class="section-label" style="margin-top:16px">06 — Hyperbolic</div>
+<div class="rule-block" data-rule="hyp">
+  <div class="rule-card">
+    <div>
+      <div class="rule-tag"><div class="rule-dot" style="background:#a78bfa"></div>Hyperbolic</div>
+      <div class="rule-name">sinh · cosh · tanh</div>
+      <div class="rule-subtitle">Exponential analogues of the trig functions</div>
+    </div>
+    <div class="formula-row">
+      <div class="frow"><span class="frow-label">d/dx</span><span class="frow-val fx">sinh(x)</span>&nbsp;=&nbsp;<span class="frow-val dx">cosh(x)</span></div>
+      <div class="frow"><span class="frow-label">d/dx</span><span class="frow-val fx">cosh(x)</span>&nbsp;=&nbsp;<span class="frow-val dx">sinh(x)</span></div>
+      <div class="frow-sep"></div>
+      <div class="frow"><span class="frow-label">d/dx</span><span class="frow-val fx">tanh(x)</span>&nbsp;=&nbsp;<span class="frow-val dx">sech²(x)</span></div>
+    </div>
+    <div class="insight">
+      Unlike trig, <strong>cosh differentiates to sinh</strong> (not −sinh). No sign flip!<br>
+      sinh(x) = (eˣ − e⁻ˣ)/2, cosh(x) = (eˣ + e⁻ˣ)/2 — both defined by exponentials.
+    </div>
+    <div class="controls">
+      <div class="ctrl-row">
+        <span class="ctrl-label">Function:</span>
+        <select id="hyp-fn" onchange="updateRule('hyp')"
+          style="flex:1;background:var(--sur2);border:1px solid var(--bor);color:var(--tx);
+          font-family:inherit;font-size:.68rem;padding:4px 8px;border-radius:5px;outline:none">
+          <option value="sinh">sinh(x)</option>
+          <option value="cosh">cosh(x)</option>
+          <option value="tanh">tanh(x)</option>
+        </select>
+      </div>
+      <div class="tog-row">
+        <button class="tog fx" id="hyp-togF" onclick="toggleCurve('hyp','F')">f(x)</button>
+        <button class="tog dx" id="hyp-togD1" onclick="toggleCurve('hyp','D1')">f′(x)</button>
+        <button class="tog d2" id="hyp-togD2" onclick="toggleCurve('hyp','D2')">f″(x)</button>
+      </div>
+    </div>
+  </div>
+  <div class="rule-canvas">
+    <div class="canvas-toolbar">
+      <div class="ct-item"><div class="ct-dot" style="background:#38bdf8"></div><span id="hyp-f-lbl">sinh(x)</span></div>
+      <div class="ct-item"><div class="ct-dot" style="background:#4ade80"></div><span id="hyp-d1-lbl">cosh(x)</span></div>
+      <div class="ct-item"><div class="ct-dot" style="background:#fb923c"></div><span id="hyp-d2-lbl">sinh(x)</span></div>
+      <div class="hover-readout" id="hyp-readout">hover to read values</div>
+    </div>
+    <canvas class="gc" id="hyp-canvas"></canvas>
+    <div class="canvas-zoom">
+      <button class="zbtn" onclick="zoom('hyp',.75)">+</button>
+      <button class="zbtn" onclick="zoom('hyp',1.4)">−</button>
+      <button class="zbtn" onclick="resetZoom('hyp')">⌂</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ REFERENCE TABLE ══════════ -->
+<div id="ref" class="ref-table-wrap" style="margin-top:40px;animation:fadeUp .5s ease .4s both">
+  <div class="ref-table-head">
+    📋 Complete Differentiation Reference
+    <span>all standard rules at a glance</span>
+  </div>
+  <table class="ref">
+    <thead>
+      <tr>
+        <th>Category</th><th>f(x)</th><th>f′(x)</th><th>f″(x)</th><th>Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td class="td-cat">Power</td><td class="td-fn">xⁿ</td><td class="td-deriv">n·x<sup>n−1</sup></td><td class="td-deriv">n(n−1)·x<sup>n−2</sup></td><td class="td-note">Any real n; includes √x = x<sup>½</sup>, 1/x = x<sup>−1</sup></td></tr>
+      <tr><td class="td-cat">Constant</td><td class="td-fn">c</td><td class="td-deriv">0</td><td class="td-deriv">0</td><td class="td-note">Constant has zero slope everywhere</td></tr>
+      <tr><td class="td-cat">Exponential</td><td class="td-fn">eˣ</td><td class="td-deriv">eˣ</td><td class="td-deriv">eˣ</td><td class="td-note">Self-replicating — its own derivative!</td></tr>
+      <tr><td class="td-cat">Exponential</td><td class="td-fn">aˣ</td><td class="td-deriv">aˣ·ln(a)</td><td class="td-deriv">aˣ·(ln a)²</td><td class="td-note">General base; ln(e)=1 recovers eˣ case</td></tr>
+      <tr><td class="td-cat">Logarithmic</td><td class="td-fn">ln(x)</td><td class="td-deriv">1/x</td><td class="td-deriv">−1/x²</td><td class="td-note">Domain x &gt; 0; slope decreases as 1/x</td></tr>
+      <tr><td class="td-cat">Logarithmic</td><td class="td-fn">log<sub>a</sub>(x)</td><td class="td-deriv">1/(x·ln a)</td><td class="td-deriv">−1/(x²·ln a)</td><td class="td-note">Change of base: log<sub>a</sub>x = ln x / ln a</td></tr>
+      <tr><td class="td-cat">Trig</td><td class="td-fn">sin(x)</td><td class="td-deriv">cos(x)</td><td class="td-deriv">−sin(x)</td><td class="td-note">Cycle: sin→cos→−sin→−cos→sin</td></tr>
+      <tr><td class="td-cat">Trig</td><td class="td-fn">cos(x)</td><td class="td-deriv">−sin(x)</td><td class="td-deriv">−cos(x)</td><td class="td-note">Phase shift of π/2 each derivative</td></tr>
+      <tr><td class="td-cat">Trig</td><td class="td-fn">tan(x)</td><td class="td-deriv">sec²(x)</td><td class="td-deriv">2sec²(x)tan(x)</td><td class="td-note">Undefined at x = π/2 + nπ</td></tr>
+      <tr><td class="td-cat">Inv. Trig</td><td class="td-fn">arcsin(x)</td><td class="td-deriv">1/√(1−x²)</td><td class="td-deriv">x/(1−x²)<sup>3/2</sup></td><td class="td-note">Domain −1 &lt; x &lt; 1</td></tr>
+      <tr><td class="td-cat">Inv. Trig</td><td class="td-fn">arccos(x)</td><td class="td-deriv">−1/√(1−x²)</td><td class="td-deriv">−x/(1−x²)<sup>3/2</sup></td><td class="td-note">Domain −1 &lt; x &lt; 1</td></tr>
+      <tr><td class="td-cat">Inv. Trig</td><td class="td-fn">arctan(x)</td><td class="td-deriv">1/(1+x²)</td><td class="td-deriv">−2x/(1+x²)²</td><td class="td-note">Defined for all real x; range (−π/2, π/2)</td></tr>
+      <tr><td class="td-cat">Hyperbolic</td><td class="td-fn">sinh(x)</td><td class="td-deriv">cosh(x)</td><td class="td-deriv">sinh(x)</td><td class="td-note">(eˣ−e⁻ˣ)/2; no sign flip unlike trig!</td></tr>
+      <tr><td class="td-cat">Hyperbolic</td><td class="td-fn">cosh(x)</td><td class="td-deriv">sinh(x)</td><td class="td-deriv">cosh(x)</td><td class="td-note">(eˣ+e⁻ˣ)/2; always ≥ 1</td></tr>
+      <tr><td class="td-cat">Hyperbolic</td><td class="td-fn">tanh(x)</td><td class="td-deriv">sech²(x)</td><td class="td-deriv">−2sech²(x)tanh(x)</td><td class="td-note">S-curve; range (−1,1)</td></tr>
+    </tbody>
+  </table>
+</div>
+
+</div><!-- /page -->
+
+<script>
+// ══════════════════════════════════════════════════════
+//  ENGINE
+// ══════════════════════════════════════════════════════
+
+// Per-rule state
+const RULES = {};
+
+function defRule(id, fns, xDef){
+  RULES[id] = {
+    fns,            // {f, d1, d2} — functions of (x, params)
+    params: {},     // current param values
+    view: {xMin: xDef[0], xMax: xDef[1], yMin:null, yMax:null},
+    show: {F:true, D1:true, D2:true},
+    canvas: document.getElementById(id+'-canvas'),
+    ctx: document.getElementById(id+'-canvas').getContext('2d'),
+    readout: document.getElementById(id+'-readout'),
+    pan: {active:false, sx:0, sy:0, sv:null},
+  };
+}
+
+// ── Function definitions ──
+defRule('power', {
+  f:  (x,p) => Math.pow(x, p.n),
+  d1: (x,p) => p.n * Math.pow(x, p.n-1),
+  d2: (x,p) => p.n*(p.n-1) * Math.pow(x, p.n-2),
+}, [-3, 3]);
+
+defRule('exp', {
+  f:  (x,p) => Math.pow(p.a, x),
+  d1: (x,p) => Math.pow(p.a, x) * Math.log(p.a),
+  d2: (x,p) => Math.pow(p.a, x) * Math.pow(Math.log(p.a),2),
+}, [-3, 3]);
+
+defRule('log', {
+  f:  (x,p) => x>0 ? Math.log(x)/Math.log(p.a) : NaN,
+  d1: (x,p) => x>0 ? 1/(x*Math.log(p.a)) : NaN,
+  d2: (x,p) => x>0 ? -1/(x*x*Math.log(p.a)) : NaN,
+}, [0.05, 6]);
+
+defRule('trig', {
+  f:  (x,p) => p.fn==='sin'?Math.sin(x):p.fn==='cos'?Math.cos(x):Math.tan(x),
+  d1: (x,p) => {
+    if(p.fn==='sin') return Math.cos(x);
+    if(p.fn==='cos') return -Math.sin(x);
+    const c=Math.cos(x); return Math.abs(c)<1e-10?NaN:1/(c*c);
+  },
+  d2: (x,p) => {
+    if(p.fn==='sin') return -Math.sin(x);
+    if(p.fn==='cos') return -Math.cos(x);
+    const c=Math.cos(x),t=Math.tan(x); return Math.abs(c)<1e-10?NaN:2*(1/(c*c))*t;
+  },
+}, [-2*Math.PI, 2*Math.PI]);
+
+defRule('invtrig', {
+  f:  (x,p) => p.fn==='arctan'?Math.atan(x):p.fn==='arcsin'?Math.asin(x):Math.acos(x),
+  d1: (x,p) => {
+    if(p.fn==='arctan') return 1/(1+x*x);
+    const s=1-x*x; return s<=0?NaN:(p.fn==='arcsin'?1:(-1))/Math.sqrt(s);
+  },
+  d2: (x,p) => {
+    if(p.fn==='arctan') return -2*x/Math.pow(1+x*x,2);
+    const s=1-x*x; if(s<=0)return NaN;
+    const sign=p.fn==='arcsin'?1:-1;
+    return sign*x/Math.pow(s,1.5);
+  },
+}, [-4, 4]);
+
+defRule('hyp', {
+  f:  (x,p) => p.fn==='sinh'?Math.sinh(x):p.fn==='cosh'?Math.cosh(x):Math.tanh(x),
+  d1: (x,p) => p.fn==='sinh'?Math.cosh(x):p.fn==='cosh'?Math.sinh(x):1/Math.pow(Math.cosh(x),2),
+  d2: (x,p) => p.fn==='sinh'?Math.sinh(x):p.fn==='cosh'?Math.cosh(x):-2*Math.sinh(x)/Math.pow(Math.cosh(x),3),
+}, [-3, 3]);
+
+// ── Init params ──
+RULES.power.params  = {n:3};
+RULES.exp.params    = {a:Math.E};
+RULES.log.params    = {a:Math.E};
+RULES.trig.params   = {fn:'sin'};
+RULES.invtrig.params= {fn:'arctan'};
+RULES.hyp.params    = {fn:'sinh'};
+
+// ══ SLIDER WIRING ══
+document.getElementById('power-n').addEventListener('input', e=>{
+  const v=parseFloat(e.target.value);
+  RULES.power.params.n=v;
+  document.getElementById('power-n-val').textContent=Number.isInteger(v)?v:v.toFixed(1);
+  RULES.power.view.yMin=null; drawRule('power');
+});
+document.getElementById('exp-a').addEventListener('input', e=>{
+  const v=parseFloat(e.target.value);
+  RULES.exp.params.a=v;
+  document.getElementById('exp-a-val').textContent=Math.abs(v-Math.E)<0.05?'e':v.toFixed(1);
+  RULES.exp.view.yMin=null; drawRule('exp');
+});
+document.getElementById('log-a').addEventListener('input', e=>{
+  const v=parseFloat(e.target.value);
+  RULES.log.params.a=v;
+  document.getElementById('log-a-val').textContent=Math.abs(v-Math.E)<0.05?'e':v.toFixed(1);
+  RULES.log.view.yMin=null; drawRule('log');
+});
+
+// ══ SELECT WIRING ══
+function updateRule(id){
+  const sel=document.getElementById(id+'-fn');
+  RULES[id].params.fn=sel.value;
+  RULES[id].view.yMin=null;
+  updateLabels(id);
+  drawRule(id);
+}
+
+function updateLabels(id){
+  const fn=RULES[id].params.fn;
+  const labels={
+    trig:{
+      sin:['sin(x)','cos(x)','−sin(x)'],
+      cos:['cos(x)','−sin(x)','−cos(x)'],
+      tan:['tan(x)','sec²(x)','2sec²tan(x)'],
+    },
+    invtrig:{
+      arctan:['arctan(x)','1/(1+x²)','−2x/(1+x²)²'],
+      arcsin:['arcsin(x)','1/√(1−x²)','x/(1−x²)^1.5'],
+      arccos:['arccos(x)','−1/√(1−x²)','−x/(1−x²)^1.5'],
+    },
+    hyp:{
+      sinh:['sinh(x)','cosh(x)','sinh(x)'],
+      cosh:['cosh(x)','sinh(x)','cosh(x)'],
+      tanh:['tanh(x)','sech²(x)','−2sech²tanh(x)'],
+    }
+  };
+  if(labels[id]&&labels[id][fn]){
+    const [fl,d1l,d2l]=labels[id][fn];
+    const el1=document.getElementById(id+'-f-lbl');
+    const el2=document.getElementById(id+'-d1-lbl');
+    const el3=document.getElementById(id+'-d2-lbl');
+    if(el1)el1.textContent=fl;
+    if(el2)el2.textContent=d1l;
+    if(el3)el3.textContent=d2l;
+  }
+}
+
+// ══ TOGGLE ══
+function toggleCurve(id, which){
+  const r=RULES[id];
+  const key=which==='F'?'F':which==='D1'?'D1':'D2';
+  r.show[key]=!r.show[key];
+  const btnId=`${id}-tog${which}`;
+  document.getElementById(btnId).classList.toggle('off',!r.show[key]);
+  drawRule(id);
+}
+
+// ══ ZOOM / PAN ══
+function zoom(id, factor, cx=0.5){
+  const v=RULES[id].view;
+  const mid=v.xMin+(v.xMax-v.xMin)*cx;
+  const hw=(v.xMax-v.xMin)*factor/2;
+  v.xMin=mid-hw; v.xMax=mid+hw;
+  v.yMin=null; // recompute y on zoom
+  drawRule(id);
+}
+function resetZoom(id){
+  const dflt={power:[-3,3],exp:[-3,3],log:[0.05,6],trig:[-2*Math.PI,2*Math.PI],invtrig:[-4,4],hyp:[-3,3]};
+  const [lo,hi]=dflt[id];
+  RULES[id].view={xMin:lo,xMax:hi,yMin:null,yMax:null};
+  drawRule(id);
+}
+
+// Wheel zoom
+document.querySelectorAll('canvas.gc').forEach(canvas=>{
+  const id=canvas.id.replace('-canvas','');
+  canvas.addEventListener('wheel',e=>{
+    e.preventDefault();
+    const rect=canvas.getBoundingClientRect();
+    const fx=(e.clientX-rect.left)/rect.width;
+    zoom(id, e.deltaY>0?1.13:0.88, fx);
+  },{passive:false});
+
+  // Pan
+  canvas.style.cursor='grab';
+  canvas.addEventListener('mousedown',e=>{
+    const r=RULES[id];
+    r.pan={active:true,sx:e.clientX,sy:e.clientY,sv:{...r.view}};
+    canvas.style.cursor='grabbing';
+    e.preventDefault();
+  });
+  canvas.addEventListener('mousemove',e=>{
+    const r=RULES[id];
+    // Hover readout
+    if(r.canvas.width&&r.view.yMax!==null){
+      const rect=canvas.getBoundingClientRect();
+      const x=r.view.xMin+(r.view.xMax-r.view.xMin)*(e.clientX-rect.left)/rect.width;
+      const fv=r.fns.f(x,r.params);
+      const d1v=r.fns.d1(x,r.params);
+      const d2v=r.fns.d2(x,r.params);
+      const fmt=v=>isFinite(v)?parseFloat(v.toFixed(4)):' —';
+      r.readout.textContent=`x=${x.toFixed(3)}  f=${fmt(fv)}  f′=${fmt(d1v)}  f″=${fmt(d2v)}`;
+    }
+    // Pan
+    if(r.pan.active){
+      const rect=canvas.getBoundingClientRect();
+      const dx=(e.clientX-r.pan.sx)/rect.width*(r.pan.sv.xMax-r.pan.sv.xMin);
+      const sv=r.pan.sv;
+      r.view.xMin=sv.xMin-dx; r.view.xMax=sv.xMax-dx;
+      if(sv.yMin!==null){
+        const dy=(e.clientY-r.pan.sy)/rect.height*(sv.yMax-sv.yMin);
+        r.view.yMin=sv.yMin+dy; r.view.yMax=sv.yMax+dy;
+      }
+      drawRule(id);
+    }
+  });
+  canvas.addEventListener('mouseup',()=>{RULES[id].pan.active=false;canvas.style.cursor='grab';});
+  canvas.addEventListener('mouseleave',()=>{RULES[id].pan.active=false;canvas.style.cursor='grab';});
+});
+
+// ══ DRAWING ══
+const nT=(r,t)=>{if(r<=0)return 1;const e=Math.floor(Math.log10(r/t));const m=(r/t)/Math.pow(10,e);return(m<1.5?1:m<3.5?2:m<7.5?5:10)*Math.pow(10,e)};
+const r3=v=>isFinite(v)?parseFloat(v.toFixed(3)):null;
+
+function drawGrid(ctx,W,H,xMin,xMax,yMin,yMax){
+  const yR=yMax-yMin,xR=xMax-xMin;
+  const tcx=x=>(x-xMin)/xR*W;
+  const tcy=y=>H-(y-yMin)/yR*H;
+
+  // Grid
+  ctx.strokeStyle='#111626';ctx.lineWidth=1;
+  const xSt=nT(xR,10),ySt=nT(yR,7);
+  ctx.font='9px JetBrains Mono';
+  for(let x=Math.ceil(xMin/xSt)*xSt;x<=xMax+1e-9;x+=xSt){
+    const px=tcx(x);ctx.beginPath();ctx.moveTo(px,0);ctx.lineTo(px,H);ctx.strokeStyle='#111626';ctx.stroke();
+    if(Math.abs(x)>xSt*0.01){ctx.fillStyle='#3a4270';ctx.fillText(parseFloat(x.toFixed(3)),px+2,H-4);}
+  }
+  for(let y=Math.ceil(yMin/ySt)*ySt;y<=yMax+1e-9;y+=ySt){
+    const py=tcy(y);ctx.beginPath();ctx.moveTo(0,py);ctx.lineTo(W,py);ctx.strokeStyle='#111626';ctx.stroke();
+    if(Math.abs(y)>ySt*0.01){ctx.fillStyle='#3a4270';ctx.fillText(parseFloat(y.toFixed(3)),4,py-3);}
+  }
+
+  // Axes — bright white
+  const ax=Math.max(1,Math.min(W-1,tcx(0))), ay=Math.max(1,Math.min(H-1,tcy(0)));
+  ctx.strokeStyle='rgba(255,255,255,.8)';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.moveTo(ax,H-1);ctx.lineTo(ax,3);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(1,ay);ctx.lineTo(W-4,ay);ctx.stroke();
+  // Arrowheads
+  ctx.fillStyle='rgba(255,255,255,.8)';
+  ctx.beginPath();ctx.moveTo(ax,1);ctx.lineTo(ax-5,11);ctx.lineTo(ax+5,11);ctx.closePath();ctx.fill();
+  ctx.beginPath();ctx.moveTo(W-1,ay);ctx.lineTo(W-11,ay-4);ctx.lineTo(W-11,ay+4);ctx.closePath();ctx.fill();
+  // Labels
+  ctx.fillStyle='rgba(255,255,255,.85)';ctx.font='bold 10px JetBrains Mono';
+  ctx.fillText('x',W-9,ay-6);ctx.fillText('y',ax+5,13);
+
+  return {tcx,tcy};
+}
+
+function drawRule(id){
+  const r=RULES[id];
+  const cv=r.canvas, ctx=r.ctx;
+  const W=cv.width, H=cv.height;
+  if(!W||!H)return;
+  const {xMin,xMax}=r.view;
+  const xR=xMax-xMin;
+  const PTS=600;
+  const p=r.params;
+
+  // Collect y values for auto-range
+  if(r.view.yMin===null){
+    let mn=Infinity,mx=-Infinity;
+    const collect=(fn)=>{
+      for(let i=0;i<=PTS;i++){
+        const x=xMin+xR*i/PTS,v=fn(x,p);
+        if(isFinite(v)&&Math.abs(v)<1e6){mn=Math.min(mn,v);mx=Math.max(mx,v);}
+      }
+    };
+    if(r.show.F) collect(r.fns.f);
+    if(r.show.D1) collect(r.fns.d1);
+    if(r.show.D2) collect(r.fns.d2);
+    if(!isFinite(mn)){mn=-2;mx=2;}
+    if(mn===mx){mn-=1;mx+=1;}
+    const pad=(mx-mn)*.15;
+    r.view.yMin=mn-pad; r.view.yMax=mx+pad;
+  }
+  const {yMin,yMax}=r.view;
+  const yR=yMax-yMin;
+
+  ctx.fillStyle='#07080f';ctx.fillRect(0,0,W,H);
+  const {tcx,tcy}=drawGrid(ctx,W,H,xMin,xMax,yMin,yMax);
+
+  function drawFn(fn, color, lw, dash=[]){
+    ctx.beginPath();ctx.strokeStyle=color;ctx.lineWidth=lw;ctx.setLineDash(dash);
+    let st=false,px0,py0;
+    for(let i=0;i<=PTS*2;i++){
+      const x=xMin+xR*i/(PTS*2);
+      const v=fn(x,p);
+      if(!isFinite(v)||Math.abs(v)>1e7){st=false;continue;}
+      const px=tcx(x),py=tcy(v);
+      // Detect near-discontinuity (vertical asymptote jump)
+      if(st&&Math.abs(py-py0)>H*1.5){st=false;}
+      if(!st){ctx.moveTo(px,py);st=true;}else ctx.lineTo(px,py);
+      px0=px;py0=py;
+    }
+    ctx.stroke();ctx.setLineDash([]);
+  }
+
+  // Gradient fill under f(x)
+  if(r.show.F){
+    ctx.beginPath();ctx.fillStyle='rgba(56,189,248,0.05)';
+    let st=false;
+    for(let i=0;i<=PTS;i++){
+      const x=xMin+xR*i/PTS,v=r.fns.f(x,p);
+      if(!isFinite(v)||Math.abs(v)>1e7){st=false;continue;}
+      if(!st){ctx.moveTo(tcx(x),tcy(0));ctx.lineTo(tcx(x),tcy(v));st=true;}else ctx.lineTo(tcx(x),tcy(v));
+    }
+    ctx.lineTo(tcx(xMax),tcy(0));ctx.closePath();ctx.fill();
+  }
+
+  if(r.show.D2) drawFn(r.fns.d2,'#fb923c',1.4,[5,4]);
+  if(r.show.D1) drawFn(r.fns.d1,'#4ade80',1.9,[3,3]);
+  if(r.show.F)  drawFn(r.fns.f, '#38bdf8',2.6);
+}
+
+// ══ RESIZE ══
+function resizeAll(){
+  document.querySelectorAll('canvas.gc').forEach(canvas=>{
+    const wrap=canvas.closest('.rule-canvas');
+    if(!wrap)return;
+    const id=canvas.id.replace('-canvas','');
+    canvas.width=wrap.clientWidth;
+    canvas.height=Math.max(240, Math.min(400, window.innerHeight * 0.4));
+    canvas.style.height=canvas.height+'px';
+    drawRule(id);
+  });
+}
+
+const ro=new ResizeObserver(()=>resizeAll());
+ro.observe(document.body);
+
+// Init all
+Object.keys(RULES).forEach(id=>updateLabels(id));
+setTimeout(resizeAll, 80);
+</script>
+</body>
+</html>
