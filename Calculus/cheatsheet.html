@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculus Cheat Sheet</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,800;1,700&family=Source+Serif+4:ital,wght@0,300;0,400;1,300&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<script>
+MathJax = {
+  tex: { inlineMath: [['\\(','\\)']], displayMath: [['\\[','\\]']] },
+  options: { skipHtmlTags: ['script','noscript','style','textarea'] }
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
+<style>
+:root {
+  --bg:     #090d13;
+  --panel:  #0f1620;
+  --panel2: #141d2e;
+  --line:   #243450;
+  --linebr: #2e4a70;
+  --gold:   #ffd040;
+  --txt:    #f5ead0;
+  --dim:    #a0bcd8;   /* MUCH brighter than before */
+  --dD:     #60d0ff;
+  --dI:     #f060e0;
+  --sky:    #55d8ff;
+  --rose:   #ff9090;
+  --lav:    #d0a8ff;
+  --teal:   #40f8c8;
+  --org:    #ffaa50;
+  --grn:    #98f048;
+  --div:    #1c3050;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{font-size:16px;}   /* UP from 13px */
+body{background:var(--bg);color:var(--txt);font-family:'Source Serif 4',Georgia,serif;font-weight:400;line-height:1.6;}
+.sheet{max-width:1600px;margin:0 auto;padding:1.2rem 1.5rem 2.5rem;}
+
+/* TITLE */
+.title-bar{display:flex;align-items:baseline;justify-content:center;gap:1.2rem;
+  padding-bottom:0.9rem;border-bottom:2px solid var(--linebr);margin-bottom:1rem;}
+.title-bar h1{font-family:'Playfair Display',serif;font-size:2.2rem;font-weight:800;color:var(--txt);}
+.title-bar h1 em{color:var(--gold);font-style:italic;}
+.title-bar span{color:var(--dim);font-size:0.85rem;letter-spacing:0.12em;text-transform:uppercase;font-weight:500;}
+.title-bar span a{
+  color:#90c0e8;text-decoration:none;padding:0.18rem 0.5rem;
+  border-radius:4px;border:1px solid transparent;cursor:pointer;
+  transition:color 0.18s,border-color 0.18s,background 0.18s;font-weight:600;
+}
+.title-bar span a:hover{color:var(--gold);border-color:var(--gold);background:rgba(255,208,64,0.08);}
+.title-bar span .sep{color:var(--linebr);margin:0 0.1rem;}
+
+/* ══════════ LIMITS ══════════ */
+.limits-wrap{border:2px solid #4a7828;border-radius:8px;overflow:hidden;margin-bottom:1rem;}
+.limits-head{
+  padding:0.6rem 1.2rem;
+  background:linear-gradient(90deg,#0e1c08 0%,#142408 100%);
+  border-bottom:2px solid #5a8830;
+  display:flex;align-items:center;gap:0.7rem;
+  font-family:'Playfair Display',serif;font-size:1.15rem;font-weight:800;
+  letter-spacing:0.12em;text-transform:uppercase;color:var(--grn);
+}
+.lbadge{width:32px;height:32px;border-radius:50%;background:rgba(152,240,72,0.22);
+  display:inline-flex;align-items:center;justify-content:center;
+  font-size:0.85rem;font-family:'JetBrains Mono',monospace;font-weight:500;color:var(--grn);}
+.lsub{font-size:0.82rem;color:#b8d8a0;font-weight:400;font-style:italic;letter-spacing:0;font-family:'Source Serif 4',serif;}
+
+.limits-grid{display:grid;grid-template-columns:repeat(4,1fr);}
+.lb{border-right:1px solid #3a5820;background:var(--panel);}
+.lb:last-child{border-right:none;}
+.lb-head{
+  padding:0.38rem 1rem;
+  background:#111a09;border-bottom:2px solid #3a5820;
+  font-family:'JetBrains Mono',monospace;font-size:0.78rem;font-weight:500;
+  letter-spacing:0.14em;text-transform:uppercase;color:var(--grn);
+  display:flex;align-items:center;gap:0.5rem;
+}
+.lb-head::before{content:'';display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--grn);}
+.lt{width:100%;border-collapse:collapse;}
+.lt tr{border-bottom:1px solid var(--line);}
+.lt tr:last-child{border-bottom:none;}
+.lt tr:hover td{background:var(--panel2);}
+.lt td{padding:0.55rem 1rem;vertical-align:middle;}
+.lt td.ll{
+  width:34%;color:#c8e0f8;    /* bright label */
+  font-size:0.82rem;font-family:'JetBrains Mono',monospace;
+  font-weight:500;letter-spacing:0.04em;
+}
+.lt td.lf{font-size:1rem;color:var(--txt);font-weight:400;}
+.lt td.ln{
+  font-size:0.75rem;color:#98c8e8;   /* bright note */
+  font-style:italic;text-align:right;padding-right:0.9rem;white-space:nowrap;
+}
+
+/* ══════════ RULES STRIP ══════════ */
+.rules-strip{display:grid;grid-template-columns:repeat(4,1fr);
+  border:2px solid var(--linebr);border-radius:8px 8px 0 0;overflow:hidden;}
+.rc{background:var(--panel2);border-right:1px solid var(--linebr);padding:0.65rem 1.1rem;}
+.rc:last-child{border-right:none;}
+.rc h4{
+  font-size:0.78rem;text-transform:uppercase;letter-spacing:0.14em;color:var(--gold);
+  font-family:'JetBrains Mono',monospace;font-weight:600;margin-bottom:0.3rem;
+}
+.rc .rf{font-size:1rem;}
+
+/* ══════════ MAIN D|I ══════════ */
+.main-wrap{border:2px solid var(--linebr);border-top:none;border-radius:0 0 8px 8px;overflow:hidden;margin-bottom:1rem;}
+
+.col-heads{display:grid;grid-template-columns:1fr 3px 1fr;}
+.ch-d{display:flex;align-items:center;gap:0.6rem;padding:0.6rem 1.2rem;
+  background:#091828;border-bottom:3px solid #3080c0;
+  font-family:'Playfair Display',serif;font-size:1.15rem;font-weight:800;
+  letter-spacing:0.12em;text-transform:uppercase;color:var(--dD);}
+.ch-i{display:flex;align-items:center;gap:0.6rem;padding:0.6rem 1.2rem;
+  background:#180928;border-bottom:3px solid #9030b0;
+  font-family:'Playfair Display',serif;font-size:1.15rem;font-weight:800;
+  letter-spacing:0.12em;text-transform:uppercase;color:var(--dI);}
+.ch-div{background:var(--div);border-bottom:3px solid var(--linebr);}
+.ch-badge{width:30px;height:30px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:1.1rem;}
+.ch-d .ch-badge{background:rgba(96,208,255,0.2);color:var(--dD);}
+.ch-i .ch-badge{background:rgba(240,96,224,0.2);color:var(--dI);}
+.ch-sub{font-size:0.8rem;color:#90b8d8;font-weight:400;font-style:italic;letter-spacing:0;font-family:'Source Serif 4',serif;}
+
+.ft{width:100%;border-collapse:collapse;}
+
+/* Category header rows */
+.ft tr.cr td{
+  padding:0.38rem 1rem;
+  font-family:'JetBrains Mono',monospace;font-size:0.82rem;font-weight:600;
+  letter-spacing:0.14em;text-transform:uppercase;
+  background:var(--panel2);border-top:2px solid var(--linebr);border-bottom:2px solid var(--linebr);
+}
+.ft tr.cr td.cdiv{background:var(--div);padding:0;width:3px;}
+.cdot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:0.5rem;vertical-align:middle;}
+
+/* Data rows */
+.ft tr.fr td{vertical-align:middle;background:var(--panel);border-bottom:1px solid var(--line);}
+.ft tr.fr:hover td{background:var(--panel2);}
+
+/* Label cell — MUCH brighter & bigger */
+.ft td.lb2{
+  padding:0.65rem 0.6rem 0.65rem 1rem;
+  color:#c0d8f0;           /* bright blue-white */
+  font-size:0.85rem;
+  font-weight:500;
+  letter-spacing:0.05em;
+  font-family:'JetBrains Mono',monospace;
+  white-space:nowrap;
+  width:16%;
+}
+/* Formula cell — bigger */
+.ft td.fm{
+  padding:0.65rem 1rem;
+  font-size:1.05rem;
+  color:var(--txt);
+  font-weight:400;
+  width:34%;
+}
+.fnt{
+  font-size:0.72rem;color:#90c0e8;   /* bright note */
+  font-style:italic;margin-left:0.5rem;white-space:nowrap;
+}
+.ft td.dv{width:3px;padding:0;background:var(--div);}
+
+/* Category colour themes */
+.cp .cdot{background:var(--sky);}   .cp .cl{color:var(--sky);}
+.ce .cdot{background:var(--rose);}  .ce .cl{color:var(--rose);}
+.cg .cdot{background:var(--lav);}   .cg .cl{color:var(--lav);}
+.ct .cdot{background:var(--teal);}  .ct .cl{color:var(--teal);}
+.ci .cdot{background:var(--org);}   .ci .cl{color:var(--org);}
+.ch .cdot{background:var(--grn);}   .ch .cl{color:var(--grn);}
+
+/* ══════════ TECHNIQUES ══════════ */
+.tech-wrap{border:2px solid var(--linebr);border-radius:8px;overflow:hidden;}
+.tech-head{
+  padding:0.6rem 1.2rem;background:var(--panel2);border-bottom:2px solid var(--linebr);
+  display:flex;align-items:center;gap:0.6rem;
+  font-family:'Playfair Display',serif;font-size:1.15rem;font-weight:800;
+  letter-spacing:0.12em;text-transform:uppercase;color:var(--gold);
+}
+.tech-grid{display:grid;grid-template-columns:repeat(4,1fr);}
+.tc{background:var(--panel);border-right:1px solid var(--linebr);padding:0.85rem 1.1rem 1rem;}
+.tc:last-child{border-right:none;}
+.tc h4{
+  font-family:'Playfair Display',serif;font-size:1rem;font-weight:800;
+  color:var(--gold);letter-spacing:0.06em;margin-bottom:0.4rem;
+  display:flex;align-items:center;gap:0.4rem;
+}
+.tc h4 .dot{width:8px;height:8px;border-radius:50%;background:var(--gold);}
+.tc .tf{font-size:0.98rem;margin-bottom:0.25rem;color:var(--txt);}
+.tc .tn{font-size:0.8rem;color:#a0c4e0;font-style:italic;line-height:1.5;margin-bottom:0.32rem;}
+.liate{color:var(--gold);font-style:normal;font-weight:600;}
+.tc table{width:100%;border-collapse:collapse;font-size:0.85rem;margin-top:0.35rem;}
+.tc table td{padding:0.28rem 0.4rem;border-bottom:1px solid var(--line);vertical-align:middle;}
+.tc table td:first-child{color:#a8c8e8;font-weight:500;}
+.tc table tr:last-child td{border-bottom:none;}
+
+.foot{text-align:center;font-size:0.78rem;color:#88a8c8;padding:0.5rem 0 0;letter-spacing:0.07em;}
+mjx-container{font-size:1em!important;vertical-align:middle;}
+@media(max-width:1000px){.limits-grid,.rules-strip,.tech-grid{grid-template-columns:1fr 1fr;}}
+@media(max-width:600px){.limits-grid,.rules-strip,.tech-grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div class="sheet">
+
+<!-- TITLE -->
+<div class="title-bar">
+  <h1>Calculus <em>Cheat Sheet</em></h1>
+  <span>
+    <a onclick="document.getElementById('sec-limits').scrollIntoView({behavior:'smooth'})">Limits</a><span class="sep"> · </span>
+    <a onclick="document.getElementById('sec-derivatives').scrollIntoView({behavior:'smooth'})">Derivatives</a><span class="sep"> · </span>
+    <a onclick="document.getElementById('sec-integrals').scrollIntoView({behavior:'smooth'})">Integrals</a><span class="sep"> · </span>
+    <a onclick="document.getElementById('sec-techniques').scrollIntoView({behavior:'smooth'})">Techniques</a>
+  </span>
+</div>
+
+<!-- ═══════════════════════ LIMITS ═══════════════════════ -->
+<div id="sec-limits" class="limits-wrap">
+  <div class="limits-head">
+    <span class="lbadge">lim</span>
+    Limits
+    <span class="lsub">&nbsp;— value \(f(x)\) approaches as \(x \to a\)</span>
+  </div>
+  <div class="limits-grid">
+
+    <div class="lb">
+      <div class="lb-head">Definition &amp; Laws</div>
+      <table class="lt">
+        <tr><td class="ll">Definition</td><td class="lf">\(\lim_{x\to a}f(x)=L\)</td><td class="ln">L &amp; R limits equal</td></tr>
+        <tr><td class="ll">Left-hand</td><td class="lf">\(\lim_{x\to a^-}f(x)\)</td><td class="ln">approach from below</td></tr>
+        <tr><td class="ll">Right-hand</td><td class="lf">\(\lim_{x\to a^+}f(x)\)</td><td class="ln">approach from above</td></tr>
+        <tr><td class="ll">Sum / Diff</td><td class="lf">\(\lim[f\pm g]=\lim f\pm\lim g\)</td><td class="ln"></td></tr>
+        <tr><td class="ll">Product</td><td class="lf">\(\lim[f\cdot g]=\lim f\cdot\lim g\)</td><td class="ln"></td></tr>
+        <tr><td class="ll">Quotient</td><td class="lf">\(\lim\tfrac{f}{g}=\tfrac{\lim f}{\lim g}\)</td><td class="ln">\(\lim g\neq0\)</td></tr>
+        <tr><td class="ll">Scalar</td><td class="lf">\(\lim[c\cdot f]=c\cdot\lim f\)</td><td class="ln"></td></tr>
+        <tr><td class="ll">Power</td><td class="lf">\(\lim[f]^n=\bigl[\lim f\bigr]^n\)</td><td class="ln"></td></tr>
+      </table>
+    </div>
+
+    <div class="lb">
+      <div class="lb-head">Standard Limits</div>
+      <table class="lt">
+        <tr><td class="ll">Sine sinc</td><td class="lf">\(\lim_{x\to 0}\tfrac{\sin x}{x}=1\)</td><td class="ln">★ key</td></tr>
+        <tr><td class="ll">Cosine/x</td><td class="lf">\(\lim_{x\to 0}\tfrac{1-\cos x}{x}=0\)</td><td class="ln"></td></tr>
+        <tr><td class="ll">Cosine/x²</td><td class="lf">\(\lim_{x\to 0}\tfrac{1-\cos x}{x^2}=\tfrac{1}{2}\)</td><td class="ln"></td></tr>
+        <tr><td class="ll">Tangent</td><td class="lf">\(\lim_{x\to 0}\tfrac{\tan x}{x}=1\)</td><td class="ln"></td></tr>
+        <tr><td class="ll">Euler e</td><td class="lf">\(\lim_{n\to\infty}\!\left(1+\tfrac{1}{n}\right)^n=e\)</td><td class="ln">★</td></tr>
+        <tr><td class="ll">e form</td><td class="lf">\(\lim_{x\to 0}(1+x)^{1/x}=e\)</td><td class="ln"></td></tr>
+        <tr><td class="ll">Exponential</td><td class="lf">\(\lim_{x\to 0}\tfrac{e^x-1}{x}=1\)</td><td class="ln"></td></tr>
+        <tr><td class="ll">Log form</td><td class="lf">\(\lim_{x\to 0}\tfrac{\ln(1+x)}{x}=1\)</td><td class="ln"></td></tr>
+      </table>
+    </div>
+
+    <div class="lb">
+      <div class="lb-head">L'Hôpital &amp; Continuity</div>
+      <table class="lt">
+        <tr><td class="ll">L'Hôpital</td><td class="lf">\(\lim\tfrac{f}{g}\overset{0/0}{=}\lim\tfrac{f'}{g'}\)</td><td class="ln">indeterminate</td></tr>
+        <tr><td class="ll">Also ∞/∞</td><td class="lf">\(\lim\tfrac{f}{g}\overset{\infty/\infty}{=}\lim\tfrac{f'}{g'}\)</td><td class="ln">repeat if needed</td></tr>
+        <tr><td class="ll">Form 0·∞</td><td class="lf">rewrite \(\tfrac{0}{1/\infty}\) or \(\tfrac{\infty}{1/0}\)</td><td class="ln"></td></tr>
+        <tr><td class="ll">Form 1^∞</td><td class="lf">\(e^{\lim(f-1)\cdot g}\)</td><td class="ln"></td></tr>
+        <tr><td class="ll">Continuous</td><td class="lf">\(\lim_{x\to a}f(x)=f(a)\)</td><td class="ln">3 conditions</td></tr>
+        <tr><td class="ll">Squeeze</td><td class="lf">\(g\le f\le h,\;\lim g=\lim h=L\Rightarrow\lim f=L\)</td><td class="ln"></td></tr>
+        <tr><td class="ll">IVT</td><td class="lf">cts on \([a,b]\) ⟹ hits all vals</td><td class="ln"></td></tr>
+        <tr><td class="ll">x·ln x</td><td class="lf">\(\lim_{x\to0^+}x\ln x=0\)</td><td class="ln"></td></tr>
+      </table>
+    </div>
+
+    <div class="lb">
+      <div class="lb-head">Infinity &amp; Special</div>
+      <table class="lt">
+        <tr><td class="ll">ln x / x</td><td class="lf">\(\lim_{x\to\infty}\tfrac{\ln x}{x}=0\)</td><td class="ln"></td></tr>
+        <tr><td class="ll">xⁿ / eˣ</td><td class="lf">\(\lim_{x\to\infty}\tfrac{x^n}{e^x}=0\)</td><td class="ln">all n</td></tr>
+        <tr><td class="ll">Poly ratio</td><td class="lf">\(\lim_{x\to\infty}\tfrac{a_nx^n}{b_mx^m}\) compare \(n,m\)</td><td class="ln"></td></tr>
+        <tr><td class="ll">aˣ growth</td><td class="lf">\(\lim_{x\to\infty}a^x=\infty\)</td><td class="ln">a&gt;1</td></tr>
+        <tr><td class="ll">aˣ decay</td><td class="lf">\(\lim_{x\to\infty}a^x=0\)</td><td class="ln">0&lt;a&lt;1</td></tr>
+        <tr><td class="ll">Compound</td><td class="lf">\(\lim_{n\to\infty}\!\left(1+\tfrac{r}{n}\right)^n=e^r\)</td><td class="ln">★</td></tr>
+        <tr><td class="ll">arctan ∞</td><td class="lf">\(\lim_{x\to\infty}\arctan x=\tfrac{\pi}{2}\)</td><td class="ln"></td></tr>
+        <tr><td class="ll">arctan −∞</td><td class="lf">\(\lim_{x\to-\infty}\arctan x=-\tfrac{\pi}{2}\)</td><td class="ln"></td></tr>
+      </table>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════ RULES ═══════════════════════ -->
+<div id="sec-derivatives" class="rules-strip">
+  <div class="rc"><h4>Linearity</h4><div class="rf">\(\tfrac{d}{dx}[af+bg]=af'+bg'\)</div></div>
+  <div class="rc"><h4>Product Rule</h4><div class="rf">\(\tfrac{d}{dx}[fg]=f'g+fg'\)</div></div>
+  <div class="rc"><h4>Quotient Rule</h4><div class="rf">\(\tfrac{d}{dx}\!\left[\tfrac{f}{g}\right]=\tfrac{f'g-fg'}{g^2}\)</div></div>
+  <div class="rc"><h4>Chain Rule</h4><div class="rf">\(\tfrac{d}{dx}f(g(x))=f'(g)\cdot g'(x)\)</div></div>
+</div>
+
+<!-- ═══════════════════════ D | I TABLE ═══════════════════════ -->
+<div class="main-wrap">
+  <div class="col-heads">
+    <div class="ch-d"><span class="ch-badge">∂</span>Derivatives<span class="ch-sub">\(\;f'(x)=\tfrac{d}{dx}f(x)\)</span></div>
+    <div class="ch-div"></div>
+    <div id="sec-integrals" class="ch-i"><span class="ch-badge">∫</span>Integrals<span class="ch-sub">\(\;\int f(x)\,dx=F(x)+C\)</span></div>
+  </div>
+
+  <table class="ft">
+
+    <!-- POWER -->
+    <tr class="cr cp"><td colspan="2"><span class="cdot"></span><span class="cl">Power &amp; Algebraic</span></td><td class="cdiv"></td><td colspan="2"><span class="cdot"></span><span class="cl">Power &amp; Algebraic</span></td></tr>
+    <tr class="fr"><td class="lb2">Power Rule</td><td class="fm">\(\tfrac{d}{dx}x^n = nx^{n-1}\)<span class="fnt">all n</span></td><td class="dv"></td><td class="lb2">Power Rule</td><td class="fm">\(\int x^n\,dx = \tfrac{x^{n+1}}{n+1}\)<span class="fnt">n≠−1</span></td></tr>
+    <tr class="fr"><td class="lb2">Constant</td><td class="fm">\(\tfrac{d}{dx}\,c = 0\)</td><td class="dv"></td><td class="lb2">Constant</td><td class="fm">\(\int k\,dx = kx\)</td></tr>
+    <tr class="fr"><td class="lb2">Square Root</td><td class="fm">\(\tfrac{d}{dx}\sqrt{x} = \tfrac{1}{2\sqrt{x}}\)<span class="fnt">x&gt;0</span></td><td class="dv"></td><td class="lb2">Square Root</td><td class="fm">\(\int\sqrt{x}\,dx = \tfrac{2}{3}x^{3/2}\)</td></tr>
+    <tr class="fr"><td class="lb2">Reciprocal</td><td class="fm">\(\tfrac{d}{dx}\tfrac{1}{x} = -\tfrac{1}{x^2}\)<span class="fnt">x≠0</span></td><td class="dv"></td><td class="lb2">Reciprocal 1/x</td><td class="fm">\(\int\tfrac{1}{x}\,dx = \ln|x|\)<span class="fnt">x≠0</span></td></tr>
+
+    <!-- EXPONENTIAL -->
+    <tr class="cr ce"><td colspan="2"><span class="cdot"></span><span class="cl">Exponential</span></td><td class="cdiv"></td><td colspan="2"><span class="cdot"></span><span class="cl">Exponential</span></td></tr>
+    <tr class="fr"><td class="lb2">Natural eˣ</td><td class="fm">\(\tfrac{d}{dx}e^x = e^x\)</td><td class="dv"></td><td class="lb2">Natural eˣ</td><td class="fm">\(\int e^x\,dx = e^x\)</td></tr>
+    <tr class="fr"><td class="lb2">General aˣ</td><td class="fm">\(\tfrac{d}{dx}a^x = a^x\ln a\)<span class="fnt">a&gt;0</span></td><td class="dv"></td><td class="lb2">General aˣ</td><td class="fm">\(\int a^x\,dx = \tfrac{a^x}{\ln a}\)<span class="fnt">a&gt;0</span></td></tr>
+    <tr class="fr"><td class="lb2">Composed e^f</td><td class="fm">\(\tfrac{d}{dx}e^{f(x)} = e^{f(x)}f'(x)\)</td><td class="dv"></td><td class="lb2">Scaled eᵃˣ</td><td class="fm">\(\int e^{ax}\,dx = \tfrac{e^{ax}}{a}\)<span class="fnt">a≠0</span></td></tr>
+
+    <!-- LOG -->
+    <tr class="cr cg"><td colspan="2"><span class="cdot"></span><span class="cl">Logarithm</span></td><td class="cdiv"></td><td colspan="2"><span class="cdot"></span><span class="cl">Logarithm</span></td></tr>
+    <tr class="fr"><td class="lb2">ln x</td><td class="fm">\(\tfrac{d}{dx}\ln x = \tfrac{1}{x}\)<span class="fnt">x&gt;0</span></td><td class="dv"></td><td class="lb2">ln x</td><td class="fm">\(\int\ln x\,dx = x\ln x - x\)</td></tr>
+    <tr class="fr"><td class="lb2">|abs| log</td><td class="fm">\(\tfrac{d}{dx}\ln|x| = \tfrac{1}{x}\)<span class="fnt">x≠0</span></td><td class="dv"></td><td class="lb2">log<sub>a</sub> x</td><td class="fm">\(\int\log_a x\,dx = \tfrac{x\ln x-x}{\ln a}\)</td></tr>
+    <tr class="fr"><td class="lb2">log<sub>a</sub> x</td><td class="fm">\(\tfrac{d}{dx}\log_a x = \tfrac{1}{x\ln a}\)</td><td class="dv"></td><td class="lb2">x · ln x</td><td class="fm">\(\int x\ln x\,dx = \tfrac{x^2}{2}\ln x - \tfrac{x^2}{4}\)</td></tr>
+    <tr class="fr"><td class="lb2">Composed</td><td class="fm">\(\tfrac{d}{dx}\ln f(x) = \tfrac{f'(x)}{f(x)}\)</td><td class="dv"></td><td class="lb2">(ln x)/x</td><td class="fm">\(\int\tfrac{\ln x}{x}\,dx = \tfrac{(\ln x)^2}{2}\)</td></tr>
+    <tr class="fr"><td class="lb2">xˣ</td><td class="fm">\(\tfrac{d}{dx}x^x = x^x(\ln x+1)\)<span class="fnt">log diff.</span></td><td class="dv"></td><td class="lb2">1/(x ln x)</td><td class="fm">\(\int\tfrac{1}{x\ln x}\,dx = \ln|\ln x|\)</td></tr>
+
+    <!-- TRIG BASIC -->
+    <tr class="cr ct"><td colspan="2"><span class="cdot"></span><span class="cl">Trigonometric — Basic</span></td><td class="cdiv"></td><td colspan="2"><span class="cdot"></span><span class="cl">Trigonometric — Basic</span></td></tr>
+    <tr class="fr"><td class="lb2">sin x</td><td class="fm">\(\tfrac{d}{dx}\sin x = \cos x\)</td><td class="dv"></td><td class="lb2">sin x</td><td class="fm">\(\int\sin x\,dx = -\cos x\)</td></tr>
+    <tr class="fr"><td class="lb2">cos x</td><td class="fm">\(\tfrac{d}{dx}\cos x = -\sin x\)</td><td class="dv"></td><td class="lb2">cos x</td><td class="fm">\(\int\cos x\,dx = \sin x\)</td></tr>
+    <tr class="fr"><td class="lb2">tan x</td><td class="fm">\(\tfrac{d}{dx}\tan x = \sec^2 x\)</td><td class="dv"></td><td class="lb2">tan x</td><td class="fm">\(\int\tan x\,dx = \ln|\sec x|\)</td></tr>
+    <tr class="fr"><td class="lb2">cot x</td><td class="fm">\(\tfrac{d}{dx}\cot x = -\csc^2 x\)</td><td class="dv"></td><td class="lb2">cot x</td><td class="fm">\(\int\cot x\,dx = \ln|\sin x|\)</td></tr>
+    <tr class="fr"><td class="lb2">sec x</td><td class="fm">\(\tfrac{d}{dx}\sec x = \sec x\tan x\)</td><td class="dv"></td><td class="lb2">sec x</td><td class="fm">\(\int\sec x\,dx = \ln|\sec x+\tan x|\)</td></tr>
+    <tr class="fr"><td class="lb2">csc x</td><td class="fm">\(\tfrac{d}{dx}\csc x = -\csc x\cot x\)</td><td class="dv"></td><td class="lb2">csc x</td><td class="fm">\(\int\csc x\,dx = \ln|\csc x-\cot x|\)</td></tr>
+
+    <!-- TRIG EXTENDED -->
+    <tr class="cr ct"><td colspan="2"><span class="cdot"></span><span class="cl">Trigonometric — Extended</span></td><td class="cdiv"></td><td colspan="2"><span class="cdot"></span><span class="cl">Trigonometric — Powers &amp; Products</span></td></tr>
+    <tr class="fr"><td class="lb2">sin²x</td><td class="fm">\(\tfrac{d}{dx}\sin^2 x = \sin 2x\)</td><td class="dv"></td><td class="lb2">sec²x</td><td class="fm">\(\int\sec^2 x\,dx = \tan x\)</td></tr>
+    <tr class="fr"><td class="lb2">cos²x</td><td class="fm">\(\tfrac{d}{dx}\cos^2 x = -\sin 2x\)</td><td class="dv"></td><td class="lb2">csc²x</td><td class="fm">\(\int\csc^2 x\,dx = -\cot x\)</td></tr>
+    <tr class="fr"><td class="lb2">sin(ax)</td><td class="fm">\(\tfrac{d}{dx}\sin(ax) = a\cos(ax)\)</td><td class="dv"></td><td class="lb2">sec x tan x</td><td class="fm">\(\int\sec x\tan x\,dx = \sec x\)</td></tr>
+    <tr class="fr"><td class="lb2">cos(ax)</td><td class="fm">\(\tfrac{d}{dx}\cos(ax) = -a\sin(ax)\)</td><td class="dv"></td><td class="lb2">csc x cot x</td><td class="fm">\(\int\csc x\cot x\,dx = -\csc x\)</td></tr>
+    <tr class="fr"><td class="lb2">tan(ax)</td><td class="fm">\(\tfrac{d}{dx}\tan(ax) = a\sec^2(ax)\)</td><td class="dv"></td><td class="lb2">sin²x</td><td class="fm">\(\int\sin^2 x\,dx = \tfrac{x}{2}-\tfrac{\sin 2x}{4}\)</td></tr>
+    <tr class="fr"><td class="lb2">e^(sin x)</td><td class="fm">\(\tfrac{d}{dx}e^{\sin x} = e^{\sin x}\cos x\)</td><td class="dv"></td><td class="lb2">cos²x</td><td class="fm">\(\int\cos^2 x\,dx = \tfrac{x}{2}+\tfrac{\sin 2x}{4}\)</td></tr>
+
+    <!-- INVERSE TRIG -->
+    <tr class="cr ci"><td colspan="2"><span class="cdot"></span><span class="cl">Inverse Trigonometric</span></td><td class="cdiv"></td><td colspan="2"><span class="cdot"></span><span class="cl">Inverse Trig Standard Forms</span></td></tr>
+    <tr class="fr"><td class="lb2">arcsin x</td><td class="fm">\(\tfrac{d}{dx}\arcsin x = \tfrac{1}{\sqrt{1-x^2}}\)<span class="fnt">|x|&lt;1</span></td><td class="dv"></td><td class="lb2">arcsin form</td><td class="fm">\(\int\tfrac{dx}{\sqrt{a^2-x^2}} = \arcsin\tfrac{x}{a}\)<span class="fnt">|x|&lt;a</span></td></tr>
+    <tr class="fr"><td class="lb2">arccos x</td><td class="fm">\(\tfrac{d}{dx}\arccos x = -\tfrac{1}{\sqrt{1-x^2}}\)<span class="fnt">|x|&lt;1</span></td><td class="dv"></td><td class="lb2">arctan form</td><td class="fm">\(\int\tfrac{dx}{a^2+x^2} = \tfrac{1}{a}\arctan\tfrac{x}{a}\)</td></tr>
+    <tr class="fr"><td class="lb2">arctan x</td><td class="fm">\(\tfrac{d}{dx}\arctan x = \tfrac{1}{1+x^2}\)</td><td class="dv"></td><td class="lb2">arcsec form</td><td class="fm">\(\int\tfrac{dx}{x\sqrt{x^2-a^2}} = \tfrac{1}{a}\text{arcsec}\tfrac{|x|}{a}\)</td></tr>
+    <tr class="fr"><td class="lb2">arccot x</td><td class="fm">\(\tfrac{d}{dx}\text{arccot}\,x = -\tfrac{1}{1+x^2}\)</td><td class="dv"></td><td class="lb2">arcsin x</td><td class="fm">\(\int\arcsin x\,dx = x\arcsin x+\sqrt{1-x^2}\)</td></tr>
+    <tr class="fr"><td class="lb2">arcsec x</td><td class="fm">\(\tfrac{d}{dx}\text{arcsec}\,x = \tfrac{1}{|x|\sqrt{x^2-1}}\)<span class="fnt">|x|&gt;1</span></td><td class="dv"></td><td class="lb2">arctan x</td><td class="fm">\(\int\arctan x\,dx = x\arctan x-\tfrac{1}{2}\ln(1+x^2)\)</td></tr>
+    <tr class="fr"><td class="lb2">arccsc x</td><td class="fm">\(\tfrac{d}{dx}\text{arccsc}\,x = -\tfrac{1}{|x|\sqrt{x^2-1}}\)<span class="fnt">|x|&gt;1</span></td><td class="dv"></td><td class="lb2">arccos x</td><td class="fm">\(\int\arccos x\,dx = x\arccos x-\sqrt{1-x^2}\)</td></tr>
+
+    <!-- HYPERBOLIC -->
+    <tr class="cr ch"><td colspan="2"><span class="cdot"></span><span class="cl">Hyperbolic</span></td><td class="cdiv"></td><td colspan="2"><span class="cdot"></span><span class="cl">Hyperbolic</span></td></tr>
+    <tr class="fr"><td class="lb2">sinh x</td><td class="fm">\(\tfrac{d}{dx}\sinh x = \cosh x\)</td><td class="dv"></td><td class="lb2">sinh x</td><td class="fm">\(\int\sinh x\,dx = \cosh x\)</td></tr>
+    <tr class="fr"><td class="lb2">cosh x</td><td class="fm">\(\tfrac{d}{dx}\cosh x = \sinh x\)</td><td class="dv"></td><td class="lb2">cosh x</td><td class="fm">\(\int\cosh x\,dx = \sinh x\)</td></tr>
+    <tr class="fr"><td class="lb2">tanh x</td><td class="fm">\(\tfrac{d}{dx}\tanh x = \text{sech}^2 x\)</td><td class="dv"></td><td class="lb2">tanh x</td><td class="fm">\(\int\tanh x\,dx = \ln(\cosh x)\)</td></tr>
+    <tr class="fr"><td class="lb2">coth x</td><td class="fm">\(\tfrac{d}{dx}\coth x = -\text{csch}^2 x\)</td><td class="dv"></td><td class="lb2">coth x</td><td class="fm">\(\int\coth x\,dx = \ln|\sinh x|\)</td></tr>
+    <tr class="fr"><td class="lb2">sech x</td><td class="fm">\(\tfrac{d}{dx}\text{sech}\,x = -\text{sech}\,x\tanh x\)</td><td class="dv"></td><td class="lb2">sech²x</td><td class="fm">\(\int\text{sech}^2 x\,dx = \tanh x\)</td></tr>
+    <tr class="fr"><td class="lb2">csch x</td><td class="fm">\(\tfrac{d}{dx}\text{csch}\,x = -\text{csch}\,x\coth x\)</td><td class="dv"></td><td class="lb2">csch²x</td><td class="fm">\(\int\text{csch}^2 x\,dx = -\coth x\)</td></tr>
+
+  </table>
+</div>
+
+<!-- ═══════════════════════ TECHNIQUES ═══════════════════════ -->
+<div id="sec-techniques" class="tech-wrap">
+  <div class="tech-head">⟳ &nbsp;Integration Techniques</div>
+  <div class="tech-grid">
+
+    <div class="tc">
+      <h4><span class="dot"></span>u-Substitution</h4>
+      <div class="tf">\(\int f(g(x))g'(x)\,dx = \int f(u)\,du\)</div>
+      <div class="tn">Set \(u=g(x)\), \(du=g'(x)\,dx\). Change limits for definite integrals.</div>
+      <table>
+        <tr><td>Pattern</td><td>Substitution</td></tr>
+        <tr><td>\(\sqrt{a^2-x^2}\)</td><td>\(x=a\sin\theta\)</td></tr>
+        <tr><td>\(\sqrt{a^2+x^2}\)</td><td>\(x=a\tan\theta\)</td></tr>
+        <tr><td>\(\sqrt{x^2-a^2}\)</td><td>\(x=a\sec\theta\)</td></tr>
+        <tr><td>\(f(\ln x)/x\)</td><td>\(u=\ln x\)</td></tr>
+        <tr><td>\(f(\sin x)\cos x\)</td><td>\(u=\sin x\)</td></tr>
+      </table>
+    </div>
+
+    <div class="tc">
+      <h4><span class="dot"></span>Integration by Parts</h4>
+      <div class="tf">\(\int u\,dv = uv - \int v\,du\)</div>
+      <div class="tn"><span class="liate">LIATE</span> — choose \(u\) as: <span class="liate">L</span>og · <span class="liate">I</span>nv.trig · <span class="liate">A</span>lgebraic · <span class="liate">T</span>rig · <span class="liate">E</span>xp</div>
+      <table>
+        <tr><td>Integral</td><td>\(u\) =</td></tr>
+        <tr><td>\(\int xe^x\,dx\)</td><td>\(x\)</td></tr>
+        <tr><td>\(\int x\sin x\,dx\)</td><td>\(x\)</td></tr>
+        <tr><td>\(\int\ln x\,dx\)</td><td>\(\ln x\)</td></tr>
+        <tr><td>\(\int x^2e^x\,dx\)</td><td>\(x^2\) (×2 times)</td></tr>
+        <tr><td>\(\int e^x\sin x\,dx\)</td><td>cyclic → solve</td></tr>
+      </table>
+    </div>
+
+    <div class="tc">
+      <h4><span class="dot"></span>Partial Fractions</h4>
+      <div class="tf">\(\int\tfrac{P(x)}{Q(x)}\,dx\quad\deg P < \deg Q\)</div>
+      <div class="tn">Perform long division first if \(\deg P \ge \deg Q\).</div>
+      <table>
+        <tr><td>Factor in Q</td><td>Partial form</td></tr>
+        <tr><td>\((ax+b)\)</td><td>\(\tfrac{A}{ax+b}\)</td></tr>
+        <tr><td>\((ax+b)^n\)</td><td>\(\sum_{k=1}^n\tfrac{A_k}{(ax+b)^k}\)</td></tr>
+        <tr><td>\((ax^2+bx+c)\)</td><td>\(\tfrac{Ax+B}{ax^2+bx+c}\)</td></tr>
+        <tr><td>Repeated quad.</td><td>\(\sum_k\tfrac{A_kx+B_k}{(\cdots)^k}\)</td></tr>
+      </table>
+    </div>
+
+    <div class="tc">
+      <h4><span class="dot"></span>Reduction &amp; Special</h4>
+      <div class="tf">\(\int\sin^n x\,dx = -\tfrac{\sin^{n-1}x\cos x}{n}+\tfrac{n-1}{n}\int\sin^{n-2}x\,dx\)</div>
+      <div class="tf" style="margin-top:0.18rem;">\(\int\cos^n x\,dx = \tfrac{\cos^{n-1}x\sin x}{n}+\tfrac{n-1}{n}\int\cos^{n-2}x\,dx\)</div>
+      <div class="tf" style="margin-top:0.18rem;">\(\int x^ne^x\,dx = x^ne^x - n\int x^{n-1}e^x\,dx\)</div>
+      <table style="margin-top:0.28rem;">
+        <tr><td>Gaussian</td><td>\(\int_{-\infty}^{\infty}e^{-x^2}dx=\sqrt{\pi}\)</td></tr>
+        <tr><td>Sinc</td><td>\(\int_0^{\infty}\tfrac{\sin x}{x}dx=\tfrac{\pi}{2}\)</td></tr>
+        <tr><td>Gamma</td><td>\(\Gamma(n)=\int_0^\infty t^{n-1}e^{-t}dt\)</td></tr>
+        <tr><td>Beta</td><td>\(B(m,n)=\int_0^1 t^{m-1}(1-t)^{n-1}dt\)</td></tr>
+      </table>
+    </div>
+
+  </div>
+</div>
+
+<div class="foot">All indefinite integrals imply \(+\,C\) &nbsp;·&nbsp; Formulae assume appropriate domains &nbsp;·&nbsp; \(\lim\;\partial\;\int\;\Sigma\)</div>
+
+</div>
+</body>
+</html>
